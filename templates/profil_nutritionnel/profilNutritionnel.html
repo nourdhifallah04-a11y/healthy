@@ -1,0 +1,280 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>GreenPlate | Profil Nutritionnel</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- CSS personnalisé -->
+    <link rel="stylesheet" href="{% static 'profil_nutritionnel/profil.css' %}">
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="navbar">
+    <div class="logo">
+        <i class="fas fa-seedling"></i>
+        Green<span>Plate</span>
+    </div>
+    <div class="menu-toggle" id="mobileMenu">
+        <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="{% url 'acceuil' %}" class="active" data-link="home">Accueil</a></li>
+        <li><a href="{% url 'menu' %}" data-link="menu">Menu</a></li>
+        <li><a href="{% url 'specialdiet' %}" data-link="recettes">Special Diet</a></li>
+        <li><a href="{% url 'contact' %}" data-link="contact">Contact</a></li>
+        
+        {% if user.is_authenticated %}
+        <!-- Profile Dropdown (logged in) -->
+        <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle d-flex align-items-center btn btn-link" id="profilMenu" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; background: none; padding: 0; text-decoration: none; gap: 0.5rem;">
+                <img src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=2E4A2F&color=fff{% endif %}" class="rounded-circle me-1" width="40" height="40" alt="avatar" style="object-fit: cover;">
+                <span class="d-none d-sm-inline" style="color: var(--vert-feuille); font-weight: 500;">{{ user.first_name|default:user.username }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profilMenu">
+                <li><h6 class="dropdown-header"><i class="bi bi-envelope me-2" style="color: var(--vert-sauge);"></i>{{ user.email }}</h6></li>
+                <li><hr class="dropdown-divider"></li>
+                
+                <li>
+                    <a class="dropdown-item" href="{% url 'profil_list' %}">
+                        <i class="bi bi-person-circle"></i> Mon profil
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'profilNutritionnel' %}">
+                        <i class="bi bi-gear"></i> Profil nutritionnel
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <i class="bi bi-heart"></i> Mes favoris
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#">
+                        <i class="bi bi-clock-history"></i> Historique
+                    </a>
+                </li>
+                
+                <li><hr class="dropdown-divider"></li>
+                
+                <li>
+                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                        <i class="bi bi-box-arrow-right"></i> Se déconnecter
+                    </a>
+                </li>
+            </ul>
+        </li>
+        {% else %}
+        <!-- Login/Register buttons (not logged in) -->
+        <li class="nav-item">
+            <a href="{% url 'login' %}" class="nav-link btn-login-navbar">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Se connecter
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</header>
+
+<div class="container">
+    <!-- En-tête de page -->
+    <div class="page-header">
+        <h1>Mon Profil <span class="highlight">Nutritionnel</span></h1>
+        <p>Ces informations permettent à notre IA de personnaliser vos menus</p>
+    </div>
+
+    <!-- Formulaire Profil Nutritionnel -->
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-apple-alt"></i>
+                </div>
+                <h2>Informations personnelles</h2>
+                <p>Complétez votre profil pour une expérience sur mesure</p>
+            </div>
+
+            <form id="profilForm">
+                <!-- Section Informations de base -->
+                <div class="form-section">
+                    <h3><i class="fas fa-user"></i> Informations de base</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-alt"></i> Âge</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="age" placeholder="Ex: 25" min="10" max="120">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-weight-scale"></i> Poids (kg)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="weight" placeholder="Ex: 70" step="0.1" min="20" max="300">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-ruler"></i> Taille (cm)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="height" placeholder="Ex: 175" min="100" max="250">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-venus-mars"></i> Sexe</label>
+                            <div class="input-wrapper">
+                                <select id="gender">
+                                    <option value="">Sélectionner</option>
+                                    <option value="homme">Homme</option>
+                                    <option value="femme">Femme</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Objectif Santé -->
+                <div class="form-section">
+                    <h3><i class="fas fa-bullseye"></i> Objectif santé</h3>
+                    <div class="form-group full-width">
+                        <div class="input-wrapper">
+                            <select id="goal">
+                                <option value="">Sélectionner votre objectif</option>
+                                <option value="perte">Perte de poids</option>
+                                <option value="maintien">Maintien / Équilibre</option>
+                                <option value="muscle">Prise de masse musculaire</option>
+                                <option value="bien-etre">Bien-être général</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Niveau d'activité -->
+                <div class="form-section">
+                    <h3><i class="fas fa-heartbeat"></i> Niveau d'activité physique</h3>
+                    <div class="form-group full-width">
+                        <div class="input-wrapper">
+                            <select id="activity">
+                                <option value="">Sélectionner votre niveau</option>
+                                <option value="sedentaire">Sédentaire (peu ou pas d'exercice)</option>
+                                <option value="leger">Légèrement actif (1-2 jours/semaine)</option>
+                                <option value="modere">Modérément actif (3-4 jours/semaine)</option>
+                                <option value="actif">Actif (5-6 jours/semaine)</option>
+                                <option value="tres-actif">Très actif (7 jours/semaine)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Allergies  -->
+                <div class="form-section">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Allergies</h3>
+                    <div class="checkbox-grid">
+                        <label class="check-item">
+                            <input type="checkbox" value="gluten"> Sans Gluten
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="lactose"> Sans Lactose
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="vegan"> Vegan
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="vegetarien"> Végétarien
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="noix"> Noix
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="fruits-mer"> Fruits de mer
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="oeufs"> Œufs
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="soja"> Soja
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Section restrictions alimentaires -->
+                <div class="form-section">
+                    <h3><i class="fas fa-utensils"></i> Restrictions alimentaires</h3>
+                    <div class="checkbox-grid">
+                        <label class="check-item">
+                            <input type="checkbox" value="halal"> Halal
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="sans-sucre"> Sans sucre ajouté
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="low-carb"> Low Carb
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="high-protein"> High Protein
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Section Résultats IMC -->
+                <div class="form-section imc-section">
+                    <h3><i class="fas fa-calculator"></i> Votre IMC</h3>
+                    <div class="imc-result" id="imcResult">
+                        <div class="imc-value">
+                            <span id="imcValue">--</span>
+                            <small>kg/m²</small>
+                        </div>
+                        <div class="imc-status" id="imcStatus">
+                            <span>Entrez votre poids et taille</span>
+                        </div>
+                    </div>
+                    <div class="imc-scale">
+                        <div class="scale-bar">
+                            <div class="scale-segment underweight">Insuffisance pondérale</div>
+                            <div class="scale-segment normal">Normal</div>
+                            <div class="scale-segment overweight">Surpoids</div>
+                            <div class="scale-segment obese">Obésité</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-save">
+                        <i class="fas fa-save"></i> Enregistrer mon profil
+                    </button>
+                    <button type="button" class="btn btn-reset" id="resetBtn">
+                        <i class="fas fa-undo-alt"></i> Réinitialiser
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>🌿 GreenPlate — Design beige & vert pour une vie saine</p>
+        <p>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-pinterest"></i></a>
+        </p>
+        <p>© 2026 GreenPlate — Tous droits réservés</p>
+    </div>
+</footer>
+
+<script src="{% static 'profil_nutritionnel/profil.js' %}"></script>
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

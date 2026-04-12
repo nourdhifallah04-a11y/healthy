@@ -1,14 +1,15 @@
-
-
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
 from decimal import Decimal
+from typing import Dict, List
+
+
 class UtilisateurManager(BaseUserManager):
     """Manager personnalisé pour utiliser l'email comme identifiant"""
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email: str, password: str = None, **extra_fields) -> "Utilisateur":
+        """Crée un utilisateur avec un email unique"""
         if not email:
             raise ValueError("L'utilisateur doit avoir un email")
         email = self.normalize_email(email)
@@ -17,7 +18,8 @@ class UtilisateurManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, email: str, password: str = None, **extra_fields) -> "Utilisateur":
+        """Crée un superutilisateur"""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
@@ -92,10 +94,16 @@ class ProfilNutritionnel(models.Model):
         ('extremement_actif', 'Extrêmement actif'),
     ]
     
+    SEXE_CHOICES = [
+        ('homme', 'Homme'),
+        ('femme', 'Femme'),
+    ]
+    
     client = models.OneToOneField(Client, on_delete=models.CASCADE, related_name='profil_nutritionnel')
     age = models.IntegerField()
     taille = models.DecimalField(max_digits=5, decimal_places=2, help_text="Taille en cm")
     poids = models.DecimalField(max_digits=5, decimal_places=2, help_text="Poids en kg")
+    sexe = models.CharField(max_length=10, choices=SEXE_CHOICES, blank=True)
     allergies = models.TextField(blank=True, help_text="Allergies alimentaires")
     objectif = models.CharField(max_length=20, choices=OBJECTIFS)
     restrictions_alimentaires = models.TextField(blank=True)
@@ -103,26 +111,24 @@ class ProfilNutritionnel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    def calculer_imc(self):
+    def calculer_imc(self) -> float:
         """Calcule l'IMC du client"""
         taille_m = float(self.taille) / 100
-        return float(self.poids) / (taille_m ** 2)
+        imc = float(self.poids) / (taille_m ** 2)
+        return round(imc, 2)
     
-    def calculer_bmr(self):
+    def calculer_bmr(self) -> float:
         """Calcule le métabolisme de base (Formule de Harris-Benedict)"""
-        if self.client.utilisateur.is_superuser:
-            return 0  # À implémenter selon le sexe
-        
         poids_kg = float(self.poids)
         taille_cm = float(self.taille)
         age_ans = self.age
         
-        # Formule pour homme par défaut
+        # Formule pour homme (à améliorer selon le sexe)
         bmr = 88.362 + (13.397 * poids_kg) + (4.799 * taille_cm) - (5.677 * age_ans)
         return round(bmr, 2)
     
-    def besoins_caloriques_journaliers(self):
-        """Calcule les besoins caloriques journaliers"""
+    def besoins_caloriques_journaliers(self) -> float:
+        """Calcule les besoins caloriques journaliers basés sur le métabolisme et l'activité"""
         bmr = self.calculer_bmr()
         facteurs = {
             'sedentaire': 1.2,
@@ -134,6 +140,7 @@ class ProfilNutritionnel(models.Model):
         
         facteur = facteurs.get(self.niveau_activite, 1.55)
         
+        # Ajustement selon l'objectif
         if self.objectif == 'perte_poids':
             facteur -= 0.2
         elif self.objectif == 'prise_muscle':
@@ -159,7 +166,7 @@ class Plat(models.Model):
     image = models.ImageField(upload_to='plats/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-    def afficher_detail(self):
+    def afficher_detail(self) -> Dict:
         """Affiche les détails du plat"""
         return {
             'nom': self.nom,
@@ -170,11 +177,11 @@ class Plat(models.Model):
             'prix': str(self.prix)
         }
     
-    def calculer_score_nutritionnel(self):
-        """Calcule un score nutritionnel de 0 à 100"""
+    def calculer_score_nutritionnel(self) -> int:
+        """Calcule un score nutritionnel de 0 à 100 basé sur les valeurs nutritionnelles"""
         score = 50  # Score de base
         
-        # Bonus pour les protéines
+        # Bonus pour les protéines (important pour la satiété et la musculature)
         if self.proteine > 30:
             score += 20
         elif self.proteine > 20:
@@ -186,13 +193,13 @@ class Plat(models.Model):
         elif self.calorie > 600:
             score -= 10
             
-        # Bonus pour les fibres
+        # Bonus pour les fibres (satiété et santé digestive)
         if self.fibres > 10:
             score += 15
         elif self.fibres > 5:
             score += 8
             
-        # Malus pour les lipides
+        # Malus pour les lipides saturés
         if self.lipides > 30:
             score -= 15
         elif self.lipides > 20:
@@ -214,8 +221,8 @@ class Menu(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     plats = models.ManyToManyField("Plat", related_name="menus")
 
-    def ajouter_plat(self, plat, quantite=1):
-        """Ajoute un plat au menu"""
+    def ajouter_plat(self, plat: "Plat", quantite: int = 1) -> "CompositionMenu":
+        """Ajoute un plat au menu avec gestion des quantités"""
         composition, created = CompositionMenu.objects.get_or_create(
             menu=self,
             plat=plat,
@@ -226,11 +233,11 @@ class Menu(models.Model):
             composition.save()
         return composition
     
-    def supprimer_plat(self, plat):
+    def supprimer_plat(self, plat: "Plat") -> None:
         """Supprime un plat du menu"""
         CompositionMenu.objects.filter(menu=self, plat=plat).delete()
     
-    def calculer_valeur_nutritionnelle_totale(self):
+    def calculer_valeur_nutritionnelle_totale(self) -> Dict:
         """Calcule les valeurs nutritionnelles totales du menu"""
         compositions = self.compositionmenu_set.all()
         
@@ -289,18 +296,18 @@ class Commande(models.Model):
     adresse_livraison = models.TextField(blank=True)
     notes = models.TextField(blank=True)
     
-    def valider_commande(self):
-        """Valide la commande"""
+    def valider_commande(self) -> bool:
+        """Valide la commande et change son statut"""
         if self.statut == 'panier':
             self.statut = 'confirmee'
             self.save()
             return True
         return False
     
-    def calculer_total(self):
+    def calculer_total(self) -> Decimal:
         """Calcule le total de la commande"""
         lignes = self.lignecommande_set.all()
-        total = sum(float(ligne.sous_total) for ligne in lignes)
+        total = sum(ligne.sous_total for ligne in lignes)
         self.total = total
         self.save()
         return total
@@ -329,8 +336,8 @@ class SystemeIA(models.Model):
     est_actif = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-    def analyser_preferences(self, client):
-        """Analyse les préférences du client"""
+    def analyser_preferences(self, client: "Client") -> Dict:
+        """Analyse les préférences alimentaires du client basées sur l'historique"""
         commandes = client.commandes.filter(statut='livree')
         plats_frequents = []
         categories_populaires = {}
@@ -341,7 +348,7 @@ class SystemeIA(models.Model):
                     plat = composition.plat
                     plats_frequents.append(plat)
                     
-                    # Catégorisation simple
+                    # Catégorisation par calories
                     if plat.calorie < 400:
                         categorie = 'leger'
                     elif plat.calorie < 700:
@@ -356,8 +363,8 @@ class SystemeIA(models.Model):
             'preferences': categories_populaires
         }
     
-    def recommander_menus(self, client, limite=5):
-        """Recommande des menus personnalisés"""
+    def recommander_menus(self, client: "Client", limite: int = 5) -> List["Menu"]:
+        """Recommande des menus personnalisés basés sur le profil et l'historique"""
         profil = client.profil_nutritionnel
         menus_actifs = Menu.objects.filter(est_actif=True)
         
@@ -370,7 +377,7 @@ class SystemeIA(models.Model):
             valeurs = menu.calculer_valeur_nutritionnelle_totale()
             score = 0
             
-            # Score basé sur l'objectif
+            # Score basé sur l'objectif nutritionnel
             if profil.objectif == 'perte_poids' and valeurs['calories'] < 600:
                 score += 30
             elif profil.objectif == 'prise_muscle' and valeurs['proteines'] > 30:
@@ -386,12 +393,12 @@ class SystemeIA(models.Model):
                     score += 20
                     
             # Score nutritionnel
-            score_nutritionnel = sum(valeurs['proteines'] * 2 - valeurs['lipides']) / 100
+            score_nutritionnel = (valeurs['proteines'] * 2 - valeurs['lipides']) / 100
             score += max(0, min(20, score_nutritionnel))
             
             menus_scores.append((menu, score))
         
-        # Trier par score
+        # Trier par score (décroissant) et retourner les meilleurs
         menus_scores.sort(key=lambda x: x[1], reverse=True)
         return [menu for menu, score in menus_scores[:limite]]
     

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,7 +7,7 @@
     <title>Fresh & Greens | Connexion</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="connx.css">
+    <link rel="stylesheet" href="{% static 'acceuil/connx.css' %}">
 </head>
 <body>
     <!-- ========== NAVBAR ========== -->
@@ -14,11 +15,11 @@
         <div class="logo">Fresh<span>&</span>Greens</div>
         <nav>
             <ul class="nav-links">
-                <li><a href="index.html" class="nav-btn">Accueil</a></li>
-                <li><a href="menu.html" class="nav-btn">Menu</a></li>
-                <li><a href="specialdiet.html" class="nav-btn">Special Diet</a></li>
-                <li><a href="contact.html" class="nav-btn">Contact</a></li>
-                <li><a href="login.html" class="nav-btn active">Connexion</a></li>
+                <li><a href="{% url 'acceuil' %}" class="nav-btn">Accueil</a></li>
+                <li><a href="{% url 'menu' %}" class="nav-btn">Menu</a></li>
+                <li><a href="{% url 'specialdiet' %}" class="nav-btn">Special Diet</a></li>
+                <li><a href="{% url 'contact' %}" class="nav-btn">Contact</a></li>
+                <li><a href="{% url 'login' %}" class="nav-btn active">Connexion</a></li>
             </ul>
         </nav>
         <div class="menu-toggle" id="mobileMenu">
@@ -67,30 +68,30 @@
 
                 <!-- Formulaire de connexion -->
                 <div class="form-panel active" id="loginPanel">
-                    <form id="loginForm">
-                        <div class="input-group">
-                            <label><i class="fas fa-envelope"></i> Adresse email</label>
-                            <div class="input-wrapper">
-                                <input type="email" id="loginEmail" placeholder="votre@email.com">
+                    {% block content %}
+<section class="card">
+  <h1>Connexion</h1>
+  <p>Connectez-vous pour acceder a votre profil nutritionnel.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+    <div class="input-group">
+                           <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                           <div class="input-wrapper">
+                                {{ field }}
+                                {{ field.errors }}
+
                             </div>
+
                         </div>
-                        <div class="input-group">
-                            <label><i class="fas fa-lock"></i> Mot de passe</label>
-                            <div class="input-wrapper">
-                                <input type="password" id="loginPassword" placeholder="••••••••">
-                                <span class="toggle-password" onclick="togglePassword('loginPassword', this)">
-                                    <i class="far fa-eye"></i>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="form-options">
-                            <label class="checkbox">
-                                <input type="checkbox"> Se souvenir de moi
-                            </label>
-                            <a href="#" class="forgot-link">Mot de passe oublié ?</a>
-                        </div>
-                        <button type="submit" class="btn-submit">Se connecter</button>
-                    </form>
+
+    {% endfor %}
+     <button type="submit" class="btn-submit">Se connecter</button>
+
+  </form>
+</section>
+{% endblock %}
                     <div class="separator"><span>ou</span></div>
                     <div class="social-buttons">
                         <button type="button" class="social-btn" onclick="socialLogin('google')">
@@ -163,11 +164,11 @@
             <div class="footer-section">
                 <h4>Liens rapides</h4>
                 <ul>
-                    <li><a href="index.html">Accueil</a></li>
-                    <li><a href="menu.html">Menu</a></li>
-                    <li><a href="specialdiet.html">Special Diet</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                    <li><a href="login.html">Connexion</a></li>
+                    <li><a href="{% url 'acceuil' %}">Accueil</a></li>
+                    <li><a href="{% url 'menu' %}">Menu</a></li>
+                    <li><a href="{% url 'specialdiet' %}">Special Diet</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    <li><a href="{% url 'login' %}">Connexion</a></li>
                 </ul>
             </div>
             <div class="footer-section">
@@ -184,6 +185,6 @@
         </div>
     </footer>
 
-    <script src="connx.js"></script>
+    <script src="{% static 'acceuil/connx.js' %}"></script>
 </body>
 </html>

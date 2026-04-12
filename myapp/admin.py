@@ -1,5 +1,8 @@
 from django.contrib import admin
-from myapp.models import *
+from myapp.models import (
+    Utilisateur, Client, ProfilNutritionnel, Plat,
+    Menu, Commande, SystemeIA
+)
 
 @admin.register(Utilisateur)
 class UtilisateurAdmin(admin.ModelAdmin):

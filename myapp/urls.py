@@ -21,7 +21,7 @@ urlpatterns = [
     # Auth
     path(
         "login/",
-        auth_views.LoginView.as_view(template_name="registration/login.html"),
+        auth_views.LoginView.as_view(template_name="acceuil/connex.html"),
         name="login",
     ),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
@@ -31,11 +31,18 @@ urlpatterns = [
     #path('', include(router.urls)),
     path("", views.acceuil, name="acceuil"),
      #path('', include(router.urls)),
-    path("", views.Menu, name="menu"),
+    path("menu/", views.menu, name="menu"),
      #path('', include(router.urls)),
-    path("", views.acceuil, name="specialdiet"),
+    path("specialdiet/", views.specialdiet, name="specialdiet"),
     #path('', include(router.urls)),
-    path("", views.acceuil, name="contact"),
+    path("contact/", views.contact, name="contact"),
+    path("profil-nutritionnel/", views.profilNutritionnel, name="profilNutritionnel"),
+    
+    # API endpoints
+    path("api/profil-nutritionnel/creer/", views.CreerProfilNutritionnelView.as_view(), name="creer_profil_nutritionnel"),
+    path("api/profil-nutritionnel/obtenir/", views.ObtenirProfilNutritionnelView.as_view(), name="obtenir_profil_nutritionnel"),
+    path("api/profil-nutritionnel/supprimer/", views.SupprimerProfilNutritionnelView.as_view(), name="supprimer_profil_nutritionnel"),
+    path("api/", include(router.urls)),
 ]
 
 
