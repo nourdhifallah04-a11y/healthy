@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>GreenPlate | Alimentation saine - Beige & Vert</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- CSS personnalisé -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<header class="navbar">
+    <div class="logo">
+        <i class="fas fa-seedling"></i>
+        Green<span>Plate</span>
+    </div>
+    <div class="menu-toggle" id="mobileMenu">
+        <i class="fas fa-bars"></i>
+    </div>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="./index.html" class="active" data-link="home">Accueil</a></li>
+        <li><a href="./menu.html" data-link="menu">Menu</a></li>
+        <li><a href="./specialdiet.html" data-link="recettes">Special Diet</a></li>
+        <li><a href="./contact.html" data-link="contact">Contact</a></li>
+    </ul>
+</header>
+
+<div class="container">
+    <!-- Slider automatique -->
+    <div class="hero-slider">
+        <div class="slides-container" id="slidesContainer">
+            <div class="slide active" style="background-image: linear-gradient(0deg, rgba(46,74,47,0.4), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200');">
+                <div class="slide-content">
+                    <h2>Manger frais, rayonner santé 🌿</h2>
+                    <p>Des ingrédients 100% naturels</p>
+                </div>
+            </div>
+            <div class="slide" style="background-image: linear-gradient(0deg, rgba(46,74,47,0.4), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200');">
+                <div class="slide-content">
+                    <h2>Équilibre & vitalité</h2>
+                    <p>Des recettes vertes pour tous les jours</p>
+                </div>
+            </div>
+            <div class="slide" style="background-image: linear-gradient(0deg, rgba(46,74,47,0.4), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200');">
+                <div class="slide-content">
+                    <h2>Faites le plein d'énergie</h2>
+                    <p>Bien-être & design apaisant</p>
+                </div>
+            </div>
+        </div>
+        <div class="slider-nav" id="sliderDots"></div>
+    </div>
+   <!-- Cartes client & administrateur -->
+    <div class="cards-wrapper">
+        <div class="cards-container">
+            <!-- Carte Client -->
+            <div class="auth-card client-card" id="clientCard">
+                <div class="card-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3>ESPACE CLIENT</h3>
+                <p>Créez ou modifiez votre profil nutritionnel pour des menus sur mesure.</p>
+                <a href="./connex.html" class="btn btn-connecter" id="clientBtn">SE CONNECTER</a>
+                <div class="card-footer">
+                    <span class="badge">🍽️ Menus personnalisés</span>
+                </div>
+            </div>
+
+            <!-- Carte Administrateur -->
+            <div class="auth-card admin-card" id="adminCard">
+                <div class="card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>ESPACE ADMINISTRATEUR</h3>
+                <p>Gérez les menus, les utilisateurs et les statistiques de la plateforme.</p>
+                <a href="./authentif.html" class="btn btn-gestion" id="adminBtn">ACCÈS GESTION</a>
+                <div class="card-footer">
+                    <span class="badge">📊 Dashboard complet</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Témoignage -->
+    <div class="testimonial">
+        <div class="testimonial-content">
+            <i class="fas fa-quote-left"></i>
+            <p>"Une plateforme intuitive qui m'aide à mieux manger au quotidien."</p>
+            <span>- Marie, utilisatrice satisfaite</span>
+        </div>
+    </div>
+
+
+    <!-- Section valeurs -->
+    <h2 class="section-title">Notre philosophie healthy</h2>
+    <p class="section-sub">Simplicité, fraîcheur et équilibre dans chaque assiette</p>
+    <div class="cards-grid">
+        <div class="card">
+            <i class="fas fa-apple-alt"></i>
+            <h3>100% naturel</h3>
+            <p>Des produits de saison, locaux et sans additifs.</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-hand-sparkles"></i>
+            <h3>Recettes équilibrées</h3>
+            <p>Nutritionniste à votre écoute pour des menus sains.</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-leaf"></i>
+            <h3>Éco-responsable</h3>
+            <p>Emballages recyclables et engagement zéro déchet.</p>
+        </div>
+    </div>
+
+    <!-- Bloc interactif JS -->
+    <div class="wellness-duo">
+        <div class="counter-box">
+            <i class="fas fa-heartbeat" style="font-size: 2rem; color: var(--vert-sauge);"></i>
+            <h3>Ton score bien-être</h3>
+            <div class="health-number" id="wellnessScore">0</div>
+            <p>Clique pour augmenter ton énergie ✨</p>
+            <button class="btn-health" id="boostBtn"><i class="fas fa-plus-circle"></i> Booster +5</button>
+            <button class="btn-health" id="resetScoreBtn" style="background: var(--accent-miel); margin-left: 8px;">Reset</button>
+        </div>
+        <div class="quote-box">
+            <i class="fas fa-quote-left" style="color: var(--vert-sauge);"></i>
+            <h3>Inspiration du jour</h3>
+            <div class="daily-quote" id="dailyQuote">"Mangez comme si vous aimiez la vie, bougez comme si vous aimiez votre corps."</div>
+            <button class="btn-health" id="newQuoteBtn"><i class="fas fa-sync-alt"></i> Nouvelle pensée</button>
+        </div>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="newsletter-section">
+        <i class="fas fa-envelope-open-text" style="font-size: 2rem;"></i>
+        <h3>Recevez notre élan healthy</h3>
+        <p>Conseils, menus et recettes vertes chaque semaine</p>
+        <div class="newsletter-form">
+            <input type="email" id="newsEmail" placeholder="Votre adresse email">
+            <button id="subscribeNewsBtn">S'abonner</button>
+        </div>
+        <small style="display: block; margin-top: 12px;">Aucun spam, que du bien-être 🌱</small>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>🌿 GreenPlate — Design beige & vert pour une vie saine</p>
+        <p>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-pinterest"></i></a>
+        </p>
+        <p>© 2026 GreenPlate — Tous droits réservés</p>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

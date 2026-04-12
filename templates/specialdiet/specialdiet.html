@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresh & Greens | Special Diet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="specialdiet.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">Fresh<span>&</span>Greens</div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-btn">Accueil</a></li>
+                <li><a href="menu.html" class="nav-btn">Menu</a></li>
+                <li><a href="specialdiet.html" class="nav-btn active">Special Diet</a></li>
+                <li><a href="contact.html" class="nav-btn">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="menu-toggle" id="mobileMenu">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <h1>Special <span class="highlight">Diet</span></h1>
+        <p>Des plats adaptés à vos besoins nutritionnels spécifiques</p>
+    </section>
+
+    <section class="diet-section">
+        <div class="diet-categories">
+            <div class="diet-card" data-diet="high-protein">
+                <i class="fas fa-dumbbell"></i>
+                <h3>High Protein</h3>
+                <p>Pour vos objectifs sportifs</p>
+            </div>
+            <div class="diet-card" data-diet="low-carb">
+                <i class="fas fa-chart-line"></i>
+                <h3>Low Carb</h3>
+                <p>Peu de glucides</p>
+            </div>
+            <div class="diet-card" data-diet="vegan">
+                <i class="fas fa-seedling"></i>
+                <h3>Vegan</h3>
+                <p>100% végétal</p>
+            </div>
+            <div class="diet-card" data-diet="gluten-free">
+                <i class="fas fa-wheat-slash"></i>
+                <h3>Sans Gluten</h3>
+                <p>Pour intolérants</p>
+            </div>
+        </div>
+
+        <div class="diet-results">
+            <h2>Plats recommandés pour <span id="selectedDiet">High Protein</span></h2>
+            <div class="menu-grid" id="dietGrid"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Fresh & Greens</h4>
+                <p>Votre partenaire santé pour une alimentation équilibrée et savoureuse.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Liens rapides</h4>
+                <ul>
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="menu.html">Menu</a></li>
+                    <li><a href="specialdiet.html">Special Diet</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Suivez-nous</h4>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Fresh & Greens - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <script src="spec.js"></script>
+</body>
+</html>

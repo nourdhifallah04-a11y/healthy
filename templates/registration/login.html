@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h1>Connexion</h1>
+  <p>Connectez-vous pour acceder a votre profil nutritionnel.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <div class="form-row">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+    <button class="button" type="submit">Se connecter</button>
+  </form>
+</section>
+{% endblock %}

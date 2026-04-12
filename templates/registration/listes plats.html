@@ -1,0 +1,22 @@
+<h2>Choisissez votre régime alimentaire</h2>
+
+<form method="GET" action="">
+    <select name="regime" onchange="this.form.submit()">
+        <option value="">Tous les régimes</option>
+        <option value="VEGE">Végétarien</option>
+        <option value="VEGAN">Vegan</option>
+        <option value="KETO">Kéto</option>
+        <option value="GLUTEN_FREE">Sans Gluten</option>
+    </select>
+</form>
+
+<hr>
+
+<h3>Liste des plats correspondants :</h3>
+<ul>
+    {% for plat in plats %}
+        <li><strong>{{ plat.nom }}</strong> - {{ plat.regime }} ({{ plat.prix }}€)</li>
+    {% empty %}
+        <li>Aucun plat trouvé pour ce régime.</li>
+    {% endfor %}
+</ul>
