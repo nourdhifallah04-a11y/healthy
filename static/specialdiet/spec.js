@@ -7,33 +7,155 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ========== DONNÉES DES PLATS PAR CATÉGORIE DIET ==========
-const dietMeals = {
-    "high-protein": [
-        { name: "Poulet grillé aux herbes", calories: 380, protein: 42, carbs: 15, image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500", description: "Poulet fermier grillé, herbes de Provence" },
-        { name: "Saumon à la vapeur", calories: 420, protein: 38, carbs: 8, image: "https://i.pinimg.com/1200x/b9/90/77/b99077d3680bdce5367fcb5e5139b858.jpg", description: "Saumon frais, asperges, citron" },
-        { name: "Bœuf aux légumes", calories: 480, protein: 45, carbs: 20, image: "https://i.pinimg.com/1200x/32/07/d3/3207d311e5c745f61518597e33d86d1b.jpg", description: "Emincé de bœuf, légumes croquants" },
-        { name: "Omelette protéinée", calories: 320, protein: 30, carbs: 10, image: "https://i.pinimg.com/736x/69/34/ba/6934ba3ec7f9de248de860f6e4830b38.jpg", description: "3 œufs, fromage, épinards" },
-        { name: "Thon albacore", calories: 350, protein: 40, carbs: 5, image: "https://i.pinimg.com/1200x/0f/08/8f/0f088fb40e5965304501cd76556ed459.jpg", description: "Thon mi-cuit, sésame, sauce soja" }
-    ],
-    "low-carb": [
-        { name: "Salade César poulet", calories: 320, protein: 35, carbs: 12, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500", description: "Poulet, parmesan, sauce légère" },
-        { name: "Poisson aux légumes verts", calories: 280, protein: 32, carbs: 10, image: "https://i.pinimg.com/1200x/00/af/0d/00af0de81b6508251c77fe24c9f5fbec.jpg", description: "Daurade, brocoli, courgettes" },
-        { name: "Bowl méditerranéen", calories: 350, protein: 28, carbs: 18, image: "https://i.pinimg.com/1200x/44/62/67/446267fca26bb55c174375e9a4d19371.jpg", description: "Concombre, tomates, feta, olives" },
-        { name: "Œufs brouillés avocat", calories: 290, protein: 22, carbs: 9, image: "https://i.pinimg.com/736x/8f/69/7e/8f697ef82a1f3f791f2de4fa583b404e.jpg", description: "Œufs frais, avocat, pain complet" }
-    ],
-    "vegan": [
-        { name: "Bowl Quinoa & Légumes", calories: 420, protein: 15, carbs: 55, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500", description: "Quinoa, légumes rôtis, tahini" },
-        { name: "Curry de pois chiches", calories: 380, protein: 14, carbs: 48, image: "https://i.pinimg.com/736x/a8/b2/9a/a8b29abc90e533e4031abb73168cce31.jpg", description: "Pois chiches, lait de coco, épices" },
-        { name: "Salade d'été", calories: 250, protein: 8, carbs: 30, image: "https://i.pinimg.com/1200x/e9/19/ef/e919effd2e1970f9f81db84f785c0ade.jpg", description: "Tomates, concombres, avocat, citron" },
-        { name: "Buddha Bowl", calories: 450, protein: 18, carbs: 52, image: "https://i.pinimg.com/1200x/44/62/67/446267fca26bb55c174375e9a4d19371.jpg", description: "Riz complet, edamame, patate douce" }
-    ],
-    "gluten-free": [
-        { name: "Soupe de lentilles", calories: 280, protein: 15, carbs: 35, image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500", description: "Lentilles corail, légumes doux" },
-        { name: "Filet de poulet rôti", calories: 350, protein: 38, carbs: 8, image: "https://i.pinimg.com/736x/37/92/c6/3792c648a719ed62cd6e5a953f0d7b9f.jpg", description: "Poulet fermier, romarin, ail" },
-        { name: "Saumon au four", calories: 420, protein: 40, carbs: 5, image: "https://i.pinimg.com/1200x/b9/90/77/b99077d3680bdce5367fcb5e5139b858.jpg", description: "Saumon, citron, aneth" },
-        { name: "Gratin de chou-fleur", calories: 310, protein: 12, carbs: 18, image: "https://i.pinimg.com/736x/8f/69/7e/8f697ef82a1f3f791f2de4fa583b404e.jpg", description: "Chou-fleur, crème végétale" }
-    ]
+// Données par défaut (fallback)
+let dietMeals = {
+    "high-protein": [],
+    "low-carb": [],
+    "vegan": [],
+    "gluten-free": [],
+    "plat-recommander": []
 };
+
+/**
+ * Transforme un objet Plat depuis l'API en objet meal pour l'affichage
+ * @param {Object} plat - Objet plat reçu de l'API
+ * @returns {Object} Objet meal formaté
+ */
+function transformerPlatEnMealDiet(plat) {
+    return {
+        id: plat.id_plat || plat.id,
+        name: plat.nom,
+        calories: plat.calorie,
+        protein: plat.proteine,
+        carbs: plat.glucides,
+        fat: plat.lipides,
+        fiber: plat.fibres,
+        image: plat.image ? plat.image : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
+        description: plat.description,
+        score: plat.score || 0  // Ajouter le score depuis l'API
+    };
+}
+
+/**
+ * Catégorise les plats par type de régime
+ * @param {Array} plats - Liste des plats
+ * @returns {Object} Plats organisés par catégorie diet
+ */
+function categoriserPlatsByDiet(plats) {
+    const categorized = {
+        "high-protein": [],
+        "low-carb": [],
+        "vegan": [],
+        "gluten-free": []
+    };
+
+    plats.forEach(meal => {
+        // High-protein: protéine >= 35g
+        if (meal.protein >= 35) {
+            categorized["high-protein"].push(meal);
+        }
+        
+        // Low-carb: glucides <= 20g
+        if (meal.carbs <= 20) {
+            categorized["low-carb"].push(meal);
+        }
+        
+        // Gluten-free: catégorisé par défaut (tous les plats)
+        categorized["gluten-free"].push(meal);
+        
+        // Vegan: peut être déterminé par un champ dans l'API ou par description
+        if (meal.description && (meal.description.toLowerCase().includes('vegan') || 
+            meal.description.toLowerCase().includes('végétal') ||
+            meal.description.toLowerCase().includes('sans produit animal'))) {
+            categorized["vegan"].push(meal);
+        }
+    });
+
+    return categorized;
+}
+
+/**
+ * Charge les plats depuis l'API et les organise par régime
+ */
+function chargerDietMeals() {
+    // Charger les plats par catégorie
+    fetch('/api/plats/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Données brutes reçues de l\'API:', data);
+            
+            // Adapter les données de l'API au format attendu
+            const platsArray = Array.isArray(data) ? data : (data.results || []);
+            
+            // Filtrer les plats disponibles uniquement et transformer
+            const mealsFormatted = platsArray
+                .filter(plat => plat.est_disponible === true)
+                .map(plat => transformerPlatEnMealDiet(plat));
+            
+            // Catégoriser les plats par type de régime
+            dietMeals = categoriserPlatsByDiet(mealsFormatted);
+            
+            // Charger aussi les plats recommandés basés sur le profil
+            chargerPlatsRecommandes();
+            console.log('✅ Régimes spéciaux chargés avec succès depuis l\'API !', dietMeals);
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des régimes spéciaux:', error);
+            // Fallback: afficher un message d'erreur
+            if (dietGrid) {
+                dietGrid.innerHTML = `<div class="no-results">⚠️ Erreur lors du chargement des plats</div>`;
+            }
+        });
+}
+
+/**
+ * Charge les plats recommandés basés sur le profil nutritionnel de l'utilisateur
+ */
+function chargerPlatsRecommandes() {
+    fetch('/api/profil-nutritionnel/recommander-plats/')
+        .then(response => {
+            // Si l'utilisateur n'est pas authentifié (401), c'est normal
+            if (response.status === 401) {
+                console.log('ℹ️ Utilisateur non authentifié pour les recommandations');
+                dietMeals["plat-recommander"] = [];
+                displayDietMeals();
+                return;
+            }
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+            
+            console.log('Plats recommandés reçus:', data);
+            
+            // Adapter les données au format plat
+            const platsArray = Array.isArray(data) ? data : (data.results || []);
+            
+            // Transformer les plats
+            const mealsFormatted = platsArray.map(plat => transformerPlatEnMealDiet(plat));
+            
+            // Ajouter au dictionnaire des régimes
+            dietMeals["plat-recommander"] = mealsFormatted;
+            
+            // Afficher si c'est la catégorie active
+            if (currentDiet === "plat-recommander") {
+                displayDietMeals();
+            }
+            console.log('✅ Plats recommandés chargés avec succès !', mealsFormatted);
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des plats recommandés:', error);
+            dietMeals["plat-recommander"] = [];
+        });
+}
 
 // ========== VARIABLES GLOBALES ==========
 let currentDiet = "high-protein";
@@ -48,7 +170,8 @@ const dietNames = {
     "high-protein": "High Protein",
     "low-carb": "Low Carb",
     "vegan": "Vegan",
-    "gluten-free": "Sans Gluten"
+    "gluten-free": "Sans Gluten",
+    "plat-recommander": "Votre profil nutritionnel"
 };
 
 // ========== FONCTION POUR AFFICHER LES PLATS ==========
@@ -69,12 +192,36 @@ function displayDietMeals() {
         return;
     }
 
-    dietGrid.innerHTML = meals.map(meal => `
+    dietGrid.innerHTML = meals.map(meal => {
+        // Déterminer la couleur du score
+        let scoreClass = 'score-low';
+        let scoreIcon = '😢';
+        
+        if (meal.score >= 80) {
+            scoreClass = 'score-excellent';
+            scoreIcon = '⭐';
+        } else if (meal.score >= 60) {
+            scoreClass = 'score-good';
+            scoreIcon = '👍';
+        } else if (meal.score >= 40) {
+            scoreClass = 'score-ok';
+            scoreIcon = '😐';
+        } else if (meal.score > 0) {
+            scoreClass = 'score-low';
+            scoreIcon = '😐';
+        }
+        
+        return `
         <div class="meal-card">
             <div class="meal-img">
                 <img src="${meal.image}" alt="${meal.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'">
                 <div class="badge-diet">${dietName}</div>
                 <div class="prot-circle">${meal.protein}g <span>PROT</span></div>
+                ${meal.score > 0 ? `<div class="score-badge ${scoreClass}">
+                    <div class="score-value">${meal.score.toFixed(1)}</div>
+                    <div class="score-label">Score</div>
+                    <div class="score-icon">${scoreIcon}</div>
+                </div>` : ''}
             </div>
             <div class="meal-body">
                 <h3>${meal.name}</h3>
@@ -94,7 +241,7 @@ function displayDietMeals() {
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 // ========== GESTION DES CATÉGORIES DIET ==========
@@ -144,6 +291,6 @@ navItems.forEach(item => {
 
 // ========== CHARGEMENT INITIAL ==========
 document.addEventListener('DOMContentLoaded', () => {
-    displayDietMeals();
+    chargerDietMeals();
     console.log('🌿 Special Diet Fresh & Greens chargé avec succès !');
 });

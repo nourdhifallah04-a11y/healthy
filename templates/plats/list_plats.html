@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresh & Greens - Gestion des Plats</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'plats/list_plats.css' %}">
+</head>
+<body>
+    <!-- ========== NAVBAR ========== -->
+    <header class="navbar">
+        <div class="logo">Fresh<span>&</span>Greens</div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="{% url 'acceuil' %}" class="nav-btn">Accueil</a></li>
+                <li><a href="{% url 'menu' %}" class="nav-btn">Menu</a></li>
+                <li><a href="{% url 'specialdiet' %}" class="nav-btn">Special Diet</a></li>
+                <li><a href="{% url 'contact' %}" class="nav-btn">Contact</a></li>
+                <li><a href="{% url 'administrateur' %}" class="nav-btn active">Admin</a></li>
+            </ul>
+        </nav>
+        <div class="menu-toggle" id="mobileMenu">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <!-- ========== CONTENU PRINCIPAL ========== -->
+    <main class="main-content">
+        <div class="container">
+            <div class="page-card">
+                <div class="page-header">
+                    <div class="header-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="header-title">
+                        <h1>Gestion des Plats</h1>
+                        <p>Gérez votre catalogue de plats (ajout, modification, suppression)</p>
+                    </div>
+                    <a href="{% url 'ajouter_plat' %}" class="btn-add">
+                        <i class="fas fa-plus"></i> Ajouter un plat
+                    </a>
+                </div>
+
+                <!-- Tableau responsive -->
+                <div class="table-responsive">
+                    <table class="plats-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Description</th>
+                                <th>Calories</th>
+                                <th>Protéines</th>
+                                <th>Glucides</th>
+                                <th>Lipides</th>
+                                <th>Fibres</th>
+                                <th>Prix</th>
+                                <th>Nouveau</th>
+                                <th>Dispo</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="platsList">
+                            <tr class="empty-row">
+                                <td colspan="11">
+                                    <div class="empty-state">
+                                        <i class="fas fa-utensils"></i>
+                                        <p>Aucun plat pour le moment</p>
+                                        <a href="{% url 'ajouter_plat' %}" class="btn-add-small">
+                                            <i class="fas fa-plus"></i> Ajouter votre premier plat
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="modalSuppression" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2>Confirmer la suppression</h2>
+            <p id="modalMessage">Êtes-vous sûr de vouloir supprimer ce plat ? Cette action est irréversible.</p>
+            <div class="modal-actions">
+                <button class="btn-confirm" onclick="confirmerSuppression()">Supprimer</button>
+                <button class="btn-cancel-modal" onclick="fermerModalSuppression()">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Fresh & Greens</h4>
+                <p>Votre partenaire santé pour une alimentation équilibrée et savoureuse.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Liens rapides</h4>
+                <ul>
+                    <li><a href="{% url 'acceuil' %}">Accueil</a></li>
+                    <li><a href="{% url 'menu' %}">Menu</a></li>
+                    <li><a href="{% url 'specialdiet' %}">Special Diet</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Suivez-nous</h4>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Fresh & Greens - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'plats/list_plats.js' %}"></script>
+</body>
+</html>

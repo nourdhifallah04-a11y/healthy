@@ -1,0 +1,245 @@
+{% extends "registration/base.html" %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block content %}
+<section class="card">
+  <h1>Créer un compte</h1>
+  <p>Remplissez le formulaire ci-dessous pour créer votre compte et commencer votre parcours nutritionnel.</p>
+  
+  {% if messages %}
+    <div class="messages">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    
+    <!-- Informations de connexion -->
+    <fieldset>
+      <legend>Informations de connexion</legend>
+      
+      <div class="form-row">
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }} <span class="required">*</span></label>
+        {{ form.email }}
+        {% if form.email.errors %}
+          <div class="form-errors">{{ form.email.errors }}</div>
+        {% endif %}
+        {% if form.email.help_text %}
+          <small class="form-help">{{ form.email.help_text }}</small>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.password.id_for_label }}">{{ form.password.label }} <span class="required">*</span></label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          <div class="form-errors">{{ form.password.errors }}</div>
+        {% endif %}
+        {% if form.password.help_text %}
+          <small class="form-help">{{ form.password.help_text }}</small>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.password_confirm.id_for_label }}">{{ form.password_confirm.label }} <span class="required">*</span></label>
+        {{ form.password_confirm }}
+        {% if form.password_confirm.errors %}
+          <div class="form-errors">{{ form.password_confirm.errors }}</div>
+        {% endif %}
+      </div>
+    </fieldset>
+
+    <!-- Informations personnelles -->
+    <fieldset>
+      <legend>Informations personnelles</legend>
+      
+      <div class="form-row">
+        <label for="{{ form.nom.id_for_label }}">{{ form.nom.label }} <span class="required">*</span></label>
+        {{ form.nom }}
+        {% if form.nom.errors %}
+          <div class="form-errors">{{ form.nom.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.prenom.id_for_label }}">{{ form.prenom.label }} <span class="required">*</span></label>
+        {{ form.prenom }}
+        {% if form.prenom.errors %}
+          <div class="form-errors">{{ form.prenom.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.telephone.id_for_label }}">{{ form.telephone.label }}</label>
+        {{ form.telephone }}
+        {% if form.telephone.errors %}
+          <div class="form-errors">{{ form.telephone.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.adresse.id_for_label }}">{{ form.adresse.label }}</label>
+        {{ form.adresse }}
+        {% if form.adresse.errors %}
+          <div class="form-errors">{{ form.adresse.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="form-row">
+        <label for="{{ form.date_naissance.id_for_label }}">{{ form.date_naissance.label }}</label>
+        {{ form.date_naissance }}
+        {% if form.date_naissance.errors %}
+          <div class="form-errors">{{ form.date_naissance.errors }}</div>
+        {% endif %}
+      </div>
+    </fieldset>
+
+    <!-- Erreurs globales du formulaire -->
+    {% if form.non_field_errors %}
+      <div class="form-errors global">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <button class="button" type="submit">Créer mon compte</button>
+  </form>
+
+  <p style="text-align: center; margin-top: 24px;">
+    Vous avez déjà un compte? <a href="{% url 'login' %}">Se connecter</a>
+  </p>
+</section>
+
+<style>
+  fieldset {
+    margin-bottom: 32px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background-color: rgba(11, 110, 79, 0.03);
+  }
+
+  legend {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 1rem;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+  }
+
+  .form-row {
+    margin-bottom: 20px;
+  }
+
+  .form-row label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .required {
+    color: var(--danger);
+  }
+
+  .form-row input,
+  .form-row textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background-color: white;
+    color: var(--text);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .form-row input:focus,
+  .form-row textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(11, 110, 79, 0.1);
+  }
+
+  .form-row input.error,
+  .form-row textarea.error {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(166, 61, 64, 0.1);
+  }
+
+  .form-errors {
+    color: var(--danger);
+    font-size: 0.9rem;
+    margin-top: 6px;
+    padding: 8px 12px;
+    background-color: rgba(166, 61, 64, 0.1);
+    border-radius: 6px;
+  }
+
+  .form-errors.global {
+    padding: 16px;
+    margin-bottom: 24px;
+    border-left: 4px solid var(--danger);
+  }
+
+  .form-help {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .messages {
+    margin-bottom: 24px;
+  }
+
+  .alert {
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border-left: 4px solid var(--accent);
+  }
+
+  .alert-success {
+    background-color: rgba(11, 110, 79, 0.1);
+    color: var(--accent-dark);
+  }
+
+  .alert-error {
+    background-color: rgba(166, 61, 64, 0.1);
+    color: var(--danger);
+    border-left-color: var(--danger);
+  }
+
+  .button {
+    width: 100%;
+    padding: 14px 24px;
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-top: 24px;
+  }
+
+  .button:hover {
+    background-color: var(--accent-dark);
+    transform: translateY(-2px);
+  }
+
+  .button:active {
+    transform: translateY(0);
+  }
+</style>
+{% endblock %}

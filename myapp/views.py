@@ -3,7 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
+from django.views.decorators.http import require_http_methods
+from django.utils.html import mark_safe
+import json
 from .models import (
     Client, Plat, Menu, Commande, SystemeIA,
     ProfilNutritionnel, LigneCommande, CompositionMenu, Administrateur, Utilisateur
@@ -12,12 +18,38 @@ from .serializers import (
     ClientSerializer, PlatSerializer, MenuSerializer, CommandeSerializer,
     ProfilNutritionnelSerializer, SystemeIASerializer
 )
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from .forms import AdminLoginForm
-from django.contrib import messages
-from django.views.decorators.http import require_http_methods
+from .forms import AdminLoginForm, RegistrationForm
 
+
+def register(request):
+    """
+    Vue d'inscription pour créer un nouvel Utilisateur et Client
+    """
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            try:
+                # Créer l'Utilisateur et le Client
+                utilisateur, client = form.save()
+                
+                # Authentifier et connecter l'utilisateur
+                login(request, utilisateur)
+                
+                messages.success(
+                    request, 
+                    f"Bienvenue {utilisateur.prenom} {utilisateur.nom}! Votre compte a été créé avec succès."
+                )
+                return redirect('acceuil')  # Rediriger vers la page d'accueil
+            except Exception as e:
+                messages.error(request, f"Erreur lors de l'inscription: {str(e)}")
+    else:
+        form = RegistrationForm()
+    
+    context = {
+        'form': form,
+        'page_title': 'Inscription'
+    }
+    return render(request, 'registration/register.html', context)
 
 @require_http_methods(["GET", "POST"])
 def login_admin(request):
@@ -80,8 +112,77 @@ def menu(request):
 
 
 def specialdiet(request):
-    """Affiche la page des régimes spéciaux"""
-    return render(request, 'specialdiet/specialdiet.html', {})
+    """Affiche la page des régimes spéciaux avec les plats dynamiques"""
+    # Récupérer tous les plats disponibles
+    plats = Plat.objects.filter(est_disponible=True).all()
+    
+    # Organiser les plats par catégorie de régime spécial
+    diet_meals = {
+        "high-protein": [],
+        "low-carb": [],
+        "vegan": [],
+        "gluten-free": []
+    }
+    
+    for plat in plats:
+        # Déterminer les catégories appropriées pour ce plat
+        
+        # High Protein: protéines > 30g
+        if plat.proteine >= 30:
+            diet_meals["high-protein"].append({
+                'id': plat.id_plat,
+                'name': plat.nom,
+                'calories': plat.calorie,
+                'protein': plat.proteine,
+                'carbs': plat.glucides,
+                'image': plat.image.url if plat.image else 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
+                'description': plat.description
+            })
+        
+        # Low Carb: glucides < 20g
+        if plat.glucides <= 20:
+            diet_meals["low-carb"].append({
+                'id': plat.id_plat,
+                'name': plat.nom,
+                'calories': plat.calorie,
+                'protein': plat.proteine,
+                'carbs': plat.glucides,
+                'image': plat.image.url if plat.image else 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
+                'description': plat.description
+            })
+        
+        # Vegan: pas de produits d'origine animale (à vérifier dans la description/nom)
+        vegan_keywords = ['vegan', 'végétal', 'légume', 'fruit', 'légumineuse', 'tofu', 'pois chiche', 'lentille']
+        if any(keyword in plat.nom.lower() or keyword in plat.description.lower() for keyword in vegan_keywords):
+            diet_meals["vegan"].append({
+                'id': plat.id_plat,
+                'name': plat.nom,
+                'calories': plat.calorie,
+                'protein': plat.proteine,
+                'carbs': plat.glucides,
+                'image': plat.image.url if plat.image else 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
+                'description': plat.description
+            })
+        
+        # Gluten-free: pas de gluten (à vérifier)
+        gluten_keywords = ['sans gluten', 'riz', 'quinoa', 'patate', 'légume', 'viande', 'poisson']
+        if any(keyword in plat.nom.lower() or keyword in plat.description.lower() for keyword in gluten_keywords):
+            if 'pâte' not in plat.nom.lower() and 'pain' not in plat.nom.lower() and 'blé' not in plat.nom.lower():
+                diet_meals["gluten-free"].append({
+                    'id': plat.id_plat,
+                    'name': plat.nom,
+                    'calories': plat.calorie,
+                    'protein': plat.proteine,
+                    'carbs': plat.glucides,
+                    'image': plat.image.url if plat.image else 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
+                    'description': plat.description
+                })
+    
+    context = {
+        'plats': plats,
+        'diet_meals_json': mark_safe(json.dumps(diet_meals))
+    }
+    return render(request, 'specialdiet/specialdiet.html', context)
 
 
 def contact(request):
@@ -89,25 +190,68 @@ def contact(request):
     return render(request, 'contact/contact.html', {})
 
 def connex(request):
-    """Affiche la page de connexion"""
-    return render(request, 'acceuil/connex.html', {})
+    """Page de connexion et d'inscription avec les deux formulaires"""
+    # Initialiser les formulaires
+    login_form = AuthenticationForm()
+    register_form = RegistrationForm()
+    
+    if request.method == 'POST':
+        # Vérifier si c'est une soumission d'inscription
+        if 'register-submit' in request.POST:
+            register_form = RegistrationForm(request.POST)
+            
+            if register_form.is_valid():
+                try:
+                    # Créer l'Utilisateur et le Client
+                    utilisateur, client = register_form.save()
+                    
+                    # Authentifier et connecter l'utilisateur
+                    login(request, utilisateur)
+                    
+                    messages.success(
+                        request,
+                        f"Bienvenue {utilisateur.prenom} {utilisateur.nom}! Votre compte a été créé avec succès."
+                    )
+                    return redirect('acceuil')
+                except Exception as e:
+                    messages.error(request, f"Erreur lors de l'inscription: {str(e)}")
+                    # Retourner le formulaire avec l'erreur
+            # Si le formulaire n'est pas valide, les erreurs s'afficheront dans le template
+            login_form = AuthenticationForm()
+        else:
+            # C'est une soumission de connexion
+            login_form = AuthenticationForm(request, data=request.POST)
+            
+            if login_form.is_valid():
+                user = login_form.get_user()
+                login(request, user)
+                messages.success(request, f"Bienvenue {user.prenom} {user.nom}!")
+                return redirect('acceuil')
+            # Si le formulaire n'est pas valide, les erreurs s'afficheront dans le template
+            register_form = RegistrationForm()
+    
+    context = {
+        'form': login_form,  # Pour compatibilité avec LoginView et le formulaire de connexion
+        'registration_form': register_form,  # Pour le formulaire d'inscription
+    }
+    return render(request, 'acceuil/connex.html', context)
 
 
 def profilNutritionnel(request):
     """Affiche la page du profil nutritionnel"""
     return render(request, 'profil_nutritionnel/profilNutritionnel.html', {})
 
-def palts(request):
-    """Affiche la page des palts"""
-    return render(request, 'palts/palts.html', {})
+def list_plats(request):
+    """Affiche la page des plats"""
+    return render(request, 'plats/list_plats.html', {})
 
 def ajouter_plat(request):
     """Affiche la page pour ajouter un nouveau plat"""
-    return render(request, 'palts/ajouter_plat.html', {})
+    return render(request, 'plats/ajouter_plat.html', {})
 
 def modifier_plat(request):
     """Affiche la page pour modifier un plat"""
-    return render(request, 'palts/modifier_plat.html', {})
+    return render(request, 'plats/modifier_plat.html', {})
 
 def administrateur(request):
     """Affiche la page du profil administrateur"""
@@ -478,3 +622,71 @@ class SupprimerProfilNutritionnelView(generics.DestroyAPIView):
     
     def perform_destroy(self, instance):
         instance.delete()
+
+
+class RecommenderPlatsView(generics.ListAPIView):
+    """Vue pour obtenir les plats recommandés basés sur le profil nutritionnel de l'utilisateur"""
+    serializer_class = PlatSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Retourne les plats recommandés basés sur le profil nutritionnel"""
+        try:
+            utilisateur = self.request.user
+            client = Client.objects.get(utilisateur=utilisateur)
+            profil = ProfilNutritionnel.objects.get(client=client)
+            
+            # Récupérer les plats recommandés (limite: 10)
+            plats_recommandes = profil.recommander_plats(limite=10)
+            return plats_recommandes
+        except Client.DoesNotExist:
+            return Plat.objects.none()
+        except ProfilNutritionnel.DoesNotExist:
+            # Si pas de profil, retourner les plats disponibles
+            return Plat.objects.filter(est_disponible=True)[:10]
+    
+    def list(self, request, *args, **kwargs):
+        """Override pour ajouter les scores aux plats recommandés"""
+        try:
+            utilisateur = request.user
+            client = Client.objects.get(utilisateur=utilisateur)
+            profil = ProfilNutritionnel.objects.get(client=client)
+            categorie_imc = profil.determiner_categorie_imc()
+            
+            # Récupérer les plats avec leurs scores
+            plats_disponibles = Plat.objects.filter(est_disponible=True)
+            plats_avec_score = []
+            
+            for plat in plats_disponibles:
+                score = Plat.calculer_score_recommendation(
+                    plat,
+                    categorie_imc,
+                    allergies=profil.allergies,
+                    restrictions=profil.restrictions_alimentaires
+                )
+                
+                # Ajouter le score au plat sérialisé
+                plat_data = PlatSerializer(plat).data
+                plat_data['score'] = score
+                
+                plats_avec_score.append((plat_data, score))
+            
+            # Trier par score décroissant et garder les plats avec score > 0
+            plats_avec_score.sort(key=lambda x: x[1], reverse=True)
+            plats_filtres = [p[0] for p in plats_avec_score if p[1] > 0][:10]
+            
+            return Response(plats_filtres)
+        
+        except Client.DoesNotExist:
+            return Response([])
+        except ProfilNutritionnel.DoesNotExist:
+            # Si pas de profil, retourner les plats disponibles sans score
+            plats = Plat.objects.filter(est_disponible=True)[:10]
+            serializer = self.get_serializer(plats, many=True)
+            plats_data = serializer.data
+            
+            # Ajouter un score par défaut pour les plats sans profil
+            for plat in plats_data:
+                plat['score'] = 0.0
+            
+            return Response(plats_data)

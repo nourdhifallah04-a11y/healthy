@@ -61,6 +61,15 @@
                     <p>Connectez-vous ou créez un compte en quelques secondes</p>
                 </div>
 
+                <!-- Afficher les messages Django -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 <div class="form-tabs">
                     <button class="tab-btn active" data-tab="login">🔐 Connexion</button>
                     <button class="tab-btn" data-tab="register">📝 Inscription</button>
@@ -68,30 +77,37 @@
 
                 <!-- Formulaire de connexion -->
                 <div class="form-panel active" id="loginPanel">
-                    {% block content %}
-<section class="card">
-  <h1>Connexion</h1>
-  <p>Connectez-vous pour acceder a votre profil nutritionnel.</p>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
-    {% for field in form %}
-    <div class="input-group">
-                           <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                           <div class="input-wrapper">
-                                {{ field }}
-                                {{ field.errors }}
-
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        
+                        {{ form.non_field_errors }}
+                        
+                        <div class="input-group">
+                            <label for="id_username"><i class="fas fa-envelope"></i>Email</label>
+                            <div class="input-wrapper">
+                                <input type="email" name="username" id="id_username" placeholder="Entrez votre email" class="form-control input-field" required value="{{ form.username.value|default:'' }}">
+                                {% if form.username.errors %}
+                                    <div class="field-error">{{ form.username.errors }}</div>
+                                {% endif %}
                             </div>
-
                         </div>
 
-    {% endfor %}
-     <button type="submit" class="btn-submit">Se connecter</button>
+                        <div class="input-group">
+                            <label for="id_password"><i class="fas fa-lock"></i>Mot de passe</label>
+                            <div class="input-wrapper">
+                                <input type="password" name="password" id="id_password" placeholder="Entrez votre mot de passe" class="form-control input-field" required>
+                                <span class="toggle-password" onclick="togglePassword(this)">
+                                    <i class="far fa-eye"></i>
+                                </span>
+                                {% if form.password.errors %}
+                                    <div class="field-error">{{ form.password.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
 
-  </form>
-</section>
-{% endblock %}
+                        <button type="submit" class="btn-submit">Se connecter</button>
+                    </form>
+
                     <div class="separator"><span>ou</span></div>
                     <div class="social-buttons">
                         <button type="button" class="social-btn" onclick="socialLogin('google')">
@@ -105,49 +121,112 @@
 
                 <!-- Formulaire d'inscription -->
                 <div class="form-panel" id="registerPanel">
-                    <form id="registerForm">
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <input type="hidden" name="register-submit" value="1">
+                        
+                        <!-- Messages d'erreur globaux -->
+                        {% if registration_form.non_field_errors %}
+                            <div class="alert alert-error">
+                                {{ registration_form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Section Email et Mot de passe -->
                         <div class="input-group">
-                            <label><i class="fas fa-user"></i> Nom complet</label>
+                            <label for="id_email"><i class="fas fa-envelope"></i>Email</label>
                             <div class="input-wrapper">
-                                <input type="text" id="regName" placeholder="Jean Dupont">
+                                <input type="email" name="email" id="id_email" placeholder="Entrez votre email" class="form-control input-field" required value="{{ registration_form.email.value|default:'' }}">
+                                {% if registration_form.email.errors %}
+                                    <div class="field-error">{{ registration_form.email.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
+
                         <div class="input-group">
-                            <label><i class="fas fa-envelope"></i> Adresse email</label>
+                            <label for="id_password"><i class="fas fa-lock"></i>Mot de passe</label>
                             <div class="input-wrapper">
-                                <input type="email" id="regEmail" placeholder="jean@email.com">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fas fa-lock"></i> Mot de passe</label>
-                            <div class="input-wrapper">
-                                <input type="password" id="regPassword" placeholder="••••••••">
-                                <span class="toggle-password" onclick="togglePassword('regPassword', this)">
+                                <input type="password" name="password" id="id_password" placeholder="Entrez votre mot de passe" class="form-control input-field" required>
+                                <span class="toggle-password" onclick="togglePassword(this)">
                                     <i class="far fa-eye"></i>
                                 </span>
+                                {% if registration_form.password.errors %}
+                                    <div class="field-error">{{ registration_form.password.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
+
                         <div class="input-group">
-                            <label><i class="fas fa-check-circle"></i> Confirmer le mot de passe</label>
+                            <label for="id_password_confirm"><i class="fas fa-check-circle"></i>Confirmer le mot de passe</label>
                             <div class="input-wrapper">
-                                <input type="password" id="regConfirmPassword" placeholder="••••••••">
-                                <span class="toggle-password" onclick="togglePassword('regConfirmPassword', this)">
+                                <input type="password" name="password_confirm" id="id_password_confirm" placeholder="Confirmez votre mot de passe" class="form-control input-field" required>
+                                <span class="toggle-password" onclick="togglePassword(this)">
                                     <i class="far fa-eye"></i>
                                 </span>
+                                {% if registration_form.password_confirm.errors %}
+                                    <div class="field-error">{{ registration_form.password_confirm.errors }}</div>
+                                {% endif %}
                             </div>
                         </div>
-                        <div class="form-options">
-                            <label class="checkbox">
-                                <input type="checkbox" id="acceptTerms"> J'accepte les conditions d'utilisation
-                            </label>
+
+                        <!-- Section Informations personnelles -->
+                        <div class="section-divider">Informations personnelles</div>
+
+                        <div class="input-group">
+                            <label for="id_nom"><i class="fas fa-user"></i>Nom</label>
+                            <div class="input-wrapper">
+                                <input type="text" name="nom" id="id_nom" placeholder="Votre nom" class="form-control input-field" required value="{{ registration_form.nom.value|default:'' }}">
+                                {% if registration_form.nom.errors %}
+                                    <div class="field-error">{{ registration_form.nom.errors }}</div>
+                                {% endif %}
+                            </div>
                         </div>
+
+                        <div class="input-group">
+                            <label for="id_prenom"><i class="fas fa-user"></i>Prénom</label>
+                            <div class="input-wrapper">
+                                <input type="text" name="prenom" id="id_prenom" placeholder="Votre prénom" class="form-control input-field" required value="{{ registration_form.prenom.value|default:'' }}">
+                                {% if registration_form.prenom.errors %}
+                                    <div class="field-error">{{ registration_form.prenom.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="id_telephone"><i class="fas fa-phone"></i>Téléphone (optionnel)</label>
+                            <div class="input-wrapper">
+                                <input type="tel" name="telephone" id="id_telephone" placeholder="Votre téléphone" class="form-control input-field" value="{{ registration_form.telephone.value|default:'' }}">
+                                {% if registration_form.telephone.errors %}
+                                    <div class="field-error">{{ registration_form.telephone.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="id_date_naissance"><i class="fas fa-birthday-cake"></i>Date de naissance (optionnel)</label>
+                            <div class="input-wrapper">
+                                <input type="date" name="date_naissance" id="id_date_naissance" class="form-control input-field" value="{{ registration_form.date_naissance.value|default:'' }}">
+                                {% if registration_form.date_naissance.errors %}
+                                    <div class="field-error">{{ registration_form.date_naissance.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="id_adresse"><i class="fas fa-map-marker-alt"></i>Adresse (optionnel)</label>
+                            <div class="input-wrapper">
+                                <textarea name="adresse" id="id_adresse" placeholder="Votre adresse" class="form-control input-field" rows="3">{{ registration_form.adresse.value|default:'' }}</textarea>
+                                {% if registration_form.adresse.errors %}
+                                    <div class="field-error">{{ registration_form.adresse.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <button type="submit" class="btn-submit">Créer mon compte</button>
                     </form>
-                    <div class="separator"><span>ou</span></div>
-                    <div class="social-buttons">
-                        <button type="button" class="social-btn" onclick="socialLogin('google')">
-                            <i class="fab fa-google"></i> S'inscrire avec Google
-                        </button>
+
+                    <div class="form-footer">
+                        <p>Vous avez déjà un compte? <a href="#" class="tab-switch" onclick="switchTab('login')">Se connecter</a></p>
                     </div>
                 </div>
             </div>

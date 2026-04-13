@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fresh & Greens - Modifier un plat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'plats/modifier_plats/modifier_plats.css' %}">
+</head>
+<body>
+    <!-- ========== NAVBAR ========== -->
+    <header class="navbar">
+        <div class="logo">Fresh<span>&</span>Greens</div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="{% url 'acceuil' %}" class="nav-btn">Accueil</a></li>
+                <li><a href="{% url 'menu' %}" class="nav-btn">Menu</a></li>
+                <li><a href="{% url 'specialdiet' %}" class="nav-btn">Special Diet</a></li>
+                <li><a href="{% url 'contact' %}" class="nav-btn">Contact</a></li>
+                <li><a href="{% url 'administrateur' %}" class="nav-btn">Admin</a></li>
+            </ul>
+        </nav>
+        <div class="menu-toggle" id="mobileMenu">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <!-- ========== CONTENU PRINCIPAL ========== -->
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card">
+                <div class="form-header">
+                    <a href="{% url 'list_plats' %}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <div class="header-title">
+                        <div class="header-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <h1>Modifier le plat</h1>
+                        <p>Modifiez les informations du plat</p>
+                    </div>
+                </div>
+
+                <div id="messageSucces" class="message success">
+                    <i class="fas fa-check-circle"></i>
+                    <span></span>
+                </div>
+                <div id="messageErreur" class="message error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span></span>
+                </div>
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Mise à jour en cours...</p>
+                </div>
+
+                <form id="formModifierPlat" onsubmit="sauvegarderPlat(event)">
+                    <!-- Section Informations générales -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-info-circle"></i> Informations générales</h3>
+                        
+                        <div class="form-group">
+                            <label for="nom">Nom du plat <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-utensil-spoon input-icon"></i>
+                                <input type="text" id="nom" name="nom" placeholder="Ex: Poulet au curry" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-align-left input-icon"></i>
+                                <textarea id="description" name="description" placeholder="Décrivez le plat..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Prix et Calories -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-chart-line"></i> Informations nutritionnelles</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="prix">Prix (€) <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-euro-sign input-icon"></i>
+                                    <input type="number" id="prix" name="prix" step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="calorie">Calories (kcal) <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-fire input-icon"></i>
+                                    <input type="number" id="calorie" name="calorie" step="0.1" min="0" placeholder="0" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="proteine">Protéines (g) <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-dumbbell input-icon"></i>
+                                    <input type="number" id="proteine" name="proteine" step="0.1" min="0" placeholder="0" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="glucides">Glucides (g)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-bread-slice input-icon"></i>
+                                    <input type="number" id="glucides" name="glucides" step="0.1" min="0" placeholder="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="lipides">Lipides (g)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-oil-can input-icon"></i>
+                                    <input type="number" id="lipides" name="lipides" step="0.1" min="0" placeholder="0" value="0">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="fibres">Fibres (g)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-leaf input-icon"></i>
+                                    <input type="number" id="fibres" name="fibres" step="0.1" min="0" placeholder="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Image -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-image"></i> Image du plat</h3>
+                        
+                        <div class="form-group">
+                            <label>Image actuelle</label>
+                            <div class="image-container">
+                                <img id="currentImage" class="image-preview" alt="Image actuelle" style="display: none;">
+                                <div id="noImage" class="no-image">
+                                    <i class="fas fa-image"></i>
+                                    <p>Aucune image</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="image">Changer l'image</label>
+                            <div class="file-upload">
+                                <input type="file" id="image" name="image" accept="image/*" onchange="previsualiserImage(event)">
+                                <label for="image" class="file-label">
+                                    <i class="fas fa-cloud-upload-alt"></i> Choisir une nouvelle image
+                                </label>
+                                <span class="file-name" id="fileName">Aucun fichier sélectionné</span>
+                            </div>
+                            <img id="imagePreview" class="image-preview" alt="Prévisualisation" style="display: none;">
+                        </div>
+                    </div>
+
+                    <!-- Section Options -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-cog"></i> Options</h3>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="estDisponible" name="estDisponible">
+                            <label for="estDisponible">Plat disponible</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="isNew" name="isNew">
+                            <label for="isNew">Marquer comme nouveau</label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{% url 'list_plats' %}" class="btn-cancel">Annuler</a>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>Fresh & Greens</h4>
+                <p>Votre partenaire santé pour une alimentation équilibrée et savoureuse.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Liens rapides</h4>
+                <ul>
+                    <li><a href="{% url 'acceuil' %}">Accueil</a></li>
+                    <li><a href="{% url 'menu' %}">Menu</a></li>
+                    <li><a href="{% url 'specialdiet' %}">Special Diet</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Suivez-nous</h4>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Fresh & Greens - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'plats/modifier_plats/modifier_plats.js' %}"></script>
+</body>
+</html>

@@ -17,14 +17,18 @@ router.register(r'ia', views.SystemeIAViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-
+path('register/', views.register, name='register'),
     # Auth
     path(
         "login/",
-        auth_views.LoginView.as_view(template_name="acceuil/connex.html"),
+        views.connex,
         name="login",
     ),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
+    path("password-reset/", auth_views.PasswordResetView.as_view(template_name="registration/password_reset.html"), name="password_reset"),
+    path("password-reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="registration/password_reset_done.html"), name="password_reset_done"),
+    path("password-reset-confirm/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view(template_name="registration/password_reset_confirm.html"), name="password_reset_confirm"),
+    path("password-reset-complete/", auth_views.PasswordResetCompleteView.as_view(template_name="registration/password_reset_complete.html"), name="password_reset_complete"),
 
     # App healthy
     path("nutrition/", include("healthy.urls")),
@@ -37,7 +41,7 @@ urlpatterns = [
     #path('', include(router.urls)),
     path("contact/", views.contact, name="contact"),
     path("profil-nutritionnel/", views.profilNutritionnel, name="profilNutritionnel"),
-    path("palts/", views.palts, name="palts"),
+    path("list_plats/", views.list_plats, name="list_plats"),
     path("ajouter-plat/", views.ajouter_plat, name="ajouter_plat"),
     path("modifier-plat/", views.modifier_plat, name="modifier_plat"),
     path("administrateur/", views.login_admin, name="administrateur"),
@@ -46,6 +50,7 @@ urlpatterns = [
     path("api/profil-nutritionnel/creer/", views.CreerProfilNutritionnelView.as_view(), name="creer_profil_nutritionnel"),
     path("api/profil-nutritionnel/obtenir/", views.ObtenirProfilNutritionnelView.as_view(), name="obtenir_profil_nutritionnel"),
     path("api/profil-nutritionnel/supprimer/", views.SupprimerProfilNutritionnelView.as_view(), name="supprimer_profil_nutritionnel"),
+    path("api/profil-nutritionnel/recommander-plats/", views.RecommenderPlatsView.as_view(), name="recommander_plats"),
     path("api/", include(router.urls)),
 ]
 

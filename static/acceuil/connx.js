@@ -19,18 +19,22 @@ navItems.forEach(item => {
 });
 
 // ========== TOGGLE PASSWORD ==========
-function togglePassword(inputId, element) {
-    const input = document.getElementById(inputId);
+function togglePassword(element) {
+    // Trouve l'input associé à ce bouton
+    const inputWrapper = element.closest('.input-wrapper');
+    const input = inputWrapper ? inputWrapper.querySelector('input[type="password"], input[type="text"]') : null;
     const icon = element.querySelector('i');
     
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
+    if (input) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
     }
 }
 
@@ -81,6 +85,14 @@ tabBtns.forEach(btn => {
         panels[tab].classList.add('active');
     });
 });
+
+// Fonction pour switcher les tabs par programme
+function switchTab(tabName) {
+    const btn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    if (btn) {
+        btn.click();
+    }
+}
 
 // ========== FORMULAIRE DE CONNEXION ==========
 const loginForm = document.getElementById('loginForm');

@@ -36,9 +36,11 @@ function togglePassword(inputId, element) {
 
 // ========== NOTIFICATION TOAST ==========
 function showToast(message, type = 'success') {
+    // Supprimer les notifications existantes
     const existingToasts = document.querySelectorAll('.toast');
     existingToasts.forEach(toast => toast.remove());
 
+    // Créer la notification
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
@@ -47,7 +49,10 @@ function showToast(message, type = 'success') {
     `;
     document.body.appendChild(toast);
 
+    // Animation d'entrée
     setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Disparition après 4 secondes
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
@@ -96,7 +101,7 @@ if (adminForm) {
             showToast('Connexion administrateur réussie ! Redirection...', 'success');
             
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                window.location.href = "/dashboard/";
             }, 1500);
         } else {
             // Échec de connexion
@@ -136,6 +141,8 @@ function checkAdminSession() {
     const isLoggedIn = localStorage.getItem('adminLoggedIn');
     if (isLoggedIn === 'true') {
         console.log('🔐 Session administrateur active');
+        // Optionnel: rediriger vers dashboard si déjà connecté
+        // window.location.href = "/dashboard/";
     }
 }
 
@@ -143,15 +150,4 @@ function checkAdminSession() {
 document.addEventListener('DOMContentLoaded', () => {
     checkAdminSession();
     console.log('🌿 Page d\'administration chargée avec succès !');
-});
-
-// ========== EMPÊCHER LE RETOUR ARRIÈRE APRÈS DÉCONNEXION ==========
-window.addEventListener('pageshow', (event) => {
-    if (event.persisted) {
-        const isLoggedIn = localStorage.getItem('adminLoggedIn');
-        if (isLoggedIn === 'true' && window.location.pathname.includes('authadm.html')) {
-            // Rediriger vers dashboard si déjà connecté
-            // window.location.href = 'dashboard.html';
-        }
-    }
 });

@@ -258,6 +258,64 @@ body {
     font-weight: normal;
 }
 
+/* ========== BADGE SCORE ========== */
+.score-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    z-index: 3;
+    border: 3px solid white;
+    transition: transform 0.3s ease;
+}
+
+.score-badge:hover {
+    transform: scale(1.1);
+}
+
+.score-badge.score-excellent {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+}
+
+.score-badge.score-good {
+    background: linear-gradient(135deg, #9BBF8F, #5A7D5C);
+}
+
+.score-badge.score-ok {
+    background: linear-gradient(135deg, #E8DCC6, #DCC8A8);
+}
+
+.score-badge.score-low {
+    background: linear-gradient(135deg, #D9B48B, #C67C4E);
+}
+
+.score-value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.score-label {
+    font-size: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.score-icon {
+    font-size: 0.8rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 /* ========== CORPS DE LA CARTE ========== */
 .meal-body {
     padding: 1.2rem;

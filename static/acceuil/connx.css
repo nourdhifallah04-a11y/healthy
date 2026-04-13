@@ -287,45 +287,57 @@ body {
 
 .input-group {
     margin-bottom: 1.2rem;
+    display: block;
 }
 
 .input-group label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.7rem;
     color: var(--vert-profond);
+    gap: 0.6rem;
+    min-height: 24px;
+    letter-spacing: 0.3px;
 }
 
 .input-group label i {
-    margin-right: 6px;
+    margin-right: 0;
     color: var(--vert-sauge);
+    font-size: 1.1rem;
+    flex-shrink: 0;
 }
 
 .input-wrapper {
     position: relative;
 }
 
-.input-wrapper input {
-    width: 100%;
-    padding: 0.9rem 1rem;
-    border: 2px solid var(--beige-moyen);
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-family: 'Poppins', sans-serif;
-    transition: 0.3s;
-    background: var(--beige-pale);
+.input-wrapper input,
+.form-control {
+    width: 100% !important;
+    padding: 0.9rem 1rem !important;
+    border: 2px solid var(--beige-moyen) !important;
+    border-radius: 20px !important;
+    font-size: 0.9rem !important;
+    font-family: 'Poppins', sans-serif !important;
+    transition: 0.3s !important;
+    background: var(--beige-pale) !important;
+    color: var(--vert-profond) !important;
+    box-sizing: border-box !important;
 }
 
-.input-wrapper input:focus {
-    outline: none;
-    border-color: var(--vert-sauge);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(155, 191, 143, 0.2);
+.input-wrapper input:focus,
+.form-control:focus {
+    outline: none !important;
+    border-color: var(--vert-sauge) !important;
+    background: white !important;
+    box-shadow: 0 0 0 3px rgba(155, 191, 143, 0.2) !important;
 }
 
-.input-wrapper input.error {
-    border-color: var(--erreur);
+.input-wrapper input.error,
+.form-control.error {
+    border-color: var(--erreur) !important;
 }
 
 .toggle-password {
@@ -604,4 +616,233 @@ body {
         text-align: center;
         justify-content: center;
     }
+}
+
+/* ========== STYLES POUR FORMULAIRE D'INSCRIPTION ========== */
+
+/* Section divider - séparateur entre les sections */
+.section-divider {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--vert-sauge);
+    margin: 1.5rem 0 1rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid var(--beige-moyen);
+    user-select: none;
+}
+
+/* Erreurs au niveau du champ */
+.field-error {
+    color: var(--erreur);
+    font-size: 0.75rem;
+    margin-top: 0.4rem;
+    padding: 0.5rem;
+    background: rgba(231, 76, 60, 0.08);
+    border-left: 3px solid var(--erreur);
+    border-radius: 3px;
+    display: block;
+    list-style: none;
+}
+
+.field-error li {
+    margin: 0;
+    padding: 0;
+}
+
+.field-error ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Messages d'alerte globaux */
+.alert {
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    border-left: 4px solid;
+}
+
+.alert-error {
+    background-color: rgba(231, 76, 60, 0.08);
+    color: var(--erreur);
+    border-left-color: var(--erreur);
+}
+
+.alert-success {
+    background-color: rgba(39, 174, 96, 0.08);
+    color: var(--succes);
+    border-left-color: var(--succes);
+}
+
+.alert ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.alert li {
+    margin-bottom: 0.4rem;
+}
+
+/* Textarea styling - même style que les inputs */
+.input-wrapper textarea {
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--beige-moyen);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    transition: 0.3s;
+    background: var(--beige-pale);
+    resize: vertical;
+    min-height: 80px;
+}
+
+.input-wrapper textarea:focus {
+    outline: none;
+    border-color: var(--vert-sauge);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(155, 191, 143, 0.2);
+}
+
+.input-wrapper textarea.error {
+    border-color: var(--erreur);
+}
+
+/* Pied de page du formulaire */
+.form-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--beige-moyen);
+}
+
+.form-footer p {
+    font-size: 0.85rem;
+    color: #6C7A6A;
+    margin: 0;
+}
+
+.tab-switch {
+    color: var(--vert-feuille);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-left: 0.3rem;
+}
+
+.tab-switch:hover {
+    color: var(--vert-profond);
+    text-decoration: underline;
+}
+
+/* Rendre le formulaire scrollable sur les mobiles */
+@media (max-width: 900px) {
+    .form-panel {
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+    
+    .form-panel::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .form-panel::-webkit-scrollbar-track {
+        background: var(--beige-pale);
+        border-radius: 10px;
+    }
+    
+    .form-panel::-webkit-scrollbar-thumb {
+        background: var(--vert-sauge);
+        border-radius: 10px;
+    }
+    
+    .form-panel::-webkit-scrollbar-thumb:hover {
+        background: var(--vert-feuille);
+    }
+}
+
+/* ========== STYLES SPÉCIFIQUES INPUT ========== */
+
+/* Input date */
+input[type="date"].form-control,
+input[type="date"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+input[type="date"].form-control::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    border-radius: 4px;
+    margin-right: 2px;
+    opacity: 0.6;
+    filter: invert(0.8);
+}
+
+/* Input email */
+input[type="email"].form-control {
+    text-transform: lowercase;
+}
+
+/* Input password */
+input[type="password"].form-control {
+    letter-spacing: 0.2em;
+}
+
+/* Textarea */
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+    width: 100% !important;
+    padding: 0.9rem 1rem !important;
+    border: 2px solid var(--beige-moyen) !important;
+    border-radius: 20px !important;
+    font-size: 0.9rem !important;
+    font-family: 'Poppins', sans-serif !important;
+    background: var(--beige-pale) !important;
+    color: var(--vert-profond) !important;
+    box-sizing: border-box !important;
+    line-height: 1.5 !important;
+    transition: all 0.3s ease !important;
+}
+
+textarea.form-control:focus {
+    outline: none !important;
+    border-color: var(--vert-profond) !important;
+    background: #FFFFFF !important;
+    box-shadow: 0 0 0 3px rgba(46, 74, 47, 0.1) !important;
+}
+/* Assurer la visibilité des tous les inputs */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="date"],
+textarea {
+    visibility: visible !important;
+    opacity: 1 !important;
+    display: block !important;
+}
+
+/* Styles génériques pour tous les inputs */
+.input-field,
+input.form-control,
+textarea.form-control {
+    width: 100% !important;
+    padding: 0.9rem 1rem !important;
+    border: 2px solid var(--beige-moyen) !important;
+    border-radius: 20px !important;
+    font-size: 0.9rem !important;
+    font-family: 'Poppins', sans-serif !important;
+    background: var(--beige-pale) !important;
+    color: var(--vert-profond) !important;
+    box-sizing: border-box !important;
+    line-height: 1.5 !important;
+    transition: all 0.3s ease !important;
 }

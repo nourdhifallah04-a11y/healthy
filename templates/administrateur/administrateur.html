@@ -1,12 +1,11 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fresh & Greens - Admin Login</title>
-   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'administrateur/administrateur.css' %}">
 </head>
@@ -25,61 +24,43 @@
         </nav>
         <div class="menu-toggle" id="mobileMenu">
             <i class="fas fa-bars"></i>
-            <!-- Profile Dropdown (logged in) -->
-        <li class="nav-item dropdown">
-            <button class="nav-link dropdown-toggle d-flex align-items-center" id="profilMenu" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: none; background: none; cursor: pointer; padding: 0; gap: 0.5rem;">
-                <img src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=2E4A2F&color=fff{% endif %}" class="rounded-circle me-1" width="40" height="40" alt="avatar" style="object-fit: cover;">
-                <span class="d-none d-sm-inline" style="color: var(--vert-feuille); font-weight: 500;">{{ user.first_name|default:user.username }}</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profilMenu">
-                <li><h6 class="dropdown-header"><i class="bi bi-envelope me-2" style="color: var(--vert-sauge);"></i>{{ user.email }}</h6></li>
-                <li><hr class="dropdown-divider"></li>
-                
-                <li>
-                    <a class="dropdown-item" href="{% url 'profil_list' %}">
-                        <i class="bi bi-person-circle"></i> Mon profil
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="bi bi-gear"></i> Paramètres
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="bi bi-heart"></i> Mes favoris
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="#">
-                        <i class="bi bi-clock-history"></i> Historique
-                    </a>
-                </li>
-                
-                <li><hr class="dropdown-divider"></li>
-                
-                <li>
-                    <a class="dropdown-item text-danger" href="{% url 'logout' %}">
-                        <i class="bi bi-box-arrow-right"></i> Se déconnecter
-                    </a>
-                </li>
-            </ul>
-        </li>
         </div>
     </header>
 
     <!-- ========== CONTENU PRINCIPAL ========== -->
     <main class="main-content">
-        <div class="login-wrapper">
-            <div class="login-box">
-                <div class="login-header">
-                    <div class="login-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h2>Espace Administrateur</h2>
-                    <p>Veuillez vous identifier pour gérer le menu</p>
+        <div class="auth-container">
+            <!-- Côté gauche - Bannière Admin -->
+            <div class="auth-banner admin-banner">
+                <div class="banner-icon">
+                    <i class="fas fa-shield-alt"></i>
                 </div>
-                
+                <h2>Espace<br>Administrateur</h2>
+                <p>Gérez les menus, les utilisateurs et les statistiques de la plateforme.</p>
+                <div class="banner-stats">
+                    <div class="stat">
+                        <div class="stat-number">150+</div>
+                        <div class="stat-label">Plats gérés</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">1000+</div>
+                        <div class="stat-label">Utilisateurs</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Sécurité</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Côté droit - Formulaire Admin -->
+            <div class="auth-form-container">
+                <div class="form-header">
+                    <div class="logo-mini">Fresh<span>&</span>Greens</div>
+                    <h3>Accès administrateur</h3>
+                    <p>Veuillez vous identifier pour accéder au dashboard</p>
+                </div>
+
                 <form id="adminLoginForm">
                     <div class="input-group">
                         <label><i class="fas fa-user"></i> Identifiant</label>
@@ -98,10 +79,10 @@
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn-login">Se Connecter</button>
+                    <button type="submit" class="btn-submit">Se connecter</button>
                     
                     <div class="login-footer">
-                        <a href="{% url 'menu' %}"><i class="fas fa-arrow-left"></i> Retour au site</a>
+                        <a href="{% url 'acceuil' %}"><i class="fas fa-arrow-left"></i> Retour au site</a>
                         <a href="#" id="forgotPassword"><i class="fas fa-question-circle"></i> Mot de passe oublié ?</a>
                     </div>
                 </form>
@@ -119,11 +100,11 @@
             <div class="footer-section">
                 <h4>Liens rapides</h4>
                 <ul>
-                    <li><a href="index.html">Accueil</a></li>
-                    <li><a href="menu.html">Menu</a></li>
-                    <li><a href="specialdiet.html">Special Diet</a></li>
-                    <li><a href="contact.html">Contact</a></li>
-                    <li><a href="authadm.html">Admin</a></li>
+                    <li><a href="{% url 'acceuil' %}">Accueil</a></li>
+                    <li><a href="{% url 'menu' %}">Menu</a></li>
+                    <li><a href="{% url 'specialdiet' %}">Special Diet</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    <li><a href="{% url 'administrateur' %}">Administrateur</a></li>
                 </ul>
             </div>
             <div class="footer-section">
