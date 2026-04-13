@@ -17,6 +17,7 @@ router.register(r'ia', views.SystemeIAViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+path("administrateur/", views.administrateur, name="administrateur"),
 
     # Auth
     path(
@@ -37,7 +38,8 @@ urlpatterns = [
     #path('', include(router.urls)),
     path("contact/", views.contact, name="contact"),
     path("profil-nutritionnel/", views.profilNutritionnel, name="profilNutritionnel"),
-    
+    path("administrateur/", views.administrateur, name="administrateur"),
+
     # API endpoints
     path("api/profil-nutritionnel/creer/", views.CreerProfilNutritionnelView.as_view(), name="creer_profil_nutritionnel"),
     path("api/profil-nutritionnel/obtenir/", views.ObtenirProfilNutritionnelView.as_view(), name="obtenir_profil_nutritionnel"),

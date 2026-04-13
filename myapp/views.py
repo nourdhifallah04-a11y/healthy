@@ -12,6 +12,28 @@ from .serializers import (
     ClientSerializer, PlatSerializer, MenuSerializer, CommandeSerializer,
     ProfilNutritionnelSerializer, SystemeIASerializer
 )
+from django.contrib.auth import authenticate, login
+from django.shortcuts import render, redirect
+
+def login_admin(request):
+    if request.method == "POST":
+        username = request.POST.get('identifiant') # correspond au champ 'admin' sur l'image
+        password = request.POST.get('password')    # correspond au champ mot de passe
+        
+        # 1. Vérification des identifiants
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # 2. Vérifier si cet utilisateur est bien un administrateur dans votre table
+            if hasattr(user, 'administrateur'): 
+                login(request, user)
+                return redirect('dashboard_admin') # Redirige vers l'accueil admin
+            else:
+                return render(request, 'login.html', {'error': "Vous n'avez pas les droits d'accès."})
+        else:
+            return render(request, 'login.html', {'error': "Identifiant ou mot de passe incorrect."})
+            
+    return render(request, 'login.html')
 
 
 # ===== Template Views =====
@@ -43,6 +65,12 @@ def connex(request):
 def profilNutritionnel(request):
     """Affiche la page du profil nutritionnel"""
     return render(request, 'profil_nutritionnel/profilNutritionnel.html', {})
+def administrateur(request):
+    """Affiche la page du profil administrateur"""
+    return render(request, 'administrateur/administrateur.html', {})
+
+
+
 
 # ===== API ViewSets =====
 

@@ -53,13 +53,17 @@ TEMPLATES = [
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
-                "django.template.context_processors.request",
+             'django.template.context_processors.debug',
+
+    "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
+
+
 
 WSGI_APPLICATION = "myapp.wsgi.application"
 ASGI_APPLICATION = "myapp.asgi.application"
