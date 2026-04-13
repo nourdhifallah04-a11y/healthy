@@ -68,7 +68,7 @@ class Administrateur(models.Model):
     """Modèle Administrateur"""
     utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='administrateur')
     role = models.CharField(max_length=50, default='admin')
-    permissions = models.JSONField(default=dict)
+    permissions = models.JSONField(default=dict, blank=True)
     
     class Meta:
         verbose_name = "Administrateur"

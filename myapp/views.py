@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.shortcuts import render
 from .models import (
     Client, Plat, Menu, Commande, SystemeIA,
-    ProfilNutritionnel, LigneCommande, CompositionMenu
+    ProfilNutritionnel, LigneCommande, CompositionMenu, Administrateur, Utilisateur
 )
 from .serializers import (
     ClientSerializer, PlatSerializer, MenuSerializer, CommandeSerializer,
@@ -14,26 +14,57 @@ from .serializers import (
 )
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect
+from .forms import AdminLoginForm
+from django.contrib import messages
+from django.views.decorators.http import require_http_methods
 
+
+@require_http_methods(["GET", "POST"])
 def login_admin(request):
+    """
+    Formulaire de connexion pour les administrateurs.
+    Récupère l'administrateur à partir de l'email et de la base de données.
+    """
     if request.method == "POST":
-        username = request.POST.get('identifiant') # correspond au champ 'admin' sur l'image
-        password = request.POST.get('password')    # correspond au champ mot de passe
-        
-        # 1. Vérification des identifiants
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            # 2. Vérifier si cet utilisateur est bien un administrateur dans votre table
-            if hasattr(user, 'administrateur'): 
-                login(request, user)
-                return redirect('dashboard_admin') # Redirige vers l'accueil admin
-            else:
-                return render(request, 'login.html', {'error': "Vous n'avez pas les droits d'accès."})
-        else:
-            return render(request, 'login.html', {'error': "Identifiant ou mot de passe incorrect."})
+        form = AdminLoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get('email')
+            password = form.cleaned_data.get('password')
             
-    return render(request, 'login.html')
+            try:
+                # 1. Récupérer l'utilisateur par email depuis la base de données
+                utilisateur = Utilisateur.objects.get(email=email)
+                
+                # 2. Vérifier que le mot de passe est correct
+                if utilisateur.check_password(password):
+                    # 3. Vérifier si cet utilisateur est un administrateur
+                    if hasattr(utilisateur, 'administrateur'):
+                        administrateur = Utilisateur.objects.get(email=email)
+                        # Authentifier et connecter l'utilisateur
+                        login(request, administrateur)
+                        messages.success(request, f"Bienvenue {administrateur.prenom} {administrateur.nom}!")
+                        return redirect('acceuil')
+                    else:
+                        messages.error(request, "Vous n'avez pas les droits d'accès administrateur.")
+                        form.add_error(None, "Accès refusé : vous n'êtes pas un administrateur.")
+                else:
+                    messages.error(request, "Mot de passe incorrect.")
+                    form.add_error('password', "Le mot de passe est incorrect.")
+                    
+            except Utilisateur.DoesNotExist:
+                messages.error(request, "Aucun utilisateur trouvé avec cet email.")
+                form.add_error('email', "Cet email n'existe pas dans la base de données.")
+            except Exception as e:
+                messages.error(request, f"Une erreur est survenue : {str(e)}")
+                form.add_error(None, f"Erreur lors de la connexion : {str(e)}")
+    else:
+        form = AdminLoginForm()
+    
+    context = {
+        'form': form,
+        'page_title': 'Connexion Administrateur'
+    }
+    return render(request, 'administrateur/login_admin.html', context)
 
 
 # ===== Template Views =====
@@ -65,6 +96,19 @@ def connex(request):
 def profilNutritionnel(request):
     """Affiche la page du profil nutritionnel"""
     return render(request, 'profil_nutritionnel/profilNutritionnel.html', {})
+
+def palts(request):
+    """Affiche la page des palts"""
+    return render(request, 'palts/palts.html', {})
+
+def ajouter_plat(request):
+    """Affiche la page pour ajouter un nouveau plat"""
+    return render(request, 'palts/ajouter_plat.html', {})
+
+def modifier_plat(request):
+    """Affiche la page pour modifier un plat"""
+    return render(request, 'palts/modifier_plat.html', {})
+
 def administrateur(request):
     """Affiche la page du profil administrateur"""
     return render(request, 'administrateur/administrateur.html', {})

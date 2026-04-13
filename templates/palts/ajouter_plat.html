@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un Plat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 15px;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+        h1 {
+            color: #333;
+            flex: 1;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select,
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+        }
+        .image-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            border-radius: 4px;
+            display: none;
+            border: 1px solid #ddd;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+        .btn-save {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .btn-save:hover {
+            background-color: #218838;
+        }
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn-cancel:hover {
+            background-color: #5a6268;
+        }
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .required {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/palts/" class="btn-back">← Retour</a>
+            <h1>Ajouter un nouveau plat</h1>
+        </div>
+
+        <div id="messageSucces" class="message success"></div>
+        <div id="messageErreur" class="message error"></div>
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Enregistrement en cours...</p>
+        </div>
+
+        <form id="formAjouterPlat" onsubmit="sauvegarderPlat(event)">
+            <div class="form-group">
+                <label for="nom">Nom du plat <span class="required">*</span></label>
+                <input type="text" id="nom" name="nom" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description <span class="required">*</span></label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="prix">Prix (€) <span class="required">*</span></label>
+                    <input type="number" id="prix" name="prix" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="calorie">Calories (kcal) <span class="required">*</span></label>
+                    <input type="number" id="calorie" name="calorie" step="0.1" min="0" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="proteine">Protéines (g) <span class="required">*</span></label>
+                    <input type="number" id="proteine" name="proteine" step="0.1" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="glucides">Glucides (g)</label>
+                    <input type="number" id="glucides" name="glucides" step="0.1" min="0" value="0">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="lipides">Lipides (g)</label>
+                    <input type="number" id="lipides" name="lipides" step="0.1" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="fibres">Fibres (g)</label>
+                    <input type="number" id="fibres" name="fibres" step="0.1" min="0" value="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Image du plat</label>
+                <input type="file" id="image" name="image" accept="image/*" onchange="previsualiserImage(event)">
+                <img id="imagePreview" class="image-preview" alt="Prévisualisation">
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="estDisponible" name="estDisponible" checked>
+                <label for="estDisponible">Plat disponible</label>
+            </div>
+
+            <div class="form-actions">
+                <a href="/palts/" class="btn-cancel">Annuler</a>
+                <button type="submit" class="btn-save">Enregistrer le plat</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function getAuthToken() {
+            return localStorage.getItem('authToken') || '';
+        }
+
+        function previsualiserImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function afficherMessage(message, type) {
+            const messagesucces = document.getElementById('messageSucces');
+            const messageerreur = document.getElementById('messageErreur');
+            
+            if (type === 'success') {
+                messagesucces.textContent = message;
+                messagesucces.style.display = 'block';
+                messageerreur.style.display = 'none';
+            } else {
+                messageerreur.textContent = message;
+                messageerreur.style.display = 'block';
+                messagesucces.style.display = 'none';
+            }
+        }
+
+        function sauvegarderPlat(event) {
+            event.preventDefault();
+            
+            document.getElementById('loading').style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('nom', document.getElementById('nom').value);
+            formData.append('description', document.getElementById('description').value);
+            formData.append('prix', parseFloat(document.getElementById('prix').value));
+            formData.append('calorie', parseFloat(document.getElementById('calorie').value));
+            formData.append('proteine', parseFloat(document.getElementById('proteine').value));
+            formData.append('glucides', parseFloat(document.getElementById('glucides').value));
+            formData.append('lipides', parseFloat(document.getElementById('lipides').value));
+            formData.append('fibres', parseFloat(document.getElementById('fibres').value));
+            formData.append('est_disponible', document.getElementById('estDisponible').checked);
+            
+            // Ajouter l'image si elle est sélectionnée
+            const imageFile = document.getElementById('image').files[0];
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                            getCookie('csrftoken');
+
+            fetch('/api/plats/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Authorization': `Bearer ${getAuthToken()}`
+                },
+                body: formData
+            })
+            .then(response => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (!response.ok) {
+                    return response.json().then(err => Promise.reject(err));
+                }
+                return response.json();
+            })
+            .then(data => {
+                afficherMessage('✓ Plat ajouté avec succès !', 'success');
+                document.getElementById('formAjouterPlat').reset();
+                
+                // Redirection vers la page des plats après 2 secondes
+                setTimeout(() => {
+                    window.location.href = '/palts/';
+                }, 2000);
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                const messageErreur = error.detail || error.nom || error.prix || 
+                                    'Erreur lors de l\'ajout du plat. Veuillez vérifier les données et réessayer.';
+                afficherMessage('✗ ' + messageErreur, 'error');
+            });
+        }
+    </script>
+</body>
+</html>

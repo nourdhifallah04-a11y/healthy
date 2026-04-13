@@ -15,3 +15,23 @@ class ProfilNutritionnelForm(forms.ModelForm):
             'allergies': forms.Textarea(attrs={'rows': 3}),
             'restrictions_alimentaires': forms.Textarea(attrs={'rows': 3}),
         }
+
+
+class AdminLoginForm(forms.Form):
+    """Formulaire de connexion pour les administrateurs"""
+    email = forms.EmailField(
+        label='Email',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Entrez votre email',
+            'autocomplete': 'email'
+        })
+    )
+    password = forms.CharField(
+        label='Mot de passe',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Entrez votre mot de passe',
+            'autocomplete': 'current-password'
+        })
+    )

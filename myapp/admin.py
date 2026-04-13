@@ -1,6 +1,6 @@
 from django.contrib import admin
 from myapp.models import (
-    Utilisateur, Client, ProfilNutritionnel, Plat,
+    Utilisateur, Client, Administrateur, ProfilNutritionnel, Plat,
     Menu, Commande, SystemeIA
 )
 
@@ -14,6 +14,13 @@ class UtilisateurAdmin(admin.ModelAdmin):
 class ClientAdmin(admin.ModelAdmin):
     list_display = ['id', 'utilisateur']
     search_fields = ['utilisateur__nom', 'utilisateur__email']
+
+@admin.register(Administrateur)
+class AdministrateurAdmin(admin.ModelAdmin):
+    list_display = ['id', 'utilisateur', 'role']
+    search_fields = ['utilisateur__nom', 'utilisateur__email']
+    list_filter = ['role']
+    fields = ['utilisateur', 'role', 'permissions']
 
 @admin.register(ProfilNutritionnel)
 class ProfilNutritionnelAdmin(admin.ModelAdmin):
