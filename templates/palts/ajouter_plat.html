@@ -249,6 +249,11 @@
                 <label for="estDisponible">Plat disponible</label>
             </div>
 
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="isNew" name="isNew">
+                <label for="isNew">Marquer comme nouveau</label>
+            </div>
+
             <div class="form-actions">
                 <a href="/palts/" class="btn-cancel">Annuler</a>
                 <button type="submit" class="btn-save">Enregistrer le plat</button>
@@ -319,6 +324,7 @@
             formData.append('lipides', parseFloat(document.getElementById('lipides').value));
             formData.append('fibres', parseFloat(document.getElementById('fibres').value));
             formData.append('est_disponible', document.getElementById('estDisponible').checked);
+            formData.append('isNew', document.getElementById('isNew').checked);
             
             // Ajouter l'image si elle est sélectionnée
             const imageFile = document.getElementById('image').files[0];

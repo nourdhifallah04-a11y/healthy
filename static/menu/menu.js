@@ -25,7 +25,7 @@ function transformerPlatEnMeal(plat) {
         fiber: plat.fibres,
         category: plat.proteine >= 35 ? "proteine" : "autre",
         image: plat.image ? plat.image : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
-        isNew: false,
+        isNew: plat.isNew,
         prix: plat.prix,
         description: plat.description,
         est_disponible: plat.est_disponible
@@ -48,7 +48,10 @@ function chargerPlats() {
             
             // Adapter les données de l'API au format attendu par displayMeals
             const platsArray = Array.isArray(data) ? data : (data.results || []);
-            meals = platsArray.map(plat => transformerPlatEnMeal(plat));
+            // Filtrer les plats disponibles uniquement
+            meals = platsArray
+                .filter(plat => plat.est_disponible === true)
+                .map(plat => transformerPlatEnMeal(plat));
             
             // Afficher les plats après le chargement
             displayMeals();
@@ -115,6 +118,18 @@ function displayMeals() {
                     <div class="nutri-item">
                         <span>💪 Protéines</span>
                         ${meal.protein}g
+                    </div>
+                    <div class="nutri-item">
+                        <span>🌾 Glucides</span>
+                        ${meal.carbs}g
+                    </div>
+                    <div class="nutri-item">
+                        <span>🌾 Lipides</span>
+                        ${meal.fat}g
+                    </div>
+                    <div class="nutri-item">
+                        <span>🌿 Fibres</span>
+                        ${meal.fiber}g
                     </div>
                 </div>
             </div>

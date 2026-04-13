@@ -163,6 +163,7 @@ class Plat(models.Model):
     fibres = models.FloatField(default=0, help_text="Fibres en grammes")
     prix = models.DecimalField(max_digits=10, decimal_places=3)
     est_disponible = models.BooleanField(default=True)
+    isNew = models.BooleanField(default=False)
     image = models.ImageField(upload_to='plats/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     

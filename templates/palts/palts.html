@@ -200,6 +200,7 @@
                     <th>Lipides (g)</th>
                     <th>Fibres (g)</th>
                     <th>Prix</th>
+                    <th>Nouveau</th>
                     <th>Disponibilité</th>
                     <th>Actions</th>
                 </tr>
@@ -295,7 +296,7 @@
         function afficherPlats() {
             const tbody = document.getElementById('platsList');
             if (plats.length === 0) {
-                tbody.innerHTML = '<tr class="empty"><td colspan="10">Aucun plat pour le moment</td></tr>';
+                tbody.innerHTML = '<tr class="empty"><td colspan="11">Aucun plat pour le moment</td></tr>';
             } else {
                 tbody.innerHTML = plats.map(plat => `
                     <tr>
@@ -307,6 +308,11 @@
                         <td>${parseFloat(plat.lipides).toFixed(2)}</td>
                         <td>${parseFloat(plat.fibres).toFixed(2)}</td>
                         <td>${parseFloat(plat.prix).toFixed(2)}€</td>
+                        <td>
+                            <span style="color: ${plat.isNew ? '#28a745' : '#999'}; font-weight: bold;">
+                                ${plat.isNew ? '✓ Nouveau' : '✗ Non'}
+                            </span>
+                        </td>
                         <td>
                             <span style="color: ${plat.est_disponible ? '#28a745' : '#dc3545'}; font-weight: bold;">
                                 ${plat.est_disponible ? '✓ Disponible' : '✗ Non disponible'}
