@@ -118,13 +118,19 @@ class ProfilNutritionnel(models.Model):
         return round(imc, 2)
     
     def calculer_bmr(self) -> float:
-        """Calcule le métabolisme de base (Formule de Harris-Benedict)"""
+        """Calcule le métabolisme de base (Formule de Harris-Benedict) selon le sexe"""
         poids_kg = float(self.poids)
         taille_cm = float(self.taille)
         age_ans = self.age
         
-        # Formule pour homme (à améliorer selon le sexe)
-        bmr = 88.362 + (13.397 * poids_kg) + (4.799 * taille_cm) - (5.677 * age_ans)
+        # Formule de Harris-Benedict révisée (plus précise que l'originale)
+        if self.sexe == 'homme':
+            # Formule pour homme
+            bmr = 88.362 + (13.397 * poids_kg) + (4.799 * taille_cm) - (5.677 * age_ans)
+        else:
+            # Formule pour femme
+            bmr = 447.593 + (9.247 * poids_kg) + (3.098 * taille_cm) - (4.330 * age_ans)
+        
         return round(bmr, 2)
     
     def besoins_caloriques_journaliers(self) -> float:
@@ -191,7 +197,9 @@ class ProfilNutritionnel(models.Model):
                 plat, 
                 categorie_imc,
                 allergies=self.allergies,
-                restrictions=self.restrictions_alimentaires
+                restrictions=self.restrictions_alimentaires,
+                age=self.age,
+                sexe=self.sexe
             )
             plats_avec_score.append({
                 'plat': plat,
@@ -279,10 +287,11 @@ class Plat(models.Model):
     
     @staticmethod
     def calculer_score_recommendation(plat: "Plat", categorie_imc: str, 
-                                     allergies: str = "", restrictions: str = "") -> float:
+                                     allergies: str = "", restrictions: str = "",
+                                     age: int = None, sexe: str = None) -> float:
         """
         Calcule un score de recommandation pour un plat basé sur la catégorie IMC, 
-        allergies et restrictions alimentaires
+        allergies, restrictions alimentaires, âge et sexe
         
         Stratégies par catégorie IMC:
         - Insuffisance pondérale: Calories élevées, protéines modérées
@@ -290,11 +299,18 @@ class Plat(models.Model):
         - Surpoids: Faibles calories, protéines élevées, lipides bas, fibres élevées
         - Obésité: Très faibles calories, protéines très élevées, très faibles lipides
         
+        Facteurs d'âge et de sexe:
+        - Les femmes ont des besoins caloriques et en fer plus spécifiques
+        - Les hommes ont généralement des besoins protéiques plus élevés
+        - Les jeunes ont des besoins énergétiques supérieurs
+        
         Args:
             plat: Instance du modèle Plat
             categorie_imc: Catégorie d'IMC ('insuffisance_ponderale', 'normal', 'surpoids', 'obesite')
             allergies: Chaîne contenant les allergies du client (ex: "arachide, lactose")
             restrictions: Chaîne contenant les restrictions alimentaires (ex: "végétarien, sans gluten")
+            age: Âge du client (optionnel)
+            sexe: Sexe du client ('homme', 'femme') (optionnel)
         
         Returns:
             Score de recommandation (0-100), retourne 0 si allergie/restriction détectée
@@ -550,8 +566,49 @@ class Plat(models.Model):
             score += bonus_fib
             print(f"    • Fibres: +{bonus_fib:.2f} (idéal: 10-20g)")
         
+        # Facteurs d'âge et de sexe
+        print(f"  👤 Facteurs personnels: Âge={age} ans, Sexe={sexe}")
+        bonus_age_sexe = 0.0
+        
+        # Bonus pour les femmes: besoins en fer élevés, moins de calories
+        if sexe == 'femme':
+            bonus_age_sexe += 2  # Léger bonus pour inclusivité
+            # Malus léger si calories très élevées (les femmes ont généralement moins de besoins caloriques)
+            if categorie_imc in ['normal', 'insuffisance_ponderale']:
+                if plat.calorie > 700:
+                    bonus_age_sexe -= 3
+            print(f"    • Genre: Femme +{2:.1f} (besoins nutritionnels spécifiques)")
+        
+        # Bonus pour les hommes: protéines élevées, plus de calories
+        elif sexe == 'homme':
+            bonus_age_sexe += 1  # Bonus modéré
+            # Bonus si protéines élevées (les hommes ont généralement plus de besoins protéiques)
+            if plat.proteine > 25:
+                bonus_age_sexe += 2
+            print(f"    • Genre: Homme +{1 + (2 if plat.proteine > 25 else 0):.1f} (besoins protéiques)")
+        
+        # Bonus pour l'âge
+        if age:
+            if age < 20:
+                # Jeunes: besoins énergétiques élevés
+                bonus_age_sexe += min((plat.calorie / 1000) * 3, 3)
+                print(f"    • Âge < 20 ans: +{min((plat.calorie / 1000) * 3, 3):.2f} (besoins énergétiques élevés)")
+            elif age >= 50:
+                # Seniors: moins de calories, plus de fibres et calcium
+                if plat.calorie < 600:
+                    bonus_age_sexe += 2
+                if plat.fibres > 5:
+                    bonus_age_sexe += 1
+                print(f"    • Âge >= 50 ans: +{(2 if plat.calorie < 600 else 0) + (1 if plat.fibres > 5 else 0):.2f} (nutrition pour seniors)")
+            else:
+                # Adultes: balance normale
+                bonus_age_sexe += 0
+                print(f"    • Âge 20-49 ans: +0.00 (nutrition standard adulte)")
+        
+        score += bonus_age_sexe
+        
         score_final = round(score, 2)
-        print(f"  ✅ Score final: {score_final}/100\n")
+        print(f"  ✅ Score final (avec facteurs personnels): {score_final}/100\n")
         return score_final
     
     def __str__(self):

@@ -892,21 +892,21 @@ plats_data = [
     {
         'nom': 'Poulet Tandoori',
         'description': 'Filet de poulet mariné aux épices tandoori et yaourt',
-        'calorie': 340,
-        'proteine': 46,
-        'glucides': 6,
-        'lipides': 16,
-        'fibres': 1,
+        'calorie': 320,
+        'proteine': 42,
+        'glucides': 4,
+        'lipides': 14,
+        'fibres': 0,
         'prix': 13.50
     },
     {
         'nom': 'Minestrone Végétal',
         'description': 'Soupe italienne généreuse avec pâtes, légumes et haricots',
-        'calorie': 200,
-        'proteine': 10,
-        'glucides': 32,
-        'lipides': 4,
-        'fibres': 7,
+        'calorie': 260,
+        'proteine': 12,
+        'glucides': 35,
+        'lipides': 5,
+        'fibres': 5,
         'prix': 6.99
     },
     {

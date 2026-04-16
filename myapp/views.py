@@ -734,7 +734,9 @@ class RecommenderPlatsView(generics.ListAPIView):
                         plat,
                         categorie_imc,
                         allergies=profil.allergies,
-                        restrictions=profil.restrictions_alimentaires
+                        restrictions=profil.restrictions_alimentaires,
+                        age=profil.age,
+                        sexe=profil.sexe
                     )
                     
                     # Ajouter le score au plat sérialisé
