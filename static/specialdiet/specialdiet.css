@@ -316,6 +316,44 @@ body {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* ========== BADGE SCORE NUTRITIONNEL ========== */
+.nutrition-score-badge {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    z-index: 3;
+    border: 3px solid white;
+    background: linear-gradient(135deg, #9BBF8F, #5A7D5C);
+    transition: transform 0.3s ease;
+}
+
+.nutrition-score-badge:hover {
+    transform: scale(1.1);
+}
+
+.nutrition-score-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.nutrition-score-label {
+    font-size: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
 /* ========== CORPS DE LA CARTE ========== */
 .meal-body {
     padding: 1.2rem;
@@ -356,6 +394,24 @@ body {
     color: #6C7A6A;
     font-size: 1.1rem;
     grid-column: 1 / -1;
+}
+
+/* ========== SCORE NUTRITIONNEL POUR PLATS RECOMMANDÉS ========== */
+.score-nutritionnel {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    background: linear-gradient(135deg, #9BBF8F, #5A7D5C);
+    color: white;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(90, 125, 92, 0.15);
+}
+
+.score-nutritionnel strong {
+    display: block;
+    font-size: 1rem;
 }
 
 /* ========== FOOTER ========== */

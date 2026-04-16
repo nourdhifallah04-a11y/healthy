@@ -1,34 +1,13 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fresh & Greens | Connexion</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'acceuil/connx.css' %}">
-</head>
-<body>
-    <!-- ========== NAVBAR ========== -->
-    <header class="navbar">
-        <div class="logo">Fresh<span>&</span>Greens</div>
-        <nav>
-            <ul class="nav-links">
-                <li><a href="{% url 'acceuil' %}" class="nav-btn">Accueil</a></li>
-                <li><a href="{% url 'menu' %}" class="nav-btn">Menu</a></li>
-                <li><a href="{% url 'specialdiet' %}" class="nav-btn">Special Diet</a></li>
-                <li><a href="{% url 'contact' %}" class="nav-btn">Contact</a></li>
-                <li><a href="{% url 'login' %}" class="nav-btn active">Connexion</a></li>
-            </ul>
-        </nav>
-        <div class="menu-toggle" id="mobileMenu">
-            <i class="fas fa-bars"></i>
-        </div>
-    </header>
 
-    <!-- ========== CONTENU PRINCIPAL ========== -->
-    <main class="main-content">
+{% block title %}Fresh & Greens | Connexion{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accueil/connx.css' %}">
+{% endblock %}
+
+{% block content %}
         <div class="auth-container">
             <!-- Côté gauche - Bannière -->
             <div class="auth-banner">
@@ -232,38 +211,8 @@
             </div>
         </div>
     </main>
+{% endblock %}
 
-    <!-- ========== FOOTER ========== -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-section">
-                <h4>Fresh & Greens</h4>
-                <p>Votre partenaire santé pour une alimentation équilibrée et savoureuse.</p>
-            </div>
-            <div class="footer-section">
-                <h4>Liens rapides</h4>
-                <ul>
-                    <li><a href="{% url 'acceuil' %}">Accueil</a></li>
-                    <li><a href="{% url 'menu' %}">Menu</a></li>
-                    <li><a href="{% url 'specialdiet' %}">Special Diet</a></li>
-                    <li><a href="{% url 'contact' %}">Contact</a></li>
-                    <li><a href="{% url 'login' %}">Connexion</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h4>Suivez-nous</h4>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 Fresh & Greens - Tous droits réservés</p>
-        </div>
-    </footer>
-
-    <script src="{% static 'acceuil/connx.js' %}"></script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{% static 'accueil/connx.js' %}"></script>
+{% endblock %}

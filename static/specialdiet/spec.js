@@ -32,7 +32,8 @@ function transformerPlatEnMealDiet(plat) {
         fiber: plat.fibres,
         image: plat.image ? plat.image : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
         description: plat.description,
-        score: plat.score || 0  // Ajouter le score depuis l'API
+        score: plat.score || 0,  // Ajouter le score depuis l'API
+        scoreNutritionnel: plat.score_nutritionnel || 0  // Score nutritionnel
     };
 }
 
@@ -99,6 +100,9 @@ function chargerDietMeals() {
             
             // Catégoriser les plats par type de régime
             dietMeals = categoriserPlatsByDiet(mealsFormatted);
+            
+            // Rafraîchir l'affichage de dietGrid
+            displayDietMeals();
             
             // Charger aussi les plats recommandés basés sur le profil
             chargerPlatsRecommandes();
@@ -218,9 +222,13 @@ function displayDietMeals() {
                 <div class="badge-diet">${dietName}</div>
                 <div class="prot-circle">${meal.protein}g <span>PROT</span></div>
                 ${meal.score > 0 ? `<div class="score-badge ${scoreClass}">
-                    <div class="score-value">${meal.score.toFixed(1)}</div>
+                    <div class="score-value">${Math.round(meal.score)}</div>
                     <div class="score-label">Score</div>
                     <div class="score-icon">${scoreIcon}</div>
+                </div>` : ''}
+                ${meal.scoreNutritionnel > 0 ? `<div class="nutrition-score-badge">
+                    <div class="nutrition-score-value">${meal.scoreNutritionnel}</div>
+                    <div class="nutrition-score-label">Nutrition</div>
                 </div>` : ''}
             </div>
             <div class="meal-body">
@@ -237,6 +245,14 @@ function displayDietMeals() {
                     <div class="nutri-item">
                         <span>🍚 Glucides</span>
                         ${meal.carbs}g
+                    </div>
+                    <div class="nutri-item">
+                        <span>🌾 Lipides</span>
+                        ${meal.fat}g
+                    </div>
+                    <div class="nutri-item">
+                        <span>🌿 Fibres</span>
+                        ${meal.fiber}g
                     </div>
                 </div>
             </div>
@@ -292,5 +308,8 @@ navItems.forEach(item => {
 // ========== CHARGEMENT INITIAL ==========
 document.addEventListener('DOMContentLoaded', () => {
     chargerDietMeals();
+    // Afficher high-protein par défaut
+    currentDiet = "high-protein";
+    displayDietMeals();
     console.log('🌿 Special Diet Fresh & Greens chargé avec succès !');
 });

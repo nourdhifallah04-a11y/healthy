@@ -33,7 +33,7 @@ path('register/', views.register, name='register'),
     # App healthy
     path("nutrition/", include("healthy.urls")),
     #path('', include(router.urls)),
-    path("", views.acceuil, name="acceuil"),
+    path("", views.accueil, name="accueil"),
      #path('', include(router.urls)),
     path("menu/", views.menu, name="menu"),
      #path('', include(router.urls)),

@@ -1,0 +1,210 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}Fresh & Greens{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- CSS personnalisé -->
+    <link rel="stylesheet" href="{% static 'accueil/style.css' %}">
+    <!-- Navbar Advanced Styles -->
+    <link rel="stylesheet" href="{% static 'accueil/navbar-advanced.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar Centralisée avec Bootstrap 5 -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top shadow-sm nav-enhanced">
+    <div class="container-fluid px-md-5">
+        <!-- Logo -->
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="{% url 'accueil' %}" style="font-family: 'Playfair Display', serif; font-size: 1.5rem;">
+            <i class="fas fa-leaf" style="color: var(--vert-sauge); font-size: 1.8rem;"></i>
+            <span style="color: var(--vert-profond);">Fresh</span>
+            <span style="color: var(--vert-sauge);">&</span>
+            <span style="color: var(--vert-feuille);">Green</span>
+        </a>
+
+        <!-- Mobile Toggle Button -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"
+                style="color: var(--vert-feuille);">
+            <i class="fas fa-bars fs-5"></i>
+        </button>
+
+        <!-- Navigation Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <!-- Home -->
+                <li class="nav-item">
+                    <a class="nav-link nav-link-enhanced active" aria-current="page" href="{% url 'accueil' %}" data-link="home">
+                        <i class="bi bi-house-fill me-2"></i>Accueil
+                    </a>
+                </li>
+
+                <!-- Menu -->
+                <li class="nav-item">
+                    <a class="nav-link nav-link-enhanced" href="{% url 'menu' %}" data-link="menu">
+                        <i class="bi bi-book me-2"></i>Menu
+                    </a>
+                </li>
+
+                <!-- Special Diet -->
+                <li class="nav-item">
+                    <a class="nav-link nav-link-enhanced" href="{% url 'specialdiet' %}" data-link="recettes">
+                        <i class="fas fa-heart me-2" style="color: var(--vert-sauge);"></i>Special Diet
+                    </a>
+                </li>
+
+                <!-- Contact -->
+                <li class="nav-item">
+                    <a class="nav-link nav-link-enhanced" href="{% url 'contact' %}" data-link="contact">
+                        <i class="bi bi-chat-left-text me-2"></i>Contact
+                    </a>
+                </li>
+
+                <!-- Divider -->
+                <li class="nav-item">
+                    <div class="vr ms-2" style="height: 1.5rem; opacity: 0.3;"></div>
+                </li>
+
+                {% if user.is_authenticated %}
+                <!-- Notification Icon (if needed) -->
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="#" title="Notifications">
+                        <i class="bi bi-bell fs-5" style="color: var(--vert-feuille);"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                            2
+                        </span>
+                    </a>
+                </li>
+
+                <!-- Profile Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 py-1 px-2" href="#" id="userDropdown" 
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false" 
+                       style="border-radius: 20px; background-color: rgba(90, 125, 92, 0.1); transition: all 0.3s;">
+                        <img src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=2E4A2F&color=fff&bold=true{% endif %}" 
+                             class="rounded-circle" width="36" height="36" alt="avatar" style="object-fit: cover; border: 2px solid var(--vert-sauge);">
+                        <span class="d-none d-lg-inline fw-500" style="color: var(--vert-feuille);">
+                            {{user.prenom }} {{user.nom|default:user.username }}
+                        </span>
+                        <i class="bi bi-chevron-down" style="font-size: 0.75rem; color: var(--vert-feuille);"></i>
+                    </a>
+
+                    <!-- Dropdown Menu -->
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="userDropdown" style="border: 1px solid var(--beige-moyen); border-radius: 12px;">
+                        <!-- User Email Header -->
+                        <li>
+                            <h6 class="dropdown-header px-3 py-2" style="color: var(--vert-profond); font-weight: 600;">
+                                <i class="bi bi-envelope me-2" style="color: var(--vert-sauge);"></i>{{ user.email }}
+                            </h6>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+
+                        {% if user.administrateur %}
+                        <!-- Admin Menu -->
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'list_plats' %}" 
+                               style="color: var(--vert-feuille); transition: 0.2s;">
+                                <i class="bi bi-gear" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
+                                <span>Gérer les plats</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#"
+                               style="color: var(--vert-feuille); transition: 0.2s;">
+                                <i class="fas fa-chart-bar" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
+                                <span>Statistiques</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <!-- Client Menu -->
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'profilNutritionnel' %}"
+                               style="color: var(--vert-feuille); transition: 0.2s;">
+                                <i class="bi bi-person-circle" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
+                                <span>Mon profil nutritionnel</span>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        <!-- History -->
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#"
+                               style="color: var(--vert-feuille); transition: 0.2s;">
+                                <i class="bi bi-clock-history" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
+                                <span>Historique</span>
+                            </a>
+                        </li>
+
+                        <!-- Settings -->
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#"
+                               style="color: var(--vert-feuille); transition: 0.2s;">
+                                <i class="bi bi-sliders" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
+                                <span>Paramètres</span>
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider my-1"></li>
+
+                        <!-- Logout -->
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'logout' %}"
+                               style="transition: 0.2s;">
+                                <i class="bi bi-box-arrow-right fs-5"></i>
+                                <span>Se déconnecter</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                {% else %}
+                <!-- Login Button (Not Authenticated) -->
+                <li class="nav-item">
+                    <a href="{% url 'login' %}" class="nav-link btn btn-sm" 
+                       style="background: linear-gradient(135deg, var(--vert-feuille), var(--vert-sauge)); color: white; border-radius: 20px; padding: 0.5rem 1.2rem; font-weight: 500; transition: all 0.3s; margin-left: 0.5rem;">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Contenu principal -->
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <p>🌿 GreenPlate — Design beige & vert pour une vie saine</p>
+        <p>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-facebook"></i></a>
+            <a href="#"><i class="fab fa-pinterest"></i></a>
+        </p>
+        <p>© 2026 GreenPlate — Tous droits réservés</p>
+    </div>
+</footer>
+
+<script src="{% static 'accueil/script.js' %}"></script>
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Enhanced Navbar JS -->
+<script src="{% static 'accueil/navbar-enhanced.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

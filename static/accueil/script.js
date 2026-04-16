@@ -1,4 +1,4 @@
-// Main script for acceuil/home page
+// Main script for accueil/home page
 
 // Initialize Bootstrap dropdowns
 document.addEventListener('DOMContentLoaded', function() {

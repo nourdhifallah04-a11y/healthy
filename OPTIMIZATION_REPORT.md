@@ -14,7 +14,7 @@ The following CSS and JavaScript files were **duplicated** in both `static/` and
 
 #### Removed Files:
 
-**From `templates/acceuil/`:**
+**From `templates/accueil/`:**
 - `authentif.css`
 - `authentif.js`
 - `connx.css`
@@ -57,10 +57,10 @@ All HTML templates have been verified to correctly reference assets using Django
 
 #### Template Files Remaining (HTML only):
 
-**`templates/acceuil/`:**
-- `acceuil.html` - References: `static/acceuil/style.css`, `static/acceuil/script.js`
-- `authentif.html` - References: `static/acceuil/authentif.css`, `static/acceuil/authentif.js`
-- `connex.html` - References: `static/acceuil/connx.css`, `static/acceuil/connx.js`
+**`templates/accueil/`:**
+- `accueil.html` - References: `static/accueil/style.css`, `static/accueil/script.js`
+- `authentif.html` - References: `static/accueil/authentif.css`, `static/accueil/authentif.js`
+- `connex.html` - References: `static/accueil/connx.css`, `static/accueil/connx.js`
 
 **`templates/contact/`:**
 - `contact.html` - References: `static/contact/contact.css`, `static/contact/contact.js`
@@ -91,7 +91,7 @@ All CSS and JavaScript files are now properly organized in the `static/` directo
 
 ```
 static/
-├── acceuil/
+├── accueil/
 │   ├── authentif.css
 │   ├── authentif.js
 │   ├── connx.css

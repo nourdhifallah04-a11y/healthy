@@ -9,6 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.utils.html import mark_safe
+from django.conf import settings
 import json
 from .models import (
     Client, Plat, Menu, Commande, SystemeIA,
@@ -39,9 +40,11 @@ def register(request):
                     request, 
                     f"Bienvenue {utilisateur.prenom} {utilisateur.nom}! Votre compte a été créé avec succès."
                 )
-                return redirect('acceuil')  # Rediriger vers la page d'accueil
+                return redirect('accueil')  # Rediriger vers la page d'accueil
+            except ValueError as e:
+                messages.error(request, f"Erreur de validation: {str(e)}")
             except Exception as e:
-                messages.error(request, f"Erreur lors de l'inscription: {str(e)}")
+                messages.error(request, "Une erreur est survenue lors de l'inscription.")
     else:
         form = RegistrationForm()
     
@@ -68,27 +71,28 @@ def login_admin(request):
                 utilisateur = Utilisateur.objects.get(email=email)
                 
                 # 2. Vérifier que le mot de passe est correct
-                if utilisateur.check_password(password):
-                    # 3. Vérifier si cet utilisateur est un administrateur
-                    if hasattr(utilisateur, 'administrateur'):
-                        administrateur = Utilisateur.objects.get(email=email)
-                        # Authentifier et connecter l'utilisateur
-                        login(request, administrateur)
-                        messages.success(request, f"Bienvenue {administrateur.prenom} {administrateur.nom}!")
-                        return redirect('acceuil')
-                    else:
-                        messages.error(request, "Vous n'avez pas les droits d'accès administrateur.")
-                        form.add_error(None, "Accès refusé : vous n'êtes pas un administrateur.")
-                else:
+                if not utilisateur.check_password(password):
                     messages.error(request, "Mot de passe incorrect.")
                     form.add_error('password', "Le mot de passe est incorrect.")
+                    return render(request, 'administrateur/login_admin.html', {'form': form, 'page_title': 'Connexion Administrateur'})
+                
+                # 3. Vérifier si cet utilisateur est un administrateur
+                if not Administrateur.objects.filter(utilisateur=utilisateur).exists():
+                    messages.error(request, "Vous n'avez pas les droits d'accès administrateur.")
+                    form.add_error(None, "Accès refusé : vous n'êtes pas un administrateur.")
+                    return render(request, 'administrateur/login_admin.html', {'form': form, 'page_title': 'Connexion Administrateur'})
+                
+                # Authentifier et connecter l'utilisateur
+                login(request, utilisateur)
+                messages.success(request, f"Bienvenue {utilisateur.prenom} {utilisateur.nom}!")
+                return redirect('accueil')
                     
             except Utilisateur.DoesNotExist:
                 messages.error(request, "Aucun utilisateur trouvé avec cet email.")
                 form.add_error('email', "Cet email n'existe pas dans la base de données.")
             except Exception as e:
-                messages.error(request, f"Une erreur est survenue : {str(e)}")
-                form.add_error(None, f"Erreur lors de la connexion : {str(e)}")
+                messages.error(request, "Une erreur est survenue lors de la connexion.")
+                form.add_error(None, f"Erreur: {type(e).__name__}")
     else:
         form = AdminLoginForm()
     
@@ -101,9 +105,9 @@ def login_admin(request):
 
 # ===== Template Views =====
 
-def acceuil(request):
+def accueil(request):
     """Affiche la page d'accueil"""
-    return render(request, 'acceuil/acceuil.html', {})
+    return render(request, 'accueil/accueil.html', {})
 
 
 def menu(request):
@@ -111,10 +115,29 @@ def menu(request):
     return render(request, 'menu/menu.html', {})
 
 
+def _serialize_plat(plat, default_image_url):
+    """Utilitaire pour sérialiser un plat avec ses données nutritionnelles"""
+    return {
+        'id': plat.id_plat,
+        'name': plat.nom,
+        'calories': plat.calorie,
+        'protein': plat.proteine,
+        'carbs': plat.glucides,
+        'fat': plat.lipides,
+        'fiber': plat.fibres,
+        'image': plat.image.url if plat.image else default_image_url,
+        'description': plat.description,
+        'score': plat.calculer_score_nutritionnel()
+    }
+
 def specialdiet(request):
     """Affiche la page des régimes spéciaux avec les plats dynamiques"""
+    # Configuration pour les images par défaut
+    default_image_url = getattr(settings, 'DEFAULT_MEAL_IMAGE_URL', 
+                                'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500')
+    
     # Récupérer tous les plats disponibles
-    plats = Plat.objects.filter(est_disponible=True).all()
+    plats = Plat.objects.filter(est_disponible=True)
     
     # Organiser les plats par catégorie de régime spécial
     diet_meals = {
@@ -124,59 +147,32 @@ def specialdiet(request):
         "gluten-free": []
     }
     
+    # Configuration des critères de régime
+    vegan_keywords = {'vegan', 'végétal', 'légume', 'fruit', 'légumineuse', 'tofu', 'pois chiche', 'lentille'}
+    gluten_free_keywords = {'sans gluten', 'riz', 'quinoa', 'patate', 'légume', 'viande', 'poisson'}
+    gluten_containing = {'pâte', 'pain', 'blé'}
+    
     for plat in plats:
-        # Déterminer les catégories appropriées pour ce plat
+        plat_data = _serialize_plat(plat, default_image_url)
+        plat_nom_lower = plat.nom.lower()
+        plat_desc_lower = plat.description.lower()
         
-        # High Protein: protéines > 30g
+        # High Protein: protéines >= 30g
         if plat.proteine >= 30:
-            diet_meals["high-protein"].append({
-                'id': plat.id_plat,
-                'name': plat.nom,
-                'calories': plat.calorie,
-                'protein': plat.proteine,
-                'carbs': plat.glucides,
-                'image': plat.image.url if plat.image else 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
-                'description': plat.description
-            })
+            diet_meals["high-protein"].append(plat_data)
         
-        # Low Carb: glucides < 20g
+        # Low Carb: glucides <= 20g
         if plat.glucides <= 20:
-            diet_meals["low-carb"].append({
-                'id': plat.id_plat,
-                'name': plat.nom,
-                'calories': plat.calorie,
-                'protein': plat.proteine,
-                'carbs': plat.glucides,
-                'image': plat.image.url if plat.image else 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
-                'description': plat.description
-            })
+            diet_meals["low-carb"].append(plat_data)
         
-        # Vegan: pas de produits d'origine animale (à vérifier dans la description/nom)
-        vegan_keywords = ['vegan', 'végétal', 'légume', 'fruit', 'légumineuse', 'tofu', 'pois chiche', 'lentille']
-        if any(keyword in plat.nom.lower() or keyword in plat.description.lower() for keyword in vegan_keywords):
-            diet_meals["vegan"].append({
-                'id': plat.id_plat,
-                'name': plat.nom,
-                'calories': plat.calorie,
-                'protein': plat.proteine,
-                'carbs': plat.glucides,
-                'image': plat.image.url if plat.image else 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
-                'description': plat.description
-            })
+        # Vegan: contient mots-clés vegan
+        if any(keyword in plat_nom_lower or keyword in plat_desc_lower for keyword in vegan_keywords):
+            diet_meals["vegan"].append(plat_data)
         
-        # Gluten-free: pas de gluten (à vérifier)
-        gluten_keywords = ['sans gluten', 'riz', 'quinoa', 'patate', 'légume', 'viande', 'poisson']
-        if any(keyword in plat.nom.lower() or keyword in plat.description.lower() for keyword in gluten_keywords):
-            if 'pâte' not in plat.nom.lower() and 'pain' not in plat.nom.lower() and 'blé' not in plat.nom.lower():
-                diet_meals["gluten-free"].append({
-                    'id': plat.id_plat,
-                    'name': plat.nom,
-                    'calories': plat.calorie,
-                    'protein': plat.proteine,
-                    'carbs': plat.glucides,
-                    'image': plat.image.url if plat.image else 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500',
-                    'description': plat.description
-                })
+        # Gluten-free: contient mots-clés sans gluten et n'en contient pas
+        if any(keyword in plat_nom_lower or keyword in plat_desc_lower for keyword in gluten_free_keywords):
+            if not any(keyword in plat_nom_lower for keyword in gluten_containing):
+                diet_meals["gluten-free"].append(plat_data)
     
     context = {
         'plats': plats,
@@ -212,9 +208,11 @@ def connex(request):
                         request,
                         f"Bienvenue {utilisateur.prenom} {utilisateur.nom}! Votre compte a été créé avec succès."
                     )
-                    return redirect('acceuil')
+                    return redirect('accueil')
+                except ValueError as e:
+                    messages.error(request, f"Erreur de validation: {str(e)}")
                 except Exception as e:
-                    messages.error(request, f"Erreur lors de l'inscription: {str(e)}")
+                    messages.error(request, "Une erreur est survenue lors de l'inscription.")
                     # Retourner le formulaire avec l'erreur
             # Si le formulaire n'est pas valide, les erreurs s'afficheront dans le template
             login_form = AuthenticationForm()
@@ -226,7 +224,7 @@ def connex(request):
                 user = login_form.get_user()
                 login(request, user)
                 messages.success(request, f"Bienvenue {user.prenom} {user.nom}!")
-                return redirect('acceuil')
+                return redirect('accueil')
             # Si le formulaire n'est pas valide, les erreurs s'afficheront dans le template
             register_form = RegistrationForm()
     
@@ -234,7 +232,7 @@ def connex(request):
         'form': login_form,  # Pour compatibilité avec LoginView et le formulaire de connexion
         'registration_form': register_form,  # Pour le formulaire d'inscription
     }
-    return render(request, 'acceuil/connex.html', context)
+    return render(request, 'accueil/connex.html', context)
 
 
 def profilNutritionnel(request):
@@ -283,9 +281,9 @@ class ClientViewSet(viewsets.ModelViewSet):
         """Récupère le profil nutritionnel d'un client"""
         client = self.get_object()
         try:
-            profil = client.profil_nutritionnel
+            profil = ProfilNutritionnel.objects.get(client=client)
             serializer = ProfilNutritionnelSerializer(profil)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except ProfilNutritionnel.DoesNotExist:
             return Response(
                 {'error': 'Profil nutritionnel non trouvé'},
@@ -296,19 +294,27 @@ class ClientViewSet(viewsets.ModelViewSet):
     def creer_profil(self, request, pk=None):
         """Crée ou met à jour le profil nutritionnel d'un client"""
         client = self.get_object()
-        serializer = ProfilNutritionnelSerializer(data=request.data)
+        try:
+            profil = ProfilNutritionnel.objects.get(client=client)
+            serializer = ProfilNutritionnelSerializer(profil, data=request.data, partial=True)
+            is_create = False
+        except ProfilNutritionnel.DoesNotExist:
+            serializer = ProfilNutritionnelSerializer(data=request.data)
+            is_create = True
+        
         if serializer.is_valid():
             serializer.save(client=client)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            status_code = status.HTTP_201_CREATED if is_create else status.HTTP_200_OK
+            return Response(serializer.data, status=status_code)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=True, methods=['get'])
     def historique_commandes(self, request, pk=None):
         """Récupère l'historique des commandes d'un client"""
         client = self.get_object()
-        commandes = client.commandes.all().order_by('-date')
+        commandes = Commande.objects.filter(client=client).order_by('-date')
         serializer = CommandeSerializer(commandes, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class PlatViewSet(viewsets.ModelViewSet):
     """
@@ -330,19 +336,30 @@ class PlatViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def search(self, request):
         """Recherche les plats par nom ou description"""
-        query = request.query_params.get('q', '')
+        query = request.query_params.get('q', '').strip()
+        if not query:
+            return Response(
+                {'error': 'Le paramètre q est requis'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         plats = Plat.objects.filter(
             Q(nom__icontains=query) | Q(description__icontains=query)
         )
         serializer = self.get_serializer(plats, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['get'])
     def score_nutritionnel(self, request, pk=None):
         """Récupère le score nutritionnel d'un plat"""
         plat = self.get_object()
-        score = plat.calculer_score_nutritionnel()
-        return Response({'score': score, 'plat': plat.nom})
+        try:
+            score = plat.calculer_score_nutritionnel()
+            return Response({'score': score, 'plat': plat.nom}, status=status.HTTP_200_OK)
+        except AttributeError:
+            return Response(
+                {'error': 'La méthode calculer_score_nutritionnel n\'est pas disponible'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class MenuViewSet(viewsets.ModelViewSet):
     """
@@ -368,11 +385,29 @@ class MenuViewSet(viewsets.ModelViewSet):
         plat_id = request.data.get('plat_id')
         quantite = request.data.get('quantite', 1)
         
+        if not plat_id:
+            return Response(
+                {'error': 'plat_id est requis'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         try:
+            quantite = int(quantite)
+            if quantite <= 0:
+                return Response(
+                    {'error': 'La quantité doit être positive'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             plat = Plat.objects.get(id=plat_id)
-            menu.ajouter_plat(plat, int(quantite))
+            menu.ajouter_plat(plat, quantite)
             serializer = self.get_serializer(menu)
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ValueError:
+            return Response(
+                {'error': 'La quantité doit être un nombre entier'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except Plat.DoesNotExist:
             return Response(
                 {'error': 'Plat non trouvé'},
@@ -385,10 +420,16 @@ class MenuViewSet(viewsets.ModelViewSet):
         menu = self.get_object()
         plat_id = request.data.get('plat_id')
         
+        if not plat_id:
+            return Response(
+                {'error': 'plat_id est requis'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         try:
             plat = Plat.objects.get(id=plat_id)
             menu.supprimer_plat(plat)
-            return Response({'status': 'plat supprimé'})
+            return Response({'status': 'plat supprimé'}, status=status.HTTP_200_OK)
         except Plat.DoesNotExist:
             return Response(
                 {'error': 'Plat non trouvé'},
@@ -399,8 +440,14 @@ class MenuViewSet(viewsets.ModelViewSet):
     def valeur_nutritionnelle(self, request, pk=None):
         """Calcule les valeurs nutritionnelles totales d'un menu"""
         menu = self.get_object()
-        valeurs = menu.calculer_valeur_nutritionnelle_totale()
-        return Response(valeurs)
+        try:
+            valeurs = menu.calculer_valeur_nutritionnelle_totale()
+            return Response(valeurs, status=status.HTTP_200_OK)
+        except AttributeError:
+            return Response(
+                {'error': 'La méthode calculer_valeur_nutritionnelle_totale n\'est pas disponible'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class CommandeViewSet(viewsets.ModelViewSet):
     """
@@ -422,12 +469,18 @@ class CommandeViewSet(viewsets.ModelViewSet):
     def valider(self, request, pk=None):
         """Valide une commande (passe du statut panier à confirmée)"""
         commande = self.get_object()
-        if commande.valider_commande():
-            return Response({'status': 'commande validée'})
-        return Response(
-            {'error': 'La commande ne peut pas être validée'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        try:
+            if commande.valider_commande():
+                return Response({'status': 'commande validée'}, status=status.HTTP_200_OK)
+            return Response(
+                {'error': 'La commande ne peut pas être validée'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except AttributeError:
+            return Response(
+                {'error': 'La méthode valider_commande n\'est pas disponible'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def ajouter_menu(self, request, pk=None):
@@ -460,8 +513,14 @@ class CommandeViewSet(viewsets.ModelViewSet):
     def calculer_total(self, request, pk=None):
         """Recalcule le total d'une commande"""
         commande = self.get_object()
-        total = commande.calculer_total()
-        return Response({'total': str(total)})
+        try:
+            total = commande.calculer_total()
+            return Response({'total': str(total)}, status=status.HTTP_200_OK)
+        except AttributeError:
+            return Response(
+                {'error': 'La méthode calculer_total n\'est pas disponible'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class SystemeIAViewSet(viewsets.ReadOnlyModelViewSet):
@@ -487,15 +546,15 @@ class SystemeIAViewSet(viewsets.ReadOnlyModelViewSet):
             client = Client.objects.get(id=client_id)
             ia_system = SystemeIA.objects.filter(est_actif=True).first()
             
-            if ia_system:
-                recommandations = ia_system.recommander_menus(client)
-                serializer = MenuSerializer(recommandations, many=True)
-                return Response(serializer.data)
-            else:
+            if not ia_system:
                 return Response(
                     {'error': 'Système IA non disponible'},
-                    status=status.HTTP_404_NOT_FOUND
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
                 )
+            
+            recommandations = ia_system.recommander_menus(client)
+            serializer = MenuSerializer(recommandations, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Client.DoesNotExist:
             return Response(
                 {'error': 'Client non trouvé'},
@@ -516,13 +575,14 @@ class SystemeIAViewSet(viewsets.ReadOnlyModelViewSet):
             client = Client.objects.get(id=client_id)
             ia_system = SystemeIA.objects.filter(est_actif=True).first()
             
-            if ia_system:
-                preferences = ia_system.analyser_preferences(client)
-                return Response(preferences)
-            return Response(
-                {'error': 'Système IA non disponible'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            if not ia_system:
+                return Response(
+                    {'error': 'Système IA non disponible'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            
+            preferences = ia_system.analyser_preferences(client)
+            return Response(preferences, status=status.HTTP_200_OK)
         except Client.DoesNotExist:
             return Response(
                 {'error': 'Client non trouvé'},
@@ -629,6 +689,9 @@ class RecommenderPlatsView(generics.ListAPIView):
     serializer_class = PlatSerializer
     permission_classes = [IsAuthenticated]
     
+    # Configuration des limites de recommandation
+    MAX_RECOMMENDATIONS = 100
+    
     def get_queryset(self):
         """Retourne les plats recommandés basés sur le profil nutritionnel"""
         try:
@@ -636,14 +699,14 @@ class RecommenderPlatsView(generics.ListAPIView):
             client = Client.objects.get(utilisateur=utilisateur)
             profil = ProfilNutritionnel.objects.get(client=client)
             
-            # Récupérer les plats recommandés (limite: 10)
-            plats_recommandes = profil.recommander_plats(limite=10)
+            # Récupérer les plats recommandés (limite: MAX_RECOMMENDATIONS)
+            plats_recommandes = profil.recommander_plats(limite=self.MAX_RECOMMENDATIONS)
             return plats_recommandes
         except Client.DoesNotExist:
             return Plat.objects.none()
         except ProfilNutritionnel.DoesNotExist:
             # Si pas de profil, retourner les plats disponibles
-            return Plat.objects.filter(est_disponible=True)[:10]
+            return Plat.objects.filter(est_disponible=True)[:self.MAX_RECOMMENDATIONS]
     
     def list(self, request, *args, **kwargs):
         """Override pour ajouter les scores aux plats recommandés"""
@@ -651,42 +714,52 @@ class RecommenderPlatsView(generics.ListAPIView):
             utilisateur = request.user
             client = Client.objects.get(utilisateur=utilisateur)
             profil = ProfilNutritionnel.objects.get(client=client)
-            categorie_imc = profil.determiner_categorie_imc()
+            
+            try:
+                categorie_imc = profil.determiner_categorie_imc()
+            except AttributeError:
+                return Response(
+                    {'error': 'La méthode determiner_categorie_imc n\'est pas disponible'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
             # Récupérer les plats avec leurs scores
             plats_disponibles = Plat.objects.filter(est_disponible=True)
             plats_avec_score = []
             
+            # Utiliser get_serializer pour les plats (plus efficient en contexte)
             for plat in plats_disponibles:
-                score = Plat.calculer_score_recommendation(
-                    plat,
-                    categorie_imc,
-                    allergies=profil.allergies,
-                    restrictions=profil.restrictions_alimentaires
-                )
-                
-                # Ajouter le score au plat sérialisé
-                plat_data = PlatSerializer(plat).data
-                plat_data['score'] = score
-                
-                plats_avec_score.append((plat_data, score))
+                try:
+                    score = Plat.calculer_score_recommendation(
+                        plat,
+                        categorie_imc,
+                        allergies=profil.allergies,
+                        restrictions=profil.restrictions_alimentaires
+                    )
+                    
+                    # Ajouter le score au plat sérialisé
+                    plat_data = self.get_serializer(plat).data
+                    plat_data['score'] = score
+                    
+                    plats_avec_score.append((plat_data, score))
+                except (AttributeError, ValueError):
+                    continue
             
             # Trier par score décroissant et garder les plats avec score > 0
             plats_avec_score.sort(key=lambda x: x[1], reverse=True)
-            plats_filtres = [p[0] for p in plats_avec_score if p[1] > 0][:10]
+            plats_filtres = [p[0] for p in plats_avec_score if p[1] > 0][:self.MAX_RECOMMENDATIONS]
             
-            return Response(plats_filtres)
+            return Response(plats_filtres, status=status.HTTP_200_OK)
         
         except Client.DoesNotExist:
-            return Response([])
+            return Response([], status=status.HTTP_200_OK)
         except ProfilNutritionnel.DoesNotExist:
             # Si pas de profil, retourner les plats disponibles sans score
-            plats = Plat.objects.filter(est_disponible=True)[:10]
-            serializer = self.get_serializer(plats, many=True)
-            plats_data = serializer.data
+            plats = Plat.objects.filter(est_disponible=True)[:self.MAX_RECOMMENDATIONS]
+            plats_data = self.get_serializer(plats, many=True).data
             
             # Ajouter un score par défaut pour les plats sans profil
             for plat in plats_data:
                 plat['score'] = 0.0
             
-            return Response(plats_data)
+            return Response(plats_data, status=status.HTTP_200_OK)

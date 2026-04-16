@@ -101,6 +101,7 @@ body {
     overflow: hidden;
     box-shadow: 0 30px 60px var(--ombre-moyenne);
     animation: fadeInUp 0.6s ease;
+    margin: 0 auto;
 }
 
 @keyframes fadeInUp {
