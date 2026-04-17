@@ -92,18 +92,32 @@ function confirmerSuppression() {
         }
     })
     .then(response => {
+        if (response.status === 409) {
+            // Conflit : le plat est utilisé dans un menu ou une ligne de commande
+            return response.json().then(data => {
+                throw new Error(`CONFLICT: ${data.details || data.error}`);
+            });
+        }
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        // Supprimer le plat de la liste locale
+          // Supprimer le plat de la liste locale
         plats = plats.filter(p => (p.id_plat || p.id) !== platIdEnSuppression);
         afficherPlats();
         fermerModalSuppression();
         showToast('✓ Plat supprimé avec succès', 'success');
     })
+
     .catch(error => {
         console.error('Erreur:', error);
-        showToast('✗ Erreur lors de la suppression du plat', 'error');
+        
+        // Gérer les différents types d'erreurs
+        if (error.message.startsWith('CONFLICT:')) {
+            const message = error.message.replace('CONFLICT: ', '');
+            showToast(`✗ Impossible de supprimer: ${message}`, 'error');
+        } else {
+            showToast('✗ Erreur lors de la suppression du plat', 'error');
+        }
     });
 }
 

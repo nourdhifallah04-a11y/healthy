@@ -68,20 +68,17 @@ function transformerPlatEnMeal(plat) {
  * @returns {Object} Objet meal formaté
  */
 function transformerMenuEnMeal(menu) {
-    // Calculer les totaux nutritionnels et le prix si compositions existe
+    // Calculer les totaux nutritionnels et le prix depuis les plats
     let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0, totalFiber = 0, totalPrix = 0;
     
-    if (menu.compositions && menu.compositions.length > 0) {
-        menu.compositions.forEach(comp => {
-            if (comp.plat_detail) {
-                const plat = comp.plat_detail;
-                totalCalories += plat.calorie || 0;
-                totalProtein += plat.proteine || 0;
-                totalCarbs += plat.glucides || 0;
-                totalFat += plat.lipides || 0;
-                totalFiber += plat.fibres || 0;
-                totalPrix += plat.prix ? parseFloat(plat.prix) : 0;
-            }
+    if (menu.plats && menu.plats.length > 0) {
+        menu.plats.forEach(plat => {
+            totalCalories += plat.calorie || 0;
+            totalProtein += plat.proteine || 0;
+            totalCarbs += plat.glucides || 0;
+            totalFat += plat.lipides || 0;
+            totalFiber += plat.fibres || 0;
+            totalPrix += plat.prix ? parseFloat(plat.prix) : 0;
         });
     }
     
@@ -100,7 +97,7 @@ function transformerMenuEnMeal(menu) {
         description: menu.description,
         est_disponible: menu.est_disponible,
         type: 'menu',
-        compositions: menu.compositions || [],
+        plats: menu.plats || [],
         score: calculerScoreMenu(totalProtein, totalFiber, totalCarbs, totalFat)
     };
 }
@@ -174,7 +171,7 @@ function displayMeals() {
         menuGrid.innerHTML = `<div class="no-results">🍽️ Aucun menu ne correspond à votre recherche</div>`;
         return;
     }
-
+    console.log('Menus à afficher après filtrage:', filteredMeals);
     menuGrid.innerHTML = filteredMeals.map(meal => `
         <div class="item-card">
             <div class="item-image">
@@ -187,11 +184,11 @@ function displayMeals() {
                 <h3>${meal.name}</h3>
                 <p class="description">${meal.description || 'Menu savoureux et équilibré'}</p>
                 
-                ${meal.type === 'menu' && meal.compositions && meal.compositions.length > 0 ? `
-                    <div class="menu-composition">
-                        <p class="composition-label">📋 Compositions:</p>
-                        <ul class="composition-items">
-                            ${meal.compositions.map(comp => `<li> ${comp.plat_detail ? comp.plat_detail.nom : 'Plat inconnu'}</li>`).join('')}
+                ${meal.type === 'menu' && meal.plats && meal.plats.length > 0 ? `
+                    <div class="menu-plats">
+                        <p class="plats-label">📋 Plats:</p>
+                        <ul class="plats-items">
+                            ${meal.plats.map(plat => `<li>${plat.nom}</li>`).join('')}
                         </ul>
                     </div>
                 ` : ''}

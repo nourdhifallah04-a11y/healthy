@@ -56,10 +56,10 @@
                                     <div class="composition-details">
                                         <h4>Plats inclus:</h4>
                                         <ul class="plats-list">
-                                            {% for comp in ligne.menu.compositionmenu_set.all %}
+                                            {% for plat in ligne.menu.plats.all %}
                                                 <li>
-                                                    <span class="plat-name">{{ comp.plat.nom }}</span>
-                                                    <span class="plat-calories">{{ comp.plat.calorie|floatformat:0 }} kcal</span>
+                                                    <span class="plat-name">{{ plat.nom }}</span>
+                                                    <span class="plat-calories">{{ plat.calorie|floatformat:0 }} kcal</span>
                                                 </li>
                                             {% endfor %}
                                         </ul>

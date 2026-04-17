@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from decimal import Decimal
 from .models import (
     Utilisateur, Client, ProfilNutritionnel, Plat,
-    Menu, CompositionMenu, Commande, LigneCommande, SystemeIA
+    Menu, Commande, LigneCommande, SystemeIA
 )
 
 User = get_user_model()
@@ -239,17 +239,16 @@ class MenuTestCase(TestCase):
     
     def test_ajouter_plat(self):
         """Test adding dish to menu"""
-        comp = self.menu.ajouter_plat(self.plat1, quantite=1)
-        self.assertEqual(comp.quantite, 1)
+        self.menu.ajouter_plat(self.plat1)
         self.assertIn(self.plat1, self.menu.plats.all())
     
-    def test_ajouter_plat_augmente_quantite(self):
-        """Test that adding same dish increases quantity"""
-        self.menu.ajouter_plat(self.plat1, quantite=1)
-        self.menu.ajouter_plat(self.plat1, quantite=2)
+    def test_ajouter_plat_multiple(self):
+        """Test that adding same dish doesn't duplicate (ManyToMany behavior)"""
+        self.menu.ajouter_plat(self.plat1)
+        self.menu.ajouter_plat(self.plat1)
         
-        comp = CompositionMenu.objects.get(menu=self.menu, plat=self.plat1)
-        self.assertEqual(comp.quantite, 3)
+        # ManyToMany should have plat1 only once
+        self.assertEqual(self.menu.plats.filter(id_plat=self.plat1.id_plat).count(), 1)
     
     def test_supprimer_plat(self):
         """Test removing dish from menu"""

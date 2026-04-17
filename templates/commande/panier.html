@@ -70,7 +70,7 @@
                                     <td class="item-nutrition">
                                         <ul>
                                             {% if ligne.menu %}
-                                                <li><strong>Items:</strong> {{ ligne.menu.compositionmenu_set.all|length }}</li>
+                                                <li><strong>Items:</strong> {{ ligne.menu.plats.all|length }}</li>
                                                 {% with vals=ligne.menu.calculer_valeur_nutritionnelle_totale %}
                                                     <li><strong>Cal:</strong> {{ vals.calories|floatformat:0 }}</li>
                                                     <li><strong>Prot:</strong> {{ vals.proteines|floatformat:1 }}g</li>

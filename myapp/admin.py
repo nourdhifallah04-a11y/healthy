@@ -1,7 +1,7 @@
 from django.contrib import admin
 from myapp.models import (
     Utilisateur, Client, Administrateur, ProfilNutritionnel, Plat,
-    Menu, Commande, LigneCommande, SystemeIA, CompositionMenu
+    Menu, Commande, LigneCommande, SystemeIA
 )
 
 @admin.register(Utilisateur)

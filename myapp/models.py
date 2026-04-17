@@ -1037,25 +1037,17 @@ class Menu(models.Model):
         
         return 'autre'
 
-    def ajouter_plat(self, plat: "Plat", quantite: int = 1) -> "CompositionMenu":
-        """Ajoute un plat au menu avec gestion des quantités"""
-        composition, created = CompositionMenu.objects.get_or_create(
-            menu=self,
-            plat=plat,
-            defaults={'quantite': quantite}
-        )
-        if not created:
-            composition.quantite += quantite
-            composition.save()
-        return composition
+    def ajouter_plat(self, plat: "Plat") -> None:
+        """Ajoute un plat au menu"""
+        self.plats.add(plat)
     
     def supprimer_plat(self, plat: "Plat") -> None:
         """Supprime un plat du menu"""
-        CompositionMenu.objects.filter(menu=self, plat=plat).delete()
+        self.plats.remove(plat)
     
     def calculer_valeur_nutritionnelle_totale(self) -> Dict:
         """Calcule les valeurs nutritionnelles totales du menu"""
-        compositions = self.compositionmenu_set.all()
+        plats = self.plats.all()
         
         total = {
             'calories': 0,
@@ -1066,32 +1058,18 @@ class Menu(models.Model):
             'prix': 0
         }
         
-        for comp in compositions:
-            total['calories'] += comp.plat.calorie * comp.quantite
-            total['proteines'] += comp.plat.proteine * comp.quantite
-            total['glucides'] += comp.plat.glucides * comp.quantite
-            total['lipides'] += comp.plat.lipides * comp.quantite
-            total['fibres'] += comp.plat.fibres * comp.quantite
-            total['prix'] += float(comp.plat.prix) * comp.quantite
+        for plat in plats:
+            total['calories'] += plat.calorie
+            total['proteines'] += plat.proteine
+            total['glucides'] += plat.glucides
+            total['lipides'] += plat.lipides
+            total['fibres'] += plat.fibres
+            total['prix'] += float(plat.prix)
             
         return total
     
     def __str__(self):
         return f"Menu: {self.nom}"
-
-class CompositionMenu(models.Model):
-    """Table de liaison entre Menu et Plat"""
-    menu = models.ForeignKey(Menu, on_delete=models.CASCADE)
-    plat = models.ForeignKey(Plat, on_delete=models.CASCADE)
-    quantite = models.PositiveIntegerField(default=1)
-    
-    class Meta:
-        unique_together = ['menu', 'plat']
-        verbose_name = "Composition du menu"
-        verbose_name_plural = "Compositions des menus"
-    
-    def __str__(self):
-        return f"{self.menu.nom} - {self.plat.nom} x{self.quantite}"
 
 class Commande(models.Model):
     """Modèle Commande"""
@@ -1212,19 +1190,19 @@ class SystemeIA(models.Model):
         
         for commande in commandes:
             for ligne in commande.lignecommande_set.all():
-                for composition in ligne.menu.compositionmenu_set.all():
-                    plat = composition.plat
-                    plats_frequents.append(plat)
-                    
-                    # Catégorisation par calories
-                    if plat.calorie < 400:
-                        categorie = 'leger'
-                    elif plat.calorie < 700:
-                        categorie = 'modere'
-                    else:
-                        categorie = 'energetique'
+                if ligne.menu:
+                    for plat in ligne.menu.plats.all():
+                        plats_frequents.append(plat)
                         
-                    categories_populaires[categorie] = categories_populaires.get(categorie, 0) + 1
+                        # Catégorisation par calories
+                        if plat.calorie < 400:
+                            categorie = 'leger'
+                        elif plat.calorie < 700:
+                            categorie = 'modere'
+                        else:
+                            categorie = 'energetique'
+                            
+                        categories_populaires[categorie] = categories_populaires.get(categorie, 0) + 1
         
         return {
             'plats_frequents': plats_frequents,

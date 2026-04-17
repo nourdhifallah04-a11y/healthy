@@ -13,7 +13,7 @@ from django.conf import settings
 import json
 from .models import (
     Client, Plat, Menu, Commande, SystemeIA,
-    ProfilNutritionnel, LigneCommande, CompositionMenu, Administrateur, Utilisateur
+    ProfilNutritionnel, LigneCommande, Administrateur, Utilisateur
 )
 from .serializers import (
     ClientSerializer, PlatSerializer, MenuSerializer, CommandeSerializer,
@@ -339,6 +339,41 @@ class PlatViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(est_disponible=disponible.lower() == 'true')
         return queryset
     
+    def destroy(self, request, *args, **kwargs):
+        """
+        Supprime un plat en vérifiant d'abord s'il est utilisé dans un menu ou une ligne de commande avec statut panier.
+        Retourne une erreur 409 CONFLICT si le plat est utilisé.
+        """
+        plat = self.get_object()
+        
+        # Vérifier si le plat est utilisé dans une menu
+        est_utilise_dans_menu = Menu.objects.filter(plats=plat).exists()
+        
+        # Vérifier si le plat est utilisé dans une ligne de commande avec statut panier
+        est_utilise_dans_ligne_commande = LigneCommande.objects.filter(plat=plat, commande__statut='panier').exists()
+        
+        if est_utilise_dans_menu or est_utilise_dans_ligne_commande:
+            messages_details = []
+            if est_utilise_dans_menu:
+                messages_details.append('ce plat est utilisé dans un ou plusieurs menus')
+            if est_utilise_dans_ligne_commande:
+                messages_details.append('ce plat est utilisé dans une ou plusieurs commandes')
+            
+            return Response(
+                {
+                    'error': 'Ce plat ne peut pas être supprimé',
+                    'details': ' et '.join(messages_details),
+                    'plat_id': plat.id_plat,
+                    'nom_plat': plat.nom,
+                    'est_utilise_dans_menu': est_utilise_dans_menu,
+                    'est_utilise_dans_ligne_commande': est_utilise_dans_ligne_commande
+                },
+                status=status.HTTP_409_CONFLICT
+            )
+        
+        # Si le plat n'est pas utilisé, procéder à la suppression
+        return super().destroy(request, *args, **kwargs)
+    
     @action(detail=False, methods=['get'])
     def search(self, request):
         """Recherche les plats par nom ou description"""
@@ -434,6 +469,16 @@ class MenuViewSet(viewsets.ModelViewSet):
         
         try:
             plat = Plat.objects.get(id=plat_id)
+            est_utilise_dans_commande = LigneCommande.objects.filter(plat=plat).exists()
+            if est_utilise_dans_commande:
+                return Response(
+                    {
+                        'error': 'Ce plat ne peut pas être supprimé car il est utilisé dans une ou plusieurs commandes',
+                        'plat_id': plat_id,
+                        'nom_plat': plat.nom
+                    },
+                    status=status.HTTP_409_CONFLICT
+            )
             menu.supprimer_plat(plat)
             return Response({'status': 'plat supprimé'}, status=status.HTTP_200_OK)
         except Plat.DoesNotExist:

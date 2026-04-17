@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import (
     Client, Administrateur, ProfilNutritionnel, Plat, 
-    Menu, CompositionMenu, Commande, LigneCommande, SystemeIA
+    Menu, Commande, LigneCommande, SystemeIA
 )
 
 Utilisateur = get_user_model()
@@ -51,15 +51,8 @@ class PlatSerializer(serializers.ModelSerializer):
     def get_score_nutritionnel(self, obj):
         return obj.calculer_score_nutritionnel()
 
-class CompositionMenuSerializer(serializers.ModelSerializer):
-    plat_detail = PlatSerializer(source='plat', read_only=True)
-    
-    class Meta:
-        model = CompositionMenu
-        fields = ['id', 'menu', 'plat', 'plat_detail', 'quantite']
-
 class MenuSerializer(serializers.ModelSerializer):
-    compositions = CompositionMenuSerializer(source='compositionmenu_set', many=True, read_only=True)
+    plats = PlatSerializer(many=True, read_only=True)
     valeur_nutritionnelle = serializers.SerializerMethodField()
     
     class Meta:
@@ -104,37 +97,34 @@ class MenuRecommandationSerializer(serializers.ModelSerializer):
     valeur_nutritionnelle = serializers.SerializerMethodField()
     prix_total = serializers.SerializerMethodField()
     score = serializers.SerializerMethodField()
-    compositions = CompositionMenuSerializer(source='compositionmenu_set', many=True, read_only=True)
     
     class Meta:
         model = Menu
         fields = ['id_menu', 'nom', 'description', 'date_debut', 'date_fin', 'prix_total',
-                  'est_actif', 'score', 'plats', 'compositions', 'valeur_nutritionnelle']
+                  'est_actif', 'score', 'plats', 'valeur_nutritionnelle']
     
     def get_plats(self, obj):
         """Retourne la liste simplifiée des plats du menu"""
-        compositions = obj.compositionmenu_set.all()
         plats_list = []
-        for comp in compositions:
+        for plat in obj.plats.all():
             # Gérer le cas où l'image peut être vide
             image_url = None
-            if comp.plat.image:
+            if plat.image:
                 try:
-                    image_url = comp.plat.image.url
+                    image_url = plat.image.url
                 except ValueError:
                     image_url = None
             
             plats_list.append({
-                'id': comp.plat.id_plat,
-                'nom': comp.plat.nom,
-                'quantite': comp.quantite,
-                'calorie': comp.plat.calorie,
-                'proteine': comp.plat.proteine,
-                'glucides': comp.plat.glucides,
-                'lipides': comp.plat.lipides,
-                'fibres': comp.plat.fibres,
+                'id': plat.id_plat,
+                'nom': plat.nom,
+                'calorie': plat.calorie,
+                'proteine': plat.proteine,
+                'glucides': plat.glucides,
+                'lipides': plat.lipides,
+                'fibres': plat.fibres,
                 'image': image_url,
-                'prix': comp.plat.prix,
+                'prix': plat.prix,
             })
         return plats_list
     

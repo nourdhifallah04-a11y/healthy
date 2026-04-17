@@ -1120,7 +1120,6 @@ aujourd_hui = datetime.now().date()
 date_debut = aujourd_hui
 date_fin = aujourd_hui + timedelta(days=6)
 
-# Définition des menus thématiques avec sélection de plats
 menus_config = {
     "Petit Déjeuner Protéiné": {
         "description": "Petit déjeuner riche en protéines pour bien démarrer la journée",
@@ -1128,9 +1127,7 @@ menus_config = {
             "Œufs à la Coque et Épinards",
             "Œufs Brouillés aux Champignons",
             "Yaourt Grec Nature",
-            "Pain complet grillé",  # Non trouvé, sera ignoré
-        ],
-        "quantites": {"Œufs à la Coque et Épinards": 1, "Œufs Brouillés aux Champignons": 1, "Yaourt Grec Nature": 1}
+        ]
     },
     "Déjeuner Équilibré": {
         "description": "Déjeuner équilibré avec protéines, glucides et légumes",
@@ -1139,27 +1136,15 @@ menus_config = {
             "Riz Complet aux Légumes",
             "Salade Méditerranéenne",
             "Haricots Verts Sautés",
-        ],
-        "quantites": {
-            "Poulet Grillé aux Herbes": 1,
-            "Riz Complet aux Légumes": 1,
-            "Salade Méditerranéenne": 1,
-            "Haricots Verts Sautés": 1
-        }
+        ]
     },
     "Dîner Léger": {
         "description": "Dîner faible en calories pour une meilleure digestion",
         "plats": [
             "Cabillaud Vapeur",
-            "Brocoli Vapeur",
             "Betteraves Rôties",
             "Carotte Râpée Vinaigrette",
-        ],
-        "quantites": {
-            "Cabillaud Vapeur": 1,
-            "Betteraves Rôties": 1,
-            "Carotte Râpée Vinaigrette": 1
-        }
+        ]
     },
     "Menu Fitness": {
         "description": "Menu haute performance: protéines élevées, faibles lipides",
@@ -1169,14 +1154,7 @@ menus_config = {
             "Blanc de Poulet Poêlé",
             "Riz Basmati Blanc",
             "Lentilles Vertes Salée",
-        ],
-        "quantites": {
-            "Steak Maigre Poêlé": 1,
-            "Poitrine de Dinde Rôtie": 1,
-            "Blanc de Poulet Poêlé": 1,
-            "Riz Basmati Blanc": 1,
-            "Lentilles Vertes Salée": 1
-        }
+        ]
     },
     "Menu Végétarien": {
         "description": "Menu complet sans viande ni poisson",
@@ -1186,14 +1164,7 @@ menus_config = {
             "Quinoa aux Brocoli",
             "Tomate Mozzarella",
             "Chou-fleur Rôti",
-        ],
-        "quantites": {
-            "Tofu Mariné aux Épices": 1,
-            "Lentilles Corail au Curcuma": 1,
-            "Quinoa aux Brocoli": 1,
-            "Tomate Mozzarella": 1,
-            "Chou-fleur Rôti": 1
-        }
+        ]
     },
     "Menu Gastronomique": {
         "description": "Menu raffiné avec saveurs méditerranéennes",
@@ -1203,14 +1174,7 @@ menus_config = {
             "Truite Arc-en-ciel",
             "Crevettes Sautées à l'Ail",
             "Riz Risotto Crémeux",
-        ],
-        "quantites": {
-            "Saumon Poêlé": 1,
-            "Morue à la Méditerranéenne": 1,
-            "Truite Arc-en-ciel": 1,
-            "Crevettes Sautées à l'Ail": 1,
-            "Riz Risotto Crémeux": 1
-        }
+        ]
     },
 }
 
@@ -1234,17 +1198,16 @@ with transaction.atomic():
                 print(f"\n✓ Menu créé: {menu_nom}")
             else:
                 print(f"\n⚠ Menu existant: {menu_nom} (maj des plats)")
-                # Supprimer les anciennes compositions
-                menu.compositionmenu_set.all().delete()
+                # Supprimer les anciens plats du menu
+                menu.plats.clear()
             
             # Ajouter les plats au menu
             plats_ajoutes = 0
             for plat_nom in config['plats']:
                 if plat_nom in plat_objects:
-                    quantite = config['quantites'].get(plat_nom, 1)
-                    menu.ajouter_plat(plat_objects[plat_nom], quantite)
+                    menu.ajouter_plat(plat_objects[plat_nom])
                     plats_ajoutes += 1
-                    print(f"  └─ ✓ Ajouté: {plat_nom} x{quantite}")
+                    print(f"  └─ ✓ Ajouté: {plat_nom}")
                 else:
                     print(f"  └─ ⚠ Non trouvé: {plat_nom}")
             
