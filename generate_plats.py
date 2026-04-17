@@ -1,10 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 import django
+from datetime import datetime, timedelta
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myapp.settings')
 django.setup()
 
-from myapp.models import Plat
+from myapp.models import Plat, Menu
 from django.db import transaction
 
 # Données pour générer les plats
@@ -1076,6 +1080,8 @@ print("=" * 80)
 
 with transaction.atomic():
     created_count = 0
+    plat_objects = {}  # Stocker les objets Plat créés pour les menus
+    
     for plat_info in plats_data:
         try:
             plat, created = Plat.objects.get_or_create(
@@ -1094,9 +1100,172 @@ with transaction.atomic():
             if created:
                 created_count += 1
                 print(f"✓ Créé: {plat.nom} ({plat.calorie:.0f} kcal, {plat.proteine:.1f}g prot, {plat.prix}€)")
+            plat_objects[plat.nom] = plat
         except Exception as e:
             print(f"✗ Erreur pour {plat_info['nom']}: {str(e)}")
 
 print("=" * 80)
-print(f"✅ Génération terminée! {created_count} nouveaux plats créés.")
+print(f"✅ Génération plats terminée! {created_count} nouveaux plats créés.")
 print(f"Total de plats dans la base de données: {Plat.objects.count()}")
+
+# =============================================================================
+# GÉNÉRER LES MENUS THÉMATIQUES
+# =============================================================================
+print("\n" + "=" * 80)
+print("GÉNÉRATION DES MENUS THÉMATIQUES")
+print("=" * 80 + "\n")
+
+# Définir les dates (semaine courante)
+aujourd_hui = datetime.now().date()
+date_debut = aujourd_hui
+date_fin = aujourd_hui + timedelta(days=6)
+
+# Définition des menus thématiques avec sélection de plats
+menus_config = {
+    "Petit Déjeuner Protéiné": {
+        "description": "Petit déjeuner riche en protéines pour bien démarrer la journée",
+        "plats": [
+            "Œufs à la Coque et Épinards",
+            "Œufs Brouillés aux Champignons",
+            "Yaourt Grec Nature",
+            "Pain complet grillé",  # Non trouvé, sera ignoré
+        ],
+        "quantites": {"Œufs à la Coque et Épinards": 1, "Œufs Brouillés aux Champignons": 1, "Yaourt Grec Nature": 1}
+    },
+    "Déjeuner Équilibré": {
+        "description": "Déjeuner équilibré avec protéines, glucides et légumes",
+        "plats": [
+            "Poulet Grillé aux Herbes",
+            "Riz Complet aux Légumes",
+            "Salade Méditerranéenne",
+            "Haricots Verts Sautés",
+        ],
+        "quantites": {
+            "Poulet Grillé aux Herbes": 1,
+            "Riz Complet aux Légumes": 1,
+            "Salade Méditerranéenne": 1,
+            "Haricots Verts Sautés": 1
+        }
+    },
+    "Dîner Léger": {
+        "description": "Dîner faible en calories pour une meilleure digestion",
+        "plats": [
+            "Cabillaud Vapeur",
+            "Brocoli Vapeur",
+            "Betteraves Rôties",
+            "Carotte Râpée Vinaigrette",
+        ],
+        "quantites": {
+            "Cabillaud Vapeur": 1,
+            "Betteraves Rôties": 1,
+            "Carotte Râpée Vinaigrette": 1
+        }
+    },
+    "Menu Fitness": {
+        "description": "Menu haute performance: protéines élevées, faibles lipides",
+        "plats": [
+            "Steak Maigre Poêlé",
+            "Poitrine de Dinde Rôtie",
+            "Blanc de Poulet Poêlé",
+            "Riz Basmati Blanc",
+            "Lentilles Vertes Salée",
+        ],
+        "quantites": {
+            "Steak Maigre Poêlé": 1,
+            "Poitrine de Dinde Rôtie": 1,
+            "Blanc de Poulet Poêlé": 1,
+            "Riz Basmati Blanc": 1,
+            "Lentilles Vertes Salée": 1
+        }
+    },
+    "Menu Végétarien": {
+        "description": "Menu complet sans viande ni poisson",
+        "plats": [
+            "Tofu Mariné aux Épices",
+            "Lentilles Corail au Curcuma",
+            "Quinoa aux Brocoli",
+            "Tomate Mozzarella",
+            "Chou-fleur Rôti",
+        ],
+        "quantites": {
+            "Tofu Mariné aux Épices": 1,
+            "Lentilles Corail au Curcuma": 1,
+            "Quinoa aux Brocoli": 1,
+            "Tomate Mozzarella": 1,
+            "Chou-fleur Rôti": 1
+        }
+    },
+    "Menu Gastronomique": {
+        "description": "Menu raffiné avec saveurs méditerranéennes",
+        "plats": [
+            "Saumon Poêlé",
+            "Morue à la Méditerranéenne",
+            "Truite Arc-en-ciel",
+            "Crevettes Sautées à l'Ail",
+            "Riz Risotto Crémeux",
+        ],
+        "quantites": {
+            "Saumon Poêlé": 1,
+            "Morue à la Méditerranéenne": 1,
+            "Truite Arc-en-ciel": 1,
+            "Crevettes Sautées à l'Ail": 1,
+            "Riz Risotto Crémeux": 1
+        }
+    },
+}
+
+menu_created_count = 0
+with transaction.atomic():
+    for menu_nom, config in menus_config.items():
+        try:
+            # Créer ou récupérer le menu
+            menu, created = Menu.objects.get_or_create(
+                nom=menu_nom,
+                defaults={
+                    'description': config['description'],
+                    'date_debut': date_debut,
+                    'date_fin': date_fin,
+                    'est_actif': True
+                }
+            )
+            
+            if created:
+                menu_created_count += 1
+                print(f"\n✓ Menu créé: {menu_nom}")
+            else:
+                print(f"\n⚠ Menu existant: {menu_nom} (maj des plats)")
+                # Supprimer les anciennes compositions
+                menu.compositionmenu_set.all().delete()
+            
+            # Ajouter les plats au menu
+            plats_ajoutes = 0
+            for plat_nom in config['plats']:
+                if plat_nom in plat_objects:
+                    quantite = config['quantites'].get(plat_nom, 1)
+                    menu.ajouter_plat(plat_objects[plat_nom], quantite)
+                    plats_ajoutes += 1
+                    print(f"  └─ ✓ Ajouté: {plat_nom} x{quantite}")
+                else:
+                    print(f"  └─ ⚠ Non trouvé: {plat_nom}")
+            
+            # Afficher les nutritions totales
+            nutrition = menu.calculer_valeur_nutritionnelle_totale()
+            print(f"  📊 Nutritions totales:")
+            print(f"     • Calories: {nutrition['calories']:.0f} kcal")
+            print(f"     • Protéines: {nutrition['proteines']:.1f}g")
+            print(f"     • Glucides: {nutrition['glucides']:.1f}g")
+            print(f"     • Lipides: {nutrition['lipides']:.1f}g")
+            print(f"     • Fibres: {nutrition['fibres']:.1f}g")
+            print(f"     • Prix total: {nutrition['prix']:.2f}€")
+            
+        except Exception as e:
+            print(f"\n✗ Erreur création menu {menu_nom}: {str(e)}")
+
+print("\n" + "=" * 80)
+print(f"✅ Génération menus terminée! {menu_created_count} nouveaux menus créés.")
+print(f"Total de menus dans la base de données: {Menu.objects.count()}")
+print("=" * 80 + "\n")
+print("🎉 GÉNÉRATION COMPLÈTE!")
+print(f"   • Plats: {Plat.objects.count()}")
+print(f"   • Menus: {Menu.objects.count()}")
+print("=" * 80)

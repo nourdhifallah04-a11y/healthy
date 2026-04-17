@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mes commandes - Healthy Nutrition{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'commande/commande.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mes-commandes-container">
+    <h1 class="page-title">Mes Commandes</h1>
+
+    <!-- Filtres -->
+    <div class="filters-section">
+        <button class="filter-btn active" data-filter="all">Toutes</button>
+        <button class="filter-btn" data-filter="panier">Panier</button>
+        <button class="filter-btn" data-filter="confirmee">Confirmées</button>
+        <button class="filter-btn" data-filter="en_preparation">En préparation</button>
+        <button class="filter-btn" data-filter="livree">Livrées</button>
+        <button class="filter-btn" data-filter="annulee">Annulées</button>
+    </div>
+
+    {% if commandes %}
+        <div class="commandes-list">
+            {% for commande in commandes %}
+                <div class="commande-card" data-status="{{ commande.statut }}">
+                    <div class="commande-header">
+                        <div class="commande-info">
+                            <h3>Commande #{{ commande.id_commande }}</h3>
+                            <span class="commande-date">
+                                <i class="fas fa-calendar"></i> {{ commande.date|date:"d/m/Y" }}
+                            </span>
+                        </div>
+                        <span class="status-badge status-{{ commande.statut }}">
+                            {{ commande.get_statut_display }}
+                        </span>
+                    </div>
+
+                    <div class="commande-content">
+                        <div class="commande-items">
+                            <h4>Articles</h4>
+                            <ul class="items-list">
+                                {% for ligne in commande.lignecommande_set.all %}
+                                    <li>
+                                        <span class="item-name">{{ ligne.menu.nom }}</span>
+                                        <span class="item-qty">x{{ ligne.quantite }}</span>
+                                        <span class="item-price">{{ ligne.sous_total|floatformat:2 }}€</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="commande-details">
+                            <div class="detail-group">
+                                <label>Adresse de livraison:</label>
+                                <p>{{ commande.adresse_livraison|default:"Non spécifiée" }}</p>
+                            </div>
+                            {% if commande.notes %}
+                                <div class="detail-group">
+                                    <label>Notes:</label>
+                                    <p>{{ commande.notes }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="commande-footer">
+                        <div class="commande-total">
+                            <span class="label">Total:</span>
+                            <span class="total-value">{{ commande.total|floatformat:2 }}€</span>
+                        </div>
+
+                        <div class="commande-actions">
+                            <a href="{% url 'commande_detail' commande.id_commande %}" class="btn btn-secondary btn-sm">
+                                Détails
+                            </a>
+                            {% if commande.statut == 'panier' %}
+                                <a href="{% url 'checkout' %}" class="btn btn-primary btn-sm">
+                                    Passer la commande
+                                </a>
+                            {% endif %}
+                            {% if commande.statut in 'panier,en_attente' %}
+                                <button class="btn btn-danger btn-sm cancel-order" data-order-id="{{ commande.id_commande }}">
+                                    Annuler
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <h2>Aucune commande</h2>
+            <p>Vous n'avez pas encore de commande. Commencez par explorer nos menus!</p>
+            <a href="{% url 'menu' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-bag"></i> Voir les menus
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal pour confirmation d'annulation -->
+<div class="modal" id="modal-cancel-order">
+    <div class="modal-content">
+        <h3>Annuler la commande</h3>
+        <p>Êtes-vous sûr de vouloir annuler cette commande? Cette action ne peut pas être annulée.</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="modal-cancel-btn">Garder la commande</button>
+            <button class="btn btn-danger" id="modal-confirm-cancel">Annuler la commande</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'commande/commande.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initMesCommandes();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Passer la commande - Healthy Nutrition{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'commande/commande.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container checkout-container">
+    <div class="checkout-header">
+        <h1>Finaliser votre commande</h1>
+        <div class="progress-indicator">
+            <div class="progress-step active">
+                <span class="step-number">1</span>
+                <span class="step-label">Livraison</span>
+            </div>
+            <div class="progress-step">
+                <span class="step-number">2</span>
+                <span class="step-label">Paiement</span>
+            </div>
+            <div class="progress-step">
+                <span class="step-number">3</span>
+                <span class="step-label">Confirmation</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="checkout-content">
+        <div class="checkout-form">
+            <form method="post" id="checkout-form" class="form-checkout">
+                {% csrf_token %}
+
+                <!-- Informations de livraison -->
+                <section class="form-section">
+                    <h2>Adresse de livraison</h2>
+                    
+                    {% if commande.adresse_livraison %}
+                        <div class="address-preview">
+                            <h4>Adresse actuelle:</h4>
+                            <p>{{ commande.adresse_livraison }}</p>
+                            <button type="button" class="btn btn-secondary btn-sm" id="change-address">Modifier</button>
+                        </div>
+                    {% endif %}
+
+                    <div class="form-group" id="address-form" style="{% if commande.adresse_livraison %}display: none;{% endif %}">
+                        {{ form.adresse_livraison }}
+                        <label for="id_adresse_livraison" class="form-label">Adresse de livraison</label>
+                    </div>
+                </section>
+
+                <!-- Informations de contact -->
+                <section class="form-section">
+                    <h2>Informations de contact</h2>
+                    <div class="contact-info">
+                        <div class="info-row">
+                            <span class="label">Nom:</span>
+                            <span class="value">{{ user.nom }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Email:</span>
+                            <span class="value">{{ user.email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Téléphone:</span>
+                            <span class="value">{{ user.telephone|default:"Non fourni" }}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Notes spéciales -->
+                <section class="form-section">
+                    <h2>Notes spéciales</h2>
+                    <div class="form-group">
+                        {{ form.notes }}
+                        <label for="id_notes" class="form-label">Remarques (optionnel)</label>
+                        <p class="form-help">Ex: Allergies supplémentaires, préférences de préparation, etc.</p>
+                    </div>
+                </section>
+
+                <!-- Conditions d'utilisation -->
+                <section class="form-section">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <label for="terms">
+                            J'accepte les <a href="#" target="_blank">conditions d'utilisation</a> et la 
+                            <a href="#" target="_blank">politique de confidentialité</a>
+                        </label>
+                    </div>
+                </section>
+
+                <div class="form-actions">
+                    <a href="{% url 'panier' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Retour au panier
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-credit-card"></i> Confirmer la commande
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Résumé de la commande -->
+        <aside class="checkout-summary">
+            <div class="summary-box">
+                <h3>Résumé de la commande</h3>
+                
+                <div class="order-items">
+                    <h4>Articles</h4>
+                    {% for ligne in commande.lignecommande_set.all %}
+                        <div class="order-item">
+                            <div class="item-info">
+                                <span class="item-name">{{ ligne.menu.nom }}</span>
+                                <span class="item-qty">x{{ ligne.quantite }}</span>
+                            </div>
+                            <span class="item-price">{{ ligne.sous_total|floatformat:2 }}€</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="order-totals">
+                    <div class="total-row">
+                        <span>Sous-total:</span>
+                        <span>{{ commande.total|floatformat:2 }}€</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Frais de livraison:</span>
+                        <span id="shipping-fee">0.00€</span>
+                    </div>
+                    <div class="total-row discount" style="display: none;">
+                        <span>Réduction:</span>
+                        <span id="discount-amount">-0.00€</span>
+                    </div>
+                    <div class="total-row final">
+                        <strong>Total final:</strong>
+                        <strong id="final-total">{{ commande.total|floatformat:2 }}€</strong>
+                    </div>
+                </div>
+
+                <!-- Détails nutritionnels -->
+                <div class="nutrition-info">
+                    <h4>Valeur nutritionnelle totale</h4>
+                    <div class="nutrition-stats">
+                        {% with total_nutrition=commande.calculer_nutrition_totale %}
+                            <div class="nutrition-item">
+                                <span class="label">Calories:</span>
+                                <span class="value">{{ total_nutrition.calories|floatformat:0 }}</span>
+                                <span class="unit">kcal</span>
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="label">Protéines:</span>
+                                <span class="value">{{ total_nutrition.proteines|floatformat:1 }}</span>
+                                <span class="unit">g</span>
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="label">Glucides:</span>
+                                <span class="value">{{ total_nutrition.glucides|floatformat:1 }}</span>
+                                <span class="unit">g</span>
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="label">Lipides:</span>
+                                <span class="value">{{ total_nutrition.lipides|floatformat:1 }}</span>
+                                <span class="unit">g</span>
+                            </div>
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'commande/commande.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initCheckout();
+});
+</script>
+{% endblock %}

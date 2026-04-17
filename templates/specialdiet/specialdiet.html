@@ -45,12 +45,32 @@
             <h2>Plats recommandés pour <span id="selectedDiet">High Protein</span></h2>
             <div class="menu-grid" id="dietGrid"></div>
         </div>
+
+        <!-- Modal Ajouter au Panier -->
+        <div id="addToCartModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Ajouter au Panier</h2>
+                <form id="addToCartForm">
+                    <div class="form-group">
+                        <label for="quantity">Quantité:</label>
+                        <input type="number" id="quantity" name="quantity" min="1" max="100" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <p id="itemInfo"></p>
+                    </div>
+                    <button type="submit" class="btn-primary">Ajouter au Panier</button>
+                    <button type="button" class="btn-secondary" onclick="closeAddToCartModal()">Annuler</button>
+                </form>
+            </div>
+        </div>
         
     </section>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'specialdiet/spec.js' %}"></script>
+<script src="{% static 'commande/commande.js' %}"></script>
 <!-- Passer les données des plats au JavaScript -->
 <script>
     const dietMealsFromDB = {{ diet_meals_json }};

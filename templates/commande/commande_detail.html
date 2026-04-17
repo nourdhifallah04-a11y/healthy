@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Détails de la commande #{{ commande.id_commande }} - Healthy Nutrition{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'commande/commande.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container commande-detail-container">
+    <div class="detail-header">
+        <a href="{% url 'mes_commandes' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Retour à mes commandes
+        </a>
+        <h1>Commande #{{ commande.id_commande }}</h1>
+        <span class="status-badge status-{{ commande.statut }}">
+            {{ commande.get_statut_display }}
+        </span>
+    </div>
+
+    <div class="detail-grid">
+        <!-- Colonne gauche: Articles et timeline -->
+        <div class="detail-main">
+            <!-- Articles -->
+            <section class="detail-section">
+                <h2>Articles commandés</h2>
+                <table class="detail-items-table">
+                    <thead>
+                        <tr>
+                            <th>Menu</th>
+                            <th>Description</th>
+                            <th>Quantité</th>
+                            <th>Prix unitaire</th>
+                            <th>Sous-total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in commande.lignecommande_set.all %}
+                            <tr>
+                                <td>
+                                    <strong>{{ ligne.menu.nom }}</strong>
+                                </td>
+                                <td class="menu-desc">
+                                    <small>{{ ligne.menu.description|truncatewords:15 }}</small>
+                                </td>
+                                <td class="text-center">{{ ligne.quantite }}</td>
+                                <td>{{ ligne.prix_unitaire|floatformat:2 }}€</td>
+                                <td class="text-right">
+                                    <strong>{{ ligne.sous_total|floatformat:2 }}€</strong>
+                                </td>
+                            </tr>
+                            <!-- Composition du menu -->
+                            <tr class="composition-row">
+                                <td colspan="5">
+                                    <div class="composition-details">
+                                        <h4>Plats inclus:</h4>
+                                        <ul class="plats-list">
+                                            {% for comp in ligne.menu.compositionmenu_set.all %}
+                                                <li>
+                                                    <span class="plat-name">{{ comp.plat.nom }}</span>
+                                                    <span class="plat-calories">{{ comp.plat.calorie|floatformat:0 }} kcal</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Timeline de statut -->
+            <section class="detail-section">
+                <h2>Historique de la commande</h2>
+                <div class="status-timeline">
+                    <div class="timeline-item {% if commande.statut != 'panier' %}completed{% endif %}">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>Commande créée</h4>
+                            <p>{{ commande.date|date:"d/m/Y à H:i" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item {% if commande.statut in 'confirmee,en_preparation,livree' %}completed{% endif %}">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>Commande confirmée</h4>
+                            <p>En attente de confirmation</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item {% if commande.statut in 'en_preparation,livree' %}completed{% endif %}">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>Préparation en cours</h4>
+                            <p>En attente de préparation</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item {% if commande.statut == 'livree' %}completed{% endif %}">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>Livrée</h4>
+                            <p>En attente de livraison</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Colonne droite: Résumé et infos -->
+        <aside class="detail-sidebar">
+            <!-- Résumé financier -->
+            <div class="detail-box">
+                <h3>Résumé financier</h3>
+                <div class="financial-summary">
+                    <div class="summary-row">
+                        <span class="label">Sous-total:</span>
+                        <span class="value">{{ commande.total|floatformat:2 }}€</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Frais de livraison:</span>
+                        <span class="value">0.00€</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span class="label">Total:</span>
+                        <span class="value">{{ commande.total|floatformat:2 }}€</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations de livraison -->
+            <div class="detail-box">
+                <h3>Livraison</h3>
+                <div class="delivery-info">
+                    <div class="info-group">
+                        <label>Adresse:</label>
+                        <p>{{ commande.adresse_livraison|default:"Non spécifiée" }}</p>
+                    </div>
+                    <div class="info-group">
+                        <label>Statut:</label>
+                        <p class="status-text">{{ commande.get_statut_display }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Valeurs nutritionnelles -->
+            <div class="detail-box">
+                <h3>Valeurs nutritionnelles</h3>
+                {% with nutrition=commande.calculer_nutrition_totale %}
+                    <div class="nutrition-breakdown">
+                        <div class="nutrition-item">
+                            <span class="label">Calories:</span>
+                            <span class="value">{{ nutrition.calories|floatformat:0 }}</span>
+                            <span class="unit">kcal</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <span class="label">Protéines:</span>
+                            <span class="value">{{ nutrition.proteines|floatformat:1 }}</span>
+                            <span class="unit">g</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <span class="label">Glucides:</span>
+                            <span class="value">{{ nutrition.glucides|floatformat:1 }}</span>
+                            <span class="unit">g</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <span class="label">Lipides:</span>
+                            <span class="value">{{ nutrition.lipides|floatformat:1 }}</span>
+                            <span class="unit">g</span>
+                        </div>
+                    </div>
+                {% endwith %}
+            </div>
+
+            <!-- Notes -->
+            {% if commande.notes %}
+                <div class="detail-box">
+                    <h3>Notes spéciales</h3>
+                    <p class="notes-text">{{ commande.notes }}</p>
+                </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="detail-actions">
+                {% if commande.statut in 'panier,en_attente' %}
+                    <a href="{% url 'checkout' %}" class="btn btn-primary btn-block">
+                        Passer la commande
+                    </a>
+                {% endif %}
+                {% if commande.statut == 'livree' %}
+                    <a href="{% url 'reorder' commande.id_commande %}" class="btn btn-primary btn-block">
+                        <i class="fas fa-redo"></i> Recommander
+                    </a>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'commande/commande.js' %}"></script>
+{% endblock %}

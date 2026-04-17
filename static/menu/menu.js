@@ -1,13 +1,42 @@
-// Initialize Bootstrap dropdowns
-document.addEventListener('DOMContentLoaded', function() {
-    const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
-    dropdownElements.forEach(function(element) {
-        new bootstrap.Dropdown(element);
-    });
-});
-
 // ========== DONNÉES DES PLATS (MENU COMPLET) - CHARGÉ DYNAMIQUEMENT ==========
 let meals = [];
+let menus = [];
+
+/**
+ * Calcule le score nutritionnel du menu
+ * Score basé sur : protéines (priorité haute), fibres, équilibre macros
+ * Formule : (Protéines * 2) + Fibres + (équilibre macro bonus)
+ * @param {number} protein - Protéines totales en grammes
+ * @param {number} fiber - Fibres totales en grammes
+ * @param {number} carbs - Glucides totaux en grammes
+ * @param {number} fat - Lipides totaux en grammes
+ * @returns {number} Score du menu (0-100)
+ */
+function calculerScoreMenu(protein, fiber, carbs, fat) {
+    // Score base sur les protéines (max 50 points)
+    const scoreProtein = Math.min(50, (protein / 50) * 50);
+    
+    // Score base sur les fibres (max 20 points)
+    const scoreFiber = Math.min(20, (fiber / 30) * 20);
+    
+    // Score d'équilibre macro (max 30 points)
+    // Idéal : 40% carbs, 30% protein, 30% fat
+    const totalCals = (carbs * 4) + (protein * 4) + (fat * 9);
+    let scoreBalance = 30;
+    if (totalCals > 0) {
+        const carbsRatio = (carbs * 4) / totalCals;
+        const proteinRatio = (protein * 4) / totalCals;
+        const fatRatio = (fat * 9) / totalCals;
+        
+        // Distance à l'idéal (40%, 30%, 30%)
+        const distance = Math.abs(carbsRatio - 0.4) + Math.abs(proteinRatio - 0.3) + Math.abs(fatRatio - 0.3);
+        scoreBalance = Math.max(0, 30 - (distance * 50));
+    }
+    
+    // Score total (0-100)
+    const totalScore = scoreProtein + scoreFiber + scoreBalance;
+    return Math.min(100, Math.round(totalScore));
+}
 
 /**
  * Transforme un objet Plat depuis l'API en objet meal pour l'affichage
@@ -26,42 +55,87 @@ function transformerPlatEnMeal(plat) {
         category: plat.proteine >= 35 ? "proteine" : "autre",
         image: plat.image ? plat.image : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
         isNew: plat.isNew,
-        prix: plat.prix,
+        prix: plat.prix ? parseFloat(plat.prix) : null,
         description: plat.description,
-        est_disponible: plat.est_disponible
+        est_disponible: plat.est_disponible,
+        type: 'plat'
     };
 }
 
 /**
- * Charge les plats depuis l'API et les affiche
+ * Transforme un objet Menu depuis l'API en objet meal pour l'affichage
+ * @param {Object} menu - Objet menu reçu de l'API
+ * @returns {Object} Objet meal formaté
+ */
+function transformerMenuEnMeal(menu) {
+    // Calculer les totaux nutritionnels et le prix si compositions existe
+    let totalCalories = 0, totalProtein = 0, totalCarbs = 0, totalFat = 0, totalFiber = 0, totalPrix = 0;
+    
+    if (menu.compositions && menu.compositions.length > 0) {
+        menu.compositions.forEach(comp => {
+            if (comp.plat_detail) {
+                const plat = comp.plat_detail;
+                totalCalories += plat.calorie || 0;
+                totalProtein += plat.proteine || 0;
+                totalCarbs += plat.glucides || 0;
+                totalFat += plat.lipides || 0;
+                totalFiber += plat.fibres || 0;
+                totalPrix += plat.prix ? parseFloat(plat.prix) : 0;
+            }
+        });
+    }
+    
+    return {
+        id: menu.id_menu || menu.id,
+        name: menu.nom,
+        calories: totalCalories,
+        protein: totalProtein,
+        carbs: totalCarbs,
+        fat: totalFat,
+        fiber: totalFiber,
+        category: totalProtein >= 35 ? "proteine" : "autre",
+        image: menu.image ? menu.image : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
+        isNew: menu.isNew,
+        prix: totalPrix > 0 ? totalPrix : (menu.prix ? parseFloat(menu.prix) : null),
+        description: menu.description,
+        est_disponible: menu.est_disponible,
+        type: 'menu',
+        compositions: menu.compositions || [],
+        score: calculerScoreMenu(totalProtein, totalFiber, totalCarbs, totalFat)
+    };
+}
+
+/**
+ * Charge les menus depuis l'API et les affiche
  */
 function chargerPlats() {
-    fetch('/api/plats/')
+    fetch('/api/menus/')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Erreur HTTP: ${response.status}`);
             }
             return response.json();
         })
-        .then(data => {
-            console.log('Données brutes reçues de l\'API:', data);
+        .then(menusData => {
+            console.log('Données brutes reçues de l\'API - Menus:', menusData);
             
             // Adapter les données de l'API au format attendu par displayMeals
-            const platsArray = Array.isArray(data) ? data : (data.results || []);
-            // Filtrer les plats disponibles uniquement
-            meals = platsArray
-                .filter(plat => plat.est_disponible === true)
-                .map(plat => transformerPlatEnMeal(plat));
+            const menusArray = Array.isArray(menusData) ? menusData : (menusData.results || []);
+                console.log('Données transformées - Menus:', menusArray);
+            // Filtrer et transformer les menus disponibles
+            meals = menusArray
+                .filter(menu => menu.est_actif === true)
+                .map(menu => transformerMenuEnMeal(menu));
             
-            // Afficher les plats après le chargement
+            // Afficher les menus après le chargement
             displayMeals();
-            console.log('✓ Plats chargés avec succès !', meals);
+            console.log('✓ Menus chargés avec succès !', meals);
         })
         .catch(error => {
-            console.error('Erreur lors du chargement des plats:', error);
+            console.error('Erreur lors du chargement des menus:', error);
             // Fallback: afficher un message d'erreur
             if (menuGrid) {
-                menuGrid.innerHTML = `<div class="no-results">⚠️ Erreur lors du chargement des plats</div>`;
+                menuGrid.innerHTML = `<div class="no-results">⚠️ Erreur lors du chargement des menus</div>`;
             }
         });
 }
@@ -75,7 +149,7 @@ const menuGrid = document.getElementById('menuGrid');
 const searchInput = document.getElementById('searchInput');
 const filterBtns = document.querySelectorAll('.filter-btn');
 
-// ========== FONCTION POUR AFFICHER LES PLATS ==========
+// ========== FONCTION POUR AFFICHER LES MENUS ==========
 function displayMeals() {
     if (!menuGrid) return;
 
@@ -97,44 +171,71 @@ function displayMeals() {
 
     // Affichage des résultats
     if (filteredMeals.length === 0) {
-        menuGrid.innerHTML = `<div class="no-results">🍽️ Aucun plat ne correspond à votre recherche</div>`;
+        menuGrid.innerHTML = `<div class="no-results">🍽️ Aucun menu ne correspond à votre recherche</div>`;
         return;
     }
 
     menuGrid.innerHTML = filteredMeals.map(meal => `
-        <div class="meal-card" data-id="${meal.id}" data-category="${meal.category}">
-            <div class="meal-img">
+        <div class="item-card">
+            <div class="item-image">
                 <img src="${meal.image}" alt="${meal.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'">
-                ${meal.isNew ? '<span class="badge-new">NEW</span>' : ''}
-                <div class="prot-circle">${meal.protein}g <span>PROT</span></div>
+                <span class="item-type-badge menu">Menu</span>
+                <span class="item-score">⭐ ${meal.score}/100</span>
+                ${meal.isNew ? '<span class="item-badge-new">NOUVEAU</span>' : ''}
             </div>
-            <div class="meal-body">
+            <div class="item-body">
                 <h3>${meal.name}</h3>
-                <div class="nutri-table">
-                    <div class="nutri-item">
-                        <span>🔥 Calories</span>
-                        ${meal.calories} kcal
+                <p class="description">${meal.description || 'Menu savoureux et équilibré'}</p>
+                
+                ${meal.type === 'menu' && meal.compositions && meal.compositions.length > 0 ? `
+                    <div class="menu-composition">
+                        <p class="composition-label">📋 Compositions:</p>
+                        <ul class="composition-items">
+                            ${meal.compositions.map(comp => `<li> ${comp.plat_detail ? comp.plat_detail.nom : 'Plat inconnu'}</li>`).join('')}
+                        </ul>
                     </div>
-                    <div class="nutri-item">
-                        <span>💪 Protéines</span>
-                        ${meal.protein}g
+                ` : ''}
+                
+                <div class="nutrition-info">
+                    <div class="nutrition-item">
+                        <span class="label">🔥 Calories</span>
+                        <span class="value">${Math.round(meal.calories)} kcal</span>
                     </div>
-                    <div class="nutri-item">
-                        <span>🌾 Glucides</span>
-                        ${meal.carbs}g
+                    <div class="nutrition-item">
+                        <span class="label">💪 Protéines</span>
+                        <span class="value">${meal.protein.toFixed(1)}g</span>
                     </div>
-                    <div class="nutri-item">
-                        <span>🌾 Lipides</span>
-                        ${meal.fat}g
+                    <div class="nutrition-item">
+                        <span class="label">🌾 Glucides</span>
+                        <span class="value">${meal.carbs.toFixed(1)}g</span>
                     </div>
-                    <div class="nutri-item">
-                        <span>🌿 Fibres</span>
-                        ${meal.fiber}g
+                    <div class="nutrition-item">
+                        <span class="label">🧈 Lipides</span>
+                        <span class="value">${meal.fat.toFixed(1)}g</span>
                     </div>
+                </div>
+
+                <div class="item-footer">
+                    <span class="item-price">${meal.prix !== null && meal.prix !== undefined && !isNaN(meal.prix) ? `€${parseFloat(meal.prix).toFixed(2)}` : 'Prix sur demande'}</span>
+                    <button class="btn-add-cart" data-item-id="${meal.id}" data-item-type="${meal.type}" data-item-name="${meal.name}" data-item-price="${meal.prix || '0'}">
+                        <i class="fas fa-shopping-cart"></i> Ajouter
+                    </button>
                 </div>
             </div>
         </div>
     `).join('');
+
+    // Ajouter les événements aux boutons Ajouter au Panier
+    document.querySelectorAll('.btn-add-cart').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const itemId = btn.dataset.itemId;
+            const itemType = btn.dataset.itemType;
+            const itemName = btn.dataset.itemName;
+            const itemPrice = btn.dataset.itemPrice;
+            openAddToCartModal(itemId, itemType, itemName, itemPrice);
+        });
+    });
 }
 
 // ========== GESTION DES FILTRES ==========
@@ -182,6 +283,136 @@ navItems.forEach(item => {
 
 // ========== CHARGEMENT INITIAL ==========
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Bootstrap dropdowns
+    const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+    dropdownElements.forEach(function(element) {
+        new bootstrap.Dropdown(element);
+    });
+    
+    // Charger les plats et menus
     chargerPlats();
     console.log('🌿 Menu Fresh & Greens chargé avec succès !');
 });
+
+// ========== GESTION MODAL AJOUTER AU PANIER ==========
+let selectedMealId = null;
+let selectedMealPrice = null;
+let selectedMealType = null;
+
+function openAddToCartModal(mealId, mealName, mealPrice, mealType = 'plat') {
+    selectedMealId = mealId;
+    selectedMealPrice = mealPrice;
+    selectedMealType = mealType;
+    const modal = document.getElementById('addToCartModal');
+    const itemInfo = document.getElementById('itemInfo');
+    const quantity = document.getElementById('quantity');
+    
+    const priceDisplay = mealPrice && !isNaN(parseFloat(mealPrice)) 
+        ? `€${parseFloat(mealPrice).toFixed(2)}` 
+        : 'Prix non disponible';
+    itemInfo.textContent = `${mealName} - ${priceDisplay}`;
+    quantity.value = 1;
+    modal.style.display = 'block';
+}
+
+function closeAddToCartModal() {
+    const modal = document.getElementById('addToCartModal');
+    modal.style.display = 'none';
+}
+
+// Fermer modal si on clique en dehors
+window.addEventListener('click', (e) => {
+    const modal = document.getElementById('addToCartModal');
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Fermer modal avec le bouton X
+const closeBtn = document.querySelector('.modal .close');
+if (closeBtn) {
+    closeBtn.addEventListener('click', closeAddToCartModal);
+}
+
+// Soumettre le formulaire
+const addToCartForm = document.getElementById('addToCartForm');
+if (addToCartForm) {
+    addToCartForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!selectedMealId) return;
+        
+        const quantity = parseInt(document.getElementById('quantity').value);
+        
+        try {
+            // Préparer le body selon le type (plat ou menu)
+            const body = selectedMealType === 'menu' 
+                ? {
+                    menu_id: selectedMealId,
+                    quantite: quantity
+                }
+                : {
+                    menu_id: selectedMealId,
+                    quantite: quantity
+                };
+            
+            // Appel API pour ajouter au panier
+            const response = await fetch('/api/ligne-commande/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(body)
+            });
+            
+            const data = await response.json();
+            
+            // Handle authentication errors (401 or 403)
+            if (response.status === 401 || response.status === 403) {
+                PanierManager.showError('❌ Vous devez être connecté pour ajouter au panier. Veuillez vous connecter.');
+                setTimeout(() => {
+                    window.location.href = '/login/';
+                }, 2000);
+                return;
+            }
+            
+            if (response.status === 404) {
+                PanierManager.showError('❌ ' + (data.error || 'Le menu n\'a pas été trouvé'));
+                return;
+            }
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de l\'ajout au panier');
+            }
+            
+            PanierManager.showSuccess('✓ ' + (selectedMealType === 'menu' ? 'Menu' : 'Plat') + ' ajouté au panier !');
+            closeAddToCartModal();
+            // Actualiser le compteur du panier dans la navbar
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+        } catch (error) {
+            console.error('Erreur:', error);
+            PanierManager.showError('❌ ' + error.message);
+        }
+    });
+}
+
+// Fonction pour récupérer le cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}

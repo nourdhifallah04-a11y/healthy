@@ -405,3 +405,364 @@ class APIViewsTestCase(TestCase):
         # Note: This might need adjustment based on actual auth backend
         # response = self.django_client.get('/api/clients/')
         # self.assertEqual(response.status_code, 200)
+
+
+# ============================================
+# COMMANDE TESTS
+# ============================================
+
+class CommandeTestCase(TestCase):
+    """Test cases for Commande model"""
+    
+    def setUp(self):
+        """Set up test data for commande tests"""
+        # Create user and client
+        self.utilisateur = Utilisateur.objects.create_user(
+            email='client@example.com',
+            password='testpass123',
+            nom='Dupont',
+            prenom='Jean'
+        )
+        self.client = Client.objects.create(utilisateur=self.utilisateur)
+        
+        # Create menu and plats
+        self.plat1 = Plat.objects.create(
+            nom='Poulet rôti',
+            description='Poulet rôti avec légumes',
+            calorie=450,
+            proteine=35,
+            glucides=20,
+            lipides=15,
+            prix=Decimal('8.50'),
+            est_disponible=True
+        )
+        
+        self.plat2 = Plat.objects.create(
+            nom='Riz basmati',
+            description='Riz basmati cuit',
+            calorie=200,
+            proteine=5,
+            glucides=45,
+            lipides=1,
+            prix=Decimal('3.50'),
+            est_disponible=True
+        )
+        
+        self.menu = Menu.objects.create(
+            nom='Menu Délice',
+            description='Délicieux menu',
+            prix=Decimal('12.00'),
+            est_actif=True
+        )
+        self.menu.plats.add(self.plat1, self.plat2)
+        
+        # Create commande
+        self.commande = Commande.objects.create(
+            client=self.client,
+            statut='panier'
+        )
+    
+    def test_create_commande(self):
+        """Test creating a commande"""
+        self.assertIsNotNone(self.commande.id_commande)
+        self.assertEqual(self.commande.statut, 'panier')
+        self.assertEqual(self.commande.client, self.client)
+    
+    def test_commande_str_representation(self):
+        """Test string representation of commande"""
+        expected_str = f"Commande #{self.commande.id_commande} - {self.utilisateur.nom}"
+        self.assertEqual(str(self.commande), expected_str)
+    
+    def test_valider_commande(self):
+        """Test validating a commande changes status"""
+        self.assertTrue(self.commande.valider_commande())
+        self.commande.refresh_from_db()
+        self.assertEqual(self.commande.statut, 'confirmee')
+    
+    def test_valider_commande_already_confirmed(self):
+        """Test that validating an already confirmed commande returns False"""
+        self.commande.valider_commande()
+        self.assertFalse(self.commande.valider_commande())
+    
+    def test_calculer_total(self):
+        """Test calculating commande total"""
+        # Add items to commande
+        ligne1 = LigneCommande.objects.create(
+            commande=self.commande,
+            menu=self.menu,
+            quantite=2,
+            prix_unitaire=Decimal('12.00')
+        )
+        
+        total = self.commande.calculer_total()
+        self.assertEqual(total, Decimal('24.00'))
+    
+    def test_calculer_nutrition_totale(self):
+        """Test calculating total nutritional values"""
+        ligne1 = LigneCommande.objects.create(
+            commande=self.commande,
+            menu=self.menu,
+            quantite=1,
+            prix_unitaire=Decimal('12.00')
+        )
+        
+        nutrition = self.commande.calculer_nutrition_totale()
+        
+        # Should contain keys
+        self.assertIn('calories', nutrition)
+        self.assertIn('proteines', nutrition)
+        self.assertIn('glucides', nutrition)
+        self.assertIn('lipides', nutrition)
+        
+        # Should have non-zero values
+        self.assertGreater(nutrition['calories'], 0)
+        self.assertGreater(nutrition['proteines'], 0)
+
+
+class LigneCommandeTestCase(TestCase):
+    """Test cases for LigneCommande model"""
+    
+    def setUp(self):
+        """Set up test data"""
+        self.utilisateur = Utilisateur.objects.create_user(
+            email='client2@example.com',
+            password='testpass123',
+            nom='Martin',
+            prenom='Pierre'
+        )
+        self.client = Client.objects.create(utilisateur=self.utilisateur)
+        
+        self.plat = Plat.objects.create(
+            nom='Salade méditerranéenne',
+            description='Salade fraîche',
+            calorie=300,
+            proteine=15,
+            glucides=25,
+            lipides=10,
+            prix=Decimal('7.00'),
+            est_disponible=True
+        )
+        
+        self.menu = Menu.objects.create(
+            nom='Menu Santé',
+            description='Repas équilibré',
+            prix=Decimal('10.00'),
+            est_actif=True
+        )
+        self.menu.plats.add(self.plat)
+        
+        self.commande = Commande.objects.create(
+            client=self.client,
+            statut='panier'
+        )
+    
+    def test_create_ligne_commande(self):
+        """Test creating a ligne de commande"""
+        ligne = LigneCommande.objects.create(
+            commande=self.commande,
+            menu=self.menu,
+            quantite=2,
+            prix_unitaire=Decimal('10.00')
+        )
+        
+        self.assertEqual(ligne.commande, self.commande)
+        self.assertEqual(ligne.menu, self.menu)
+        self.assertEqual(ligne.quantite, 2)
+    
+    def test_sous_total_calculation(self):
+        """Test sous_total property calculation"""
+        ligne = LigneCommande.objects.create(
+            commande=self.commande,
+            menu=self.menu,
+            quantite=3,
+            prix_unitaire=Decimal('10.00')
+        )
+        
+        self.assertEqual(ligne.sous_total, Decimal('30.00'))
+    
+    def test_ligne_commande_str_representation(self):
+        """Test string representation of ligne commande"""
+        ligne = LigneCommande.objects.create(
+            commande=self.commande,
+            menu=self.menu,
+            quantite=1,
+            prix_unitaire=Decimal('10.00')
+        )
+        
+        expected_str = f"{self.commande.id_commande} - {self.menu.nom} x1"
+        self.assertEqual(str(ligne), expected_str)
+
+
+class CommandeViewsTestCase(TestCase):
+    """Test cases for Commande views"""
+    
+    def setUp(self):
+        """Set up test data"""
+        self.django_client = DjangoClient()
+        
+        self.utilisateur = Utilisateur.objects.create_user(
+            email='testview@example.com',
+            password='testpass123',
+            nom='Test',
+            prenom='User'
+        )
+        
+        self.client = Client.objects.create(utilisateur=self.utilisateur)
+        
+        self.plat = Plat.objects.create(
+            nom='Plat test',
+            description='Plat pour test',
+            calorie=500,
+            proteine=30,
+            glucides=40,
+            lipides=15,
+            prix=Decimal('9.99'),
+            est_disponible=True
+        )
+        
+        self.menu = Menu.objects.create(
+            nom='Menu test',
+            description='Menu de test',
+            prix=Decimal('12.99'),
+            est_actif=True
+        )
+        self.menu.plats.add(self.plat)
+        
+        self.commande = Commande.objects.create(
+            client=self.client,
+            statut='panier'
+        )
+    
+    def test_panier_requires_authentication(self):
+        """Test that panier view requires authentication"""
+        response = self.django_client.get('/panier/')
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+    
+    def test_panier_view_authenticated(self):
+        """Test panier view with authenticated user"""
+        self.django_client.force_login(self.utilisateur)
+        response = self.django_client.get('/panier/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'panier', html=False)
+    
+    def test_mes_commandes_requires_authentication(self):
+        """Test that mes commandes view requires authentication"""
+        response = self.django_client.get('/mes-commandes/')
+        self.assertEqual(response.status_code, 302)
+    
+    def test_mes_commandes_view_authenticated(self):
+        """Test mes commandes view with authenticated user"""
+        self.django_client.force_login(self.utilisateur)
+        response = self.django_client.get('/mes-commandes/')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_commande_detail_requires_authentication(self):
+        """Test that commande detail view requires authentication"""
+        response = self.django_client.get(f'/commande/{self.commande.id_commande}/')
+        self.assertEqual(response.status_code, 302)
+    
+    def test_commande_detail_view_authenticated(self):
+        """Test commande detail view with authenticated user"""
+        self.django_client.force_login(self.utilisateur)
+        response = self.django_client.get(f'/commande/{self.commande.id_commande}/')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_commande_detail_wrong_user(self):
+        """Test that user cannot view another user's commande"""
+        autre_utilisateur = Utilisateur.objects.create_user(
+            email='other@example.com',
+            password='testpass123',
+            nom='Autre',
+            prenom='User'
+        )
+        
+        self.django_client.force_login(autre_utilisateur)
+        response = self.django_client.get(f'/commande/{self.commande.id_commande}/')
+        self.assertEqual(response.status_code, 302)  # Redirect
+
+
+class CommandeIntegrationTestCase(TestCase):
+    """Integration tests for complete commande flow"""
+    
+    def setUp(self):
+        """Set up test data"""
+        self.django_client = DjangoClient()
+        
+        self.utilisateur = Utilisateur.objects.create_user(
+            email='integration@example.com',
+            password='testpass123',
+            nom='Integration',
+            prenom='Test'
+        )
+        
+        self.client = Client.objects.create(utilisateur=self.utilisateur)
+        
+        # Create multiple plats
+        self.plats = []
+        for i in range(3):
+            plat = Plat.objects.create(
+                nom=f'Plat {i+1}',
+                description=f'Description {i+1}',
+                calorie=400 + (i * 50),
+                proteine=25 + (i * 5),
+                glucides=30 + (i * 5),
+                lipides=12 + (i * 2),
+                prix=Decimal(f'{8 + i}.50'),
+                est_disponible=True
+            )
+            self.plats.append(plat)
+        
+        # Create menu with multiple plats
+        self.menu = Menu.objects.create(
+            nom='Menu complet',
+            description='Menu avec tous les plats',
+            prix=Decimal('25.00'),
+            est_actif=True
+        )
+        for plat in self.plats:
+            self.menu.plats.add(plat)
+    
+    def test_complete_commande_flow(self):
+        """Test the complete flow: cart -> checkout -> confirmation"""
+        self.django_client.force_login(self.utilisateur)
+        
+        # 1. Access cart
+        response = self.django_client.get('/panier/')
+        self.assertEqual(response.status_code, 200)
+        
+        # 2. Create commande with items
+        commande = Commande.objects.get(client=self.client, statut='panier')
+        
+        LigneCommande.objects.create(
+            commande=commande,
+            menu=self.menu,
+            quantite=2,
+            prix_unitaire=Decimal('25.00')
+        )
+        
+        # 3. Verify total calculation
+        total = commande.calculer_total()
+        self.assertEqual(total, Decimal('50.00'))
+        
+        # 4. Verify nutritional values
+        nutrition = commande.calculer_nutrition_totale()
+        self.assertGreater(nutrition['calories'], 0)
+        
+        # 5. Access checkout
+        response = self.django_client.get('/checkout/')
+        self.assertEqual(response.status_code, 200)
+        
+        # 6. Submit checkout (simulate)
+        response = self.django_client.post('/checkout/', {
+            'adresse_livraison': '123 Rue de Test, 75001 Paris',
+            'notes': 'Pas de glaçons'
+        })
+        
+        # Should redirect to confirmation
+        self.assertEqual(response.status_code, 302)
+        
+        # 7. Verify commande status changed
+        commande.refresh_from_db()
+        self.assertEqual(commande.statut, 'confirmee')
+        self.assertNotEqual(commande.adresse_livraison, '')
+

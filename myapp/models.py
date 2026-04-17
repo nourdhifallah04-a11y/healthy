@@ -255,6 +255,29 @@ class Plat(models.Model):
             'prix': str(self.prix)
         }
     
+    def get_diet_categories(self) -> List[str]:
+        """Retourne les catégories de régime auxquelles appartient ce plat"""
+        categories = []
+        
+        # High-protein: protéine >= 35g
+        if self.proteine >= 35:
+            categories.append('high-protein')
+        
+        # Low-carb: glucides <= 20g
+        if self.glucides <= 20:
+            categories.append('low-carb')
+        
+        # Vegan: check description for vegan indicators
+        desc_lower = (self.description or "").lower()
+        if any(word in desc_lower for word in ['vegan', 'végétal', 'sans produit animal', 'plant-based']):
+            categories.append('vegan')
+        
+        # Gluten-free: check description
+        if any(word in desc_lower for word in ['sans gluten', 'gluten-free', 'gluten free']):
+            categories.append('gluten-free')
+        
+        return categories if categories else ['autre']
+    
     def calculer_score_nutritionnel(self) -> int:
         """Calcule un score nutritionnel de 0 à 100 basé sur les valeurs nutritionnelles"""
         score = 50  # Score de base
@@ -611,19 +634,408 @@ class Plat(models.Model):
         print(f"  ✅ Score final (avec facteurs personnels): {score_final}/100\n")
         return score_final
     
+    @staticmethod
+    def calculer_score_professionnel(plat: "Plat", profil: "ProfilNutritionnel") -> float:
+        """
+        Calcule un score de recommandation PROFESSIONNEL basé sur les meilleures pratiques nutritionnistes.
+        
+        Méthodologie :
+        - Calcul des besoins caloriques personnalisés (Harris-Benedict + activité)
+        - Évaluation du plat selon la catégorie IMC
+        - Analyse des ratios macronutriments optimaux
+        - Évaluation de la densité énergétique
+        - Vérification des restrictions et allergies
+        - Ajustements spécifiques par âge et sexe
+        
+        Returns:
+            Score normalisé 0-100 où 100 = recommandation idéale
+        """
+        print(f"\n{'='*70}")
+        print(f"CALCUL SCORE PROFESSIONNEL - {plat.nom}")
+        print(f"{'='*70}")
+        
+        # === 1. VÉRIFIER ALLERGIES ET RESTRICTIONS ===
+        texte_plat = (plat.nom + " " + plat.description).lower()
+        
+        if profil.allergies:
+            allergies_list = [a.strip().lower() for a in profil.allergies.split(',')]
+            for allergie in allergies_list:
+                if allergie and allergie in texte_plat:
+                    print(f"❌ ALLERGIE DÉTECTÉE: {allergie} → SCORE = 0")
+                    print(f"{'='*70}\n")
+                    return 0.0
+        
+        if profil.restrictions_alimentaires:
+            restrictions_list = [r.strip().lower() for r in profil.restrictions_alimentaires.split(',')]
+            for restriction in restrictions_list:
+                if restriction and restriction in texte_plat:
+                    print(f"❌ RESTRICTION VIOLÉE: {restriction} → SCORE = 0")
+                    print(f"{'='*70}\n")
+                    return 0.0
+        
+        # === 2. CALCULER BESOINS CALORIQUES PERSONNALISÉS ===
+        # BMR avec Harris-Benedict révisée
+        if profil.sexe == 'homme':
+            bmr = 88.362 + (13.397 * float(profil.poids)) + (4.799 * float(profil.taille)) - (5.677 * profil.age)
+        else:
+            bmr = 447.593 + (9.247 * float(profil.poids)) + (3.098 * float(profil.taille)) - (4.330 * profil.age)
+        
+        # Appliquer facteur d'activité
+        facteurs_activite = {
+            'sedentaire': 1.2,
+            'leger': 1.375,
+            'modere': 1.55,
+            'actif': 1.725,
+            'extremement_actif': 1.9
+        }
+        facteur = facteurs_activite.get(profil.niveau_activite, 1.55)
+        besoins_calorique_base = bmr * facteur
+        
+        # Ajustement selon l'objectif
+        ajustements_objectif = {
+            'perte_poids': 0.8,      # Déficit 20%
+            'maintien': 1.0,
+            'prise_muscle': 1.2,     # Surplus 20%
+            'performance': 1.15
+        }
+        besoins_calorique = besoins_calorique_base * ajustements_objectif.get(profil.objectif, 1.0)
+        
+        # === 3. DÉTERMINER RATIOS MACRONUTRIMENTS OPTIMAUX ===
+        ratios_macros = {
+            'perte_poids': {'protein': 0.38, 'carbs': 0.42, 'fat': 0.20},    # 35-40% prot, 40-45% gluc, 20-25% lip
+            'maintien': {'protein': 0.27, 'carbs': 0.50, 'fat': 0.23},       # 25-30% prot, 45-55% gluc, 20-25% lip
+            'prise_muscle': {'protein': 0.32, 'carbs': 0.47, 'fat': 0.21},   # 30-35% prot, 45-50% gluc, 20-25% lip
+            'performance': {'protein': 0.27, 'carbs': 0.60, 'fat': 0.13}     # 25-30% prot, 55-65% gluc, 10-20% lip
+        }
+        
+        ratios = ratios_macros.get(profil.objectif, ratios_macros['maintien'])
+        
+        # Besoins en protéines (g/kg)
+        besoins_proteines_g_per_kg = {
+            'perte_poids': 1.8,           # 1.5-2.0 pour préservation musculaire
+            'maintien': 1.2,              # 0.8-1.2 pour sédentaire/léger
+            'prise_muscle': 2.0,          # 1.6-2.2 pour hypertrophie
+            'performance': 1.4             # 1.2-1.4 pour endurance
+        }
+        besoins_protein_g = float(profil.poids) * besoins_proteines_g_per_kg.get(profil.objectif, 1.2)
+        
+        # Besoins en fibres
+        besoins_fibres = {
+            'perte_poids': 35,            # Augmente satiété
+            'maintien': 30,               # Femmes: 25g, Hommes: 38g (moyennes)
+            'prise_muscle': 28,
+            'performance': 25
+        }
+        besoins_fibre_g = besoins_fibres.get(profil.objectif, 30)
+        
+        imc = profil.calculer_imc()
+        categorie_imc = profil.determiner_categorie_imc()
+        
+        print(f"\n📊 PROFIL UTILISATEUR:")
+        print(f"  • IMC: {imc:.1f} ({categorie_imc.replace('_', ' ').upper()})")
+        print(f"  • Objectif: {dict(ProfilNutritionnel.OBJECTIFS).get(profil.objectif, profil.objectif)}")
+        print(f"  • Besoins caloriques: {besoins_calorique:.0f} kcal/jour")
+        print(f"  • Besoins protéines: {besoins_protein_g:.1f}g/jour")
+        print(f"  • Besoins fibres: {besoins_fibre_g:.0f}g/jour")
+        
+        print(f"\n🍽️ ANALYSE DU PLAT: {plat.nom}")
+        print(f"  • Calories: {plat.calorie:.0f} kcal")
+        print(f"  • Protéines: {plat.proteine:.1f}g")
+        print(f"  • Glucides: {plat.glucides:.1f}g")
+        print(f"  • Lipides: {plat.lipides:.1f}g")
+        print(f"  • Fibres: {plat.fibres:.1f}g")
+        
+        # === 4. ÉVALUER DENSITÉ ÉNERGÉTIQUE ===
+        # Poids estimé du plat (généralement 200-400g pour un plat complet)
+        poids_estime_plat_g = 300  # Valeur moyenne
+        densité_energetique = plat.calorie / poids_estime_plat_g if poids_estime_plat_g > 0 else 0
+        
+        # === 5. CALCULER SCORES PARTIELS ===
+        score_total = 0.0
+        scores_details = {}
+        
+        # **A. SCORE CALORIES** (25 points max)
+        pourcentage_besoins = (plat.calorie / besoins_calorique * 100) if besoins_calorique > 0 else 0
+        
+        if categorie_imc == 'insuffisance_ponderale':
+            # Favoriser calories hautes
+            if 800 <= plat.calorie <= 1200:
+                score_cal = 25
+            elif 600 <= plat.calorie < 800 or 1200 < plat.calorie <= 1400:
+                score_cal = 20
+            elif 400 <= plat.calorie < 600:
+                score_cal = 12
+            else:
+                score_cal = max(0, 25 - abs(1000 - plat.calorie) / 100)
+        
+        elif categorie_imc == 'normal':
+            # Cible 400-800 kcal
+            if 400 <= plat.calorie <= 800:
+                score_cal = 25
+            elif 300 <= plat.calorie < 400 or 800 < plat.calorie <= 900:
+                score_cal = 18
+            else:
+                score_cal = max(0, 25 - abs(600 - plat.calorie) / 50)
+        
+        elif categorie_imc == 'surpoids':
+            # Cible max 500 kcal (sévère)
+            if 250 <= plat.calorie <= 450:
+                score_cal = 25
+            elif 150 <= plat.calorie < 250 or 450 < plat.calorie <= 600:
+                score_cal = 18
+            elif plat.calorie <= 150 or 600 < plat.calorie <= 750:
+                score_cal = 10
+            else:
+                score_cal = max(0, 5)
+        
+        else:  # Obésité
+            # Cible max 350 kcal (très strict)
+            if 200 <= plat.calorie <= 350:
+                score_cal = 25
+            elif 150 <= plat.calorie < 200 or 350 < plat.calorie <= 450:
+                score_cal = 18
+            elif plat.calorie <= 150 or 450 < plat.calorie <= 550:
+                score_cal = 8
+            else:
+                score_cal = max(0, 2)
+        
+        score_cal = round(score_cal, 2)
+        scores_details['calories'] = score_cal
+        score_total += score_cal
+        print(f"\n  📈 Score Calories: {score_cal:.2f}/25")
+        
+        # **B. SCORE PROTÉINES** (30 points max)
+        pourcentage_protein = (plat.proteine / besoins_protein_g * 100) if besoins_protein_g > 0 else 0
+        
+        if categorie_imc == 'insuffisance_ponderale':
+            if plat.proteine >= 35:
+                score_prot = 30
+            elif 25 <= plat.proteine < 35:
+                score_prot = 22
+            elif 15 <= plat.proteine < 25:
+                score_prot = 12
+            else:
+                score_prot = max(0, 5)
+        
+        elif categorie_imc == 'normal':
+            if 20 <= plat.proteine <= 35:
+                score_prot = 30
+            elif 15 <= plat.proteine < 20 or 35 < plat.proteine <= 40:
+                score_prot = 22
+            elif plat.proteine < 15:
+                score_prot = 8
+            else:
+                score_prot = 18
+        
+        elif categorie_imc == 'surpoids':
+            # Haute priorité aux protéines
+            if 25 <= plat.proteine <= 45:
+                score_prot = 30
+            elif 20 <= plat.proteine < 25 or 45 < plat.proteine <= 50:
+                score_prot = 22
+            elif 15 <= plat.proteine < 20:
+                score_prot = 12
+            else:
+                score_prot = max(0, 5)
+        
+        else:  # Obésité
+            # TRÈS haute priorité aux protéines
+            if 30 <= plat.proteine <= 50:
+                score_prot = 30
+            elif 25 <= plat.proteine < 30 or 50 < plat.proteine:
+                score_prot = 24
+            elif 20 <= plat.proteine < 25:
+                score_prot = 16
+            else:
+                score_prot = max(0, 5)
+        
+        score_prot = round(score_prot, 2)
+        scores_details['proteines'] = score_prot
+        score_total += score_prot
+        print(f"  📈 Score Protéines: {score_prot:.2f}/30")
+        
+        # **C. SCORE GLUCIDES** (15 points max - important mais moins que protéines)
+        if profil.objectif == 'perte_poids':
+            # Limiter glucides
+            if plat.glucides <= 20:
+                score_gluc = 15
+            elif 20 < plat.glucides <= 30:
+                score_gluc = 10
+            elif 30 < plat.glucides <= 45:
+                score_gluc = 5
+            else:
+                score_gluc = 0
+        
+        elif profil.objectif == 'performance':
+            # Glucides plus hauts acceptés
+            if 40 <= plat.glucides <= 60:
+                score_gluc = 15
+            elif 30 <= plat.glucides < 40 or 60 < plat.glucides <= 75:
+                score_gluc = 10
+            else:
+                score_gluc = max(0, 5)
+        
+        else:  # maintien, prise muscle
+            if 30 <= plat.glucides <= 50:
+                score_gluc = 15
+            elif 20 <= plat.glucides < 30 or 50 < plat.glucides <= 60:
+                score_gluc = 10
+            else:
+                score_gluc = max(0, 3)
+        
+        score_gluc = round(score_gluc, 2)
+        scores_details['glucides'] = score_gluc
+        score_total += score_gluc
+        print(f"  📈 Score Glucides: {score_gluc:.2f}/15")
+        
+        # **D. SCORE LIPIDES** (15 points max)
+        if categorie_imc in ['surpoids', 'obesite']:
+            # Limiter lipides sévèrement
+            max_lipides = 10 if categorie_imc == 'obesite' else 15
+            if plat.lipides <= max_lipides * 0.7:
+                score_lip = 15
+            elif plat.lipides <= max_lipides:
+                score_lip = 10
+            elif plat.lipides <= max_lipides * 1.5:
+                score_lip = 5
+            else:
+                score_lip = 0
+        else:
+            # Normal à insuffisance
+            if 10 <= plat.lipides <= 25:
+                score_lip = 15
+            elif 5 <= plat.lipides < 10 or 25 < plat.lipides <= 30:
+                score_lip = 10
+            else:
+                score_lip = max(0, 3)
+        
+        score_lip = round(score_lip, 2)
+        scores_details['lipides'] = score_lip
+        score_total += score_lip
+        print(f"  📈 Score Lipides: {score_lip:.2f}/15")
+        
+        # **E. SCORE FIBRES** (10 points max)
+        if plat.fibres >= besoins_fibre_g / 3:  # 1/3 des besoins journaliers
+            score_fib = 10
+        elif plat.fibres >= (besoins_fibre_g / 3) * 0.6:
+            score_fib = 7
+        elif plat.fibres >= (besoins_fibre_g / 3) * 0.3:
+            score_fib = 3
+        else:
+            score_fib = 0
+        
+        score_fib = round(score_fib, 2)
+        scores_details['fibres'] = score_fib
+        score_total += score_fib
+        print(f"  📈 Score Fibres: {score_fib:.2f}/10")
+        
+        # **F. BONUS ÂGE & SEXE** (5 points max)
+        score_age_sexe = 0.0
+        
+        # Bonus sexe
+        if profil.sexe == 'femme':
+            # Besoin fer, moins de calories
+            if plat.calorie <= 700:
+                score_age_sexe += 2
+        else:  # homme
+            # Besoins protéiques
+            if plat.proteine > 25:
+                score_age_sexe += 2
+        
+        # Bonus âge
+        if profil.age < 25:
+            # Jeunes ont besoins énergétiques élevés
+            if plat.calorie >= 600:
+                score_age_sexe += 1.5
+        elif profil.age >= 50:
+            # Seniors: moins de calories, plus de fibres
+            if plat.calorie <= 600 and plat.fibres > 5:
+                score_age_sexe += 2
+        
+        score_age_sexe = round(min(score_age_sexe, 5.0), 2)
+        scores_details['age_sexe'] = score_age_sexe
+        score_total += score_age_sexe
+        print(f"  📈 Score Âge & Sexe: {score_age_sexe:.2f}/5")
+        
+        # === 6. NORMALISER LE SCORE ===
+        score_max_possible = 25 + 30 + 15 + 15 + 10 + 5  # 100
+        score_normalisé = (score_total / score_max_possible) * 100
+        score_normalisé = round(max(0, min(100, score_normalisé)), 2)
+        
+        # === 7. RÉSUMÉ ===
+        print(f"\n✅ RÉSUMÉ DES SCORES:")
+        print(f"  • Calories:     {scores_details['calories']:.2f}/25")
+        print(f"  • Protéines:    {scores_details['proteines']:.2f}/30")
+        print(f"  • Glucides:     {scores_details['glucides']:.2f}/15")
+        print(f"  • Lipides:      {scores_details['lipides']:.2f}/15")
+        print(f"  • Fibres:       {scores_details['fibres']:.2f}/10")
+        print(f"  • Âge & Sexe:   {scores_details['age_sexe']:.2f}/5")
+        print(f"  {'─' * 40}")
+        print(f"  SCORE TOTAL: {score_total:.2f}/100")
+        print(f"  SCORE NORMALISÉ: {score_normalisé:.2f}/100")
+        
+        # Évaluation qualitative
+        if score_normalisé >= 85:
+            evaluation = "🌟 EXCELLENT - Très recommandé"
+        elif score_normalisé >= 70:
+            evaluation = "✅ BON - Recommandé"
+        elif score_normalisé >= 55:
+            evaluation = "⚠️ ACCEPTABLE - Peut être inclus"
+        elif score_normalisé >= 40:
+            evaluation = "❌ FAIBLE - À limiter"
+        else:
+            evaluation = "🚫 TRÈS FAIBLE - Non recommandé"
+        
+        print(f"  ÉVALUATION: {evaluation}")
+        print(f"{'='*70}\n")
+        
+        return score_normalisé
+    
     def __str__(self):
         return f"{self.nom} - {self.calorie} kcal"
 
 class Menu(models.Model):
     """Modèle Menu"""
+    DIET_CATEGORIES = [
+        ('high-protein', 'High Protein'),
+        ('low-carb', 'Low Carb'),
+        ('vegan', 'Vegan'),
+        ('gluten-free', 'Sans Gluten'),
+        ('autre', 'Autre'),
+    ]
+    
     id_menu = models.AutoField(primary_key=True)
     nom = models.CharField(max_length=200)
     description = models.TextField()
     date_debut = models.DateField()
     date_fin = models.DateField()
     est_actif = models.BooleanField(default=True)
+    diet_category = models.CharField(max_length=20, choices=DIET_CATEGORIES, default='autre', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     plats = models.ManyToManyField("Plat", related_name="menus")
+
+    def get_diet_category(self) -> str:
+        """Détermine automatiquement la catégorie de régime basée sur les valeurs nutritionnelles"""
+        valeurs = self.calculer_valeur_nutritionnelle_totale()
+        
+        # High-protein: protéine >= 35g
+        if valeurs.get('proteines', 0) >= 35:
+            return 'high-protein'
+        
+        # Low-carb: glucides <= 20g
+        if valeurs.get('glucides', 0) <= 20:
+            return 'low-carb'
+        
+        # Vegan: check description for vegan indicators
+        desc_lower = (self.description or "").lower()
+        if any(word in desc_lower for word in ['vegan', 'végétal', 'sans produit animal', 'plant-based']):
+            return 'vegan'
+        
+        # Gluten-free: check description
+        if any(word in desc_lower for word in ['sans gluten', 'gluten-free', 'gluten free']):
+            return 'gluten-free'
+        
+        return 'autre'
 
     def ajouter_plat(self, plat: "Plat", quantite: int = 1) -> "CompositionMenu":
         """Ajoute un plat au menu avec gestion des quantités"""
@@ -716,22 +1128,74 @@ class Commande(models.Model):
         self.save()
         return total
     
+    def calculer_nutrition_totale(self) -> Dict:
+        """Calcule les valeurs nutritionnelles totales de la commande"""
+        total_calories = 0
+        total_proteines = 0
+        total_glucides = 0
+        total_lipides = 0
+        
+        for ligne in self.lignecommande_set.all():
+            # Gérer les deux cas: menu ou plat
+            if ligne.menu:
+                # Si c'est un menu, calculer les valeurs nutritionnelles totales
+                valeurs = ligne.menu.calculer_valeur_nutritionnelle_totale()
+                total_calories += valeurs.get('calories', 0) * ligne.quantite
+                total_proteines += valeurs.get('proteines', 0) * ligne.quantite
+                total_glucides += valeurs.get('glucides', 0) * ligne.quantite
+                total_lipides += valeurs.get('lipides', 0) * ligne.quantite
+            elif ligne.plat:
+                # Si c'est un plat, utiliser ses valeurs directement
+                total_calories += ligne.plat.calorie * ligne.quantite
+                total_proteines += ligne.plat.proteine * ligne.quantite
+                total_glucides += ligne.plat.glucides * ligne.quantite
+                total_lipides += ligne.plat.lipides * ligne.quantite
+        
+        return {
+            'calories': total_calories,
+            'proteines': total_proteines,
+            'glucides': total_glucides,
+            'lipides': total_lipides
+        }
+    
     def __str__(self):
         return f"Commande #{self.id_commande} - {self.client.utilisateur.nom}"
 
 class LigneCommande(models.Model):
-    """Ligne de commande"""
+    """Ligne de commande - peut contenir soit un Menu soit un Plat"""
     commande = models.ForeignKey(Commande, on_delete=models.CASCADE)
-    menu = models.ForeignKey(Menu, on_delete=models.CASCADE)
+    menu = models.ForeignKey(Menu, on_delete=models.CASCADE, null=True, blank=True)
+    plat = models.ForeignKey(Plat, on_delete=models.CASCADE, null=True, blank=True)
     quantite = models.PositiveIntegerField(default=1)
     prix_unitaire = models.DecimalField(max_digits=10, decimal_places=3)
+    
+    class Meta:
+        verbose_name = "Ligne de commande"
+        verbose_name_plural = "Lignes de commande"
+    
+    def get_item(self):
+        """Retourne l'article (Menu ou Plat)"""
+        return self.menu if self.menu else self.plat
+    
+    def get_item_name(self):
+        """Retourne le nom de l'article"""
+        if self.menu:
+            return self.menu.nom
+        elif self.plat:
+            return self.plat.nom
+        return "Article inconnu"
+    
+    def get_item_type(self):
+        """Retourne le type d'article (menu ou plat)"""
+        return 'menu' if self.menu else 'plat'
     
     @property
     def sous_total(self):
         return self.quantite * self.prix_unitaire
     
     def __str__(self):
-        return f"{self.commande.id_commande} - {self.menu.nom} x{self.quantite}"
+        item_name = self.get_item_name()
+        return f"{self.commande.id_commande} - {item_name} x{self.quantite}"
 
 class SystemeIA(models.Model):
     """Système d'intelligence artificielle pour les recommandations"""

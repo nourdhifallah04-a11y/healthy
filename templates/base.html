@@ -21,6 +21,8 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- CSRF Token for API requests -->
+    {% csrf_token %}
 
 <!-- Navbar Centralisée avec Bootstrap 5 -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top shadow-sm nav-enhanced">
@@ -74,6 +76,18 @@
                 <!-- Divider -->
                 <li class="nav-item">
                     <div class="vr ms-2" style="height: 1.5rem; opacity: 0.3;"></div>
+                </li>
+
+                <!-- Shopping Cart Icon -->
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="{% url 'panier' %}" title="Mon panier" 
+                       style="color: var(--vert-feuille); font-size: 1.2rem; transition: all 0.3s;">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              id="cart-badge" style="font-size: 0.6rem;">
+                            0
+                        </span>
+                    </a>
                 </li>
 
                 {% if user.is_authenticated %}
@@ -205,6 +219,49 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <!-- Enhanced Navbar JS -->
 <script src="{% static 'accueil/navbar-enhanced.js' %}"></script>
+
+<!-- Dynamic Cart Count Update -->
+<script>
+    function updateCartCount() {
+        {% if user.is_authenticated %}
+        fetch('/api/commandes/?statut=panier&ordering=-id', {
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Get the last (most recent) panier commande
+            let totalItems = 0;
+            console.log('Commandes panier reçues:', data);
+            if (Array.isArray(data) && data.length > 0) {
+                const lastCommande = data[0];
+                console.log('Last panier commande:', lastCommande);
+                if (lastCommande.lignes && Array.isArray(lastCommande.lignes)) {
+                    // Sum quantities from all lignes
+                    totalItems = lastCommande.lignes.reduce((sum, ligne) => sum + (ligne.quantite || 0), 0);
+                }
+            }
+            
+            const cartBadge = document.getElementById('cart-badge');
+            if (totalItems > 0) {
+                cartBadge.textContent = totalItems;
+                cartBadge.style.display = 'inline-block';
+            } else {
+                //cartBadge.style.display = 'none';
+            }
+        })
+        .catch(error => console.log('Cart count update skipped:', error));
+        {% endif %}
+    }
+    
+    // Update cart count on page load
+    document.addEventListener('DOMContentLoaded', updateCartCount);
+    
+    // Optionally update every 30 seconds
+    setInterval(updateCartCount, 30000);
+</script>
+
 {% block extra_js %}{% endblock %}
 </body>
 </html>

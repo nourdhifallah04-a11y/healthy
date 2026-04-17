@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirmation de commande - Healthy Nutrition{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'commande/commande.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container confirmation-container">
+    <div class="confirmation-content">
+        <div class="confirmation-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h1>Commande confirmée!</h1>
+        <p class="confirmation-message">
+            Merci pour votre commande. Nous allons préparer votre repas avec soin.
+        </p>
+
+        <div class="confirmation-details">
+            <div class="detail-section">
+                <h3>Numéro de commande</h3>
+                <p class="order-number">#{{ commande.id_commande }}</p>
+            </div>
+
+            <div class="detail-section">
+                <h3>Adresse de livraison</h3>
+                <p>{{ commande.adresse_livraison }}</p>
+            </div>
+
+            <div class="detail-section">
+                <h3>Statut</h3>
+                <div class="status-badge status-{{ commande.statut }}">
+                    {{ commande.get_statut_display }}
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Date de commande</h3>
+                <p>{{ commande.date|date:"d/m/Y \à H:i" }}</p>
+            </div>
+        </div>
+
+        <!-- Articles commandés -->
+        <section class="order-items-section">
+            <h3>Votre commande</h3>
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>Menu</th>
+                        <th>Quantité</th>
+                        <th>Prix unitaire</th>
+                        <th>Sous-total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in commande.lignecommande_set.all %}
+                        <tr>
+                            <td>
+                                <h4>{{ ligne.menu.nom }}</h4>
+                                <p class="menu-description">{{ ligne.menu.description|truncatewords:10 }}</p>
+                            </td>
+                            <td class="text-center">{{ ligne.quantite }}</td>
+                            <td>{{ ligne.prix_unitaire|floatformat:2 }}€</td>
+                            <td class="text-right">{{ ligne.sous_total|floatformat:2 }}€</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="order-total">
+                <span class="label">Total:</span>
+                <span class="total-value">{{ commande.total|floatformat:2 }}€</span>
+            </div>
+        </section>
+
+        <!-- Informations nutritionnelles -->
+        <section class="nutrition-summary">
+            <h3>Valeur nutritionnelle totale</h3>
+            <div class="nutrition-grid">
+                {% with total_nutrition=commande.calculer_nutrition_totale %}
+                    <div class="nutrition-card">
+                        <div class="nutrition-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="nutrition-content">
+                            <span class="label">Calories</span>
+                            <span class="value">{{ total_nutrition.calories|floatformat:0 }} kcal</span>
+                        </div>
+                    </div>
+                    <div class="nutrition-card">
+                        <div class="nutrition-icon">
+                            <i class="fas fa-dumbbell"></i>
+                        </div>
+                        <div class="nutrition-content">
+                            <span class="label">Protéines</span>
+                            <span class="value">{{ total_nutrition.proteines|floatformat:1 }} g</span>
+                        </div>
+                    </div>
+                    <div class="nutrition-card">
+                        <div class="nutrition-icon">
+                            <i class="fas fa-cube"></i>
+                        </div>
+                        <div class="nutrition-content">
+                            <span class="label">Glucides</span>
+                            <span class="value">{{ total_nutrition.glucides|floatformat:1 }} g</span>
+                        </div>
+                    </div>
+                    <div class="nutrition-card">
+                        <div class="nutrition-icon">
+                            <i class="fas fa-droplet"></i>
+                        </div>
+                        <div class="nutrition-content">
+                            <span class="label">Lipides</span>
+                            <span class="value">{{ total_nutrition.lipides|floatformat:1 }} g</span>
+                        </div>
+                    </div>
+                {% endwith %}
+            </div>
+        </section>
+
+        <!-- Prochaines étapes -->
+        <section class="next-steps">
+            <h3>Prochaines étapes</h3>
+            <ol>
+                <li>
+                    <strong>Préparation:</strong> Nous préparons votre commande
+                    <span class="timeline-icon"><i class="fas fa-clock"></i></span>
+                </li>
+                <li>
+                    <strong>Vérification:</strong> Nous vérifions la qualité
+                    <span class="timeline-icon"><i class="fas fa-check"></i></span>
+                </li>
+                <li>
+                    <strong>Livraison:</strong> Nous livrons à votre adresse
+                    <span class="timeline-icon"><i class="fas fa-truck"></i></span>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Actions -->
+        <div class="confirmation-actions">
+            <a href="{% url 'mes_commandes' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-list"></i> Voir mes commandes
+            </a>
+            <a href="{% url 'menu' %}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-shopping-cart"></i> Commander à nouveau
+            </a>
+        </div>
+
+        <!-- Support -->
+        <div class="support-section">
+            <h4>Besoin d'aide?</h4>
+            <p>
+                Un email de confirmation a été envoyé à <strong>{{ user.email }}</strong>.
+                Si vous avez des questions, n'hésitez pas à nous <a href="{% url 'contact' %}">contacter</a>.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'commande/commande.js' %}"></script>
+{% endblock %}

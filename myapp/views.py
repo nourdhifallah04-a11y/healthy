@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
@@ -17,7 +17,8 @@ from .models import (
 )
 from .serializers import (
     ClientSerializer, PlatSerializer, MenuSerializer, CommandeSerializer,
-    ProfilNutritionnelSerializer, SystemeIASerializer
+    ProfilNutritionnelSerializer, SystemeIASerializer, LigneCommandeSerializer,
+    UnifiedMenuItemSerializer
 )
 from .forms import AdminLoginForm, RegistrationForm
 
@@ -113,6 +114,11 @@ def accueil(request):
 def menu(request):
     """Affiche la page de menu"""
     return render(request, 'menu/menu.html', {})
+
+
+def unified_browse(request):
+    """Affiche la page de navigation unifiée pour menus et plats"""
+    return render(request, 'menu/unified-browse.html', {})
 
 
 def _serialize_plat(plat, default_image_url):
@@ -459,11 +465,14 @@ class CommandeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        """Les utilisateurs voient uniquement leurs commandes, sauf s'ils sont admin"""
+        """Les utilisateurs voient uniquement leur dernière commande, sauf s'ils sont admin"""
         user = self.request.user
         if user.is_superuser:
-            return Commande.objects.all()
-        return Commande.objects.filter(client__utilisateur=user)
+            return Commande.objects.all().order_by('-id_commande')
+        
+        # Retourner uniquement la dernière commande de l'utilisateur
+        commandes = Commande.objects.filter(client__utilisateur=user).order_by('-id_commande')
+        return commandes[:1] if commandes.exists() else commandes
     
     @action(detail=True, methods=['post'])
     def valider(self, request, pk=None):
@@ -519,6 +528,134 @@ class CommandeViewSet(viewsets.ModelViewSet):
         except AttributeError:
             return Response(
                 {'error': 'La méthode calculer_total n\'est pas disponible'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class LigneCommandeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet pour gérer les lignes de commande.
+    Permet d'ajouter, modifier et supprimer des articles dans une commande.
+    """
+    queryset = LigneCommande.objects.all()
+    serializer_class = LigneCommandeSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Les utilisateurs voient uniquement les lignes de leurs commandes"""
+        user = self.request.user
+        if user.is_superuser:
+            return LigneCommande.objects.all()
+        return LigneCommande.objects.filter(commande__client__utilisateur=user)
+    
+    def create(self, request, *args, **kwargs):
+        """Crée une nouvelle ligne de commande (ajoute un article au panier)
+        Supporte à la fois menu_id et plat_id"""
+        user = request.user
+        menu_id = request.data.get('menu_id')
+        plat_id = request.data.get('plat_id')
+        quantite = request.data.get('quantite', 1)
+        
+        # Validation: au moins un ID doit être fourni
+        if not menu_id and not plat_id:
+            return Response(
+                {'error': 'Soit menu_id soit plat_id est requis'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validation de la quantité
+        try:
+            quantite = int(quantite)
+            if quantite <= 0:
+                return Response(
+                    {'error': 'La quantité doit être positive'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'La quantité doit être un nombre entier'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # Récupérer ou créer le client
+            client = Client.objects.get(utilisateur=user)
+        except Client.DoesNotExist:
+            return Response(
+                {'error': 'Client non trouvé'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Récupérer le menu ou plat
+        menu = None
+        plat = None
+        prix_unitaire = 0
+        
+        if menu_id:
+            try:
+                menu = Menu.objects.get(id_menu=menu_id)
+                menu_values = menu.calculer_valeur_nutritionnelle_totale()
+                prix_unitaire = menu_values.get('prix', 0)
+            except (Menu.DoesNotExist, ValueError):
+                return Response(
+                    {'error': 'Menu non trouvé'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        elif plat_id:
+            try:
+                plat = Plat.objects.get(id_plat=plat_id)
+                prix_unitaire = float(plat.prix)
+            except (Plat.DoesNotExist, ValueError):
+                return Response(
+                    {'error': 'Plat non trouvé'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        
+        try:
+            # Récupérer ou créer la commande (panier)
+            commande, created = Commande.objects.get_or_create(
+                client=client,
+                statut='panier'
+            )
+            
+            # Vérifier si l'article existe déjà dans le panier
+            if menu:
+                ligne_existante = LigneCommande.objects.filter(
+                    commande=commande,
+                    menu=menu,
+                    plat=None
+                ).first()
+            else:  # plat
+                ligne_existante = LigneCommande.objects.filter(
+                    commande=commande,
+                    plat=plat,
+                    menu=None
+                ).first()
+            
+            if ligne_existante:
+                # Si l'article existe déjà, augmenter la quantité
+                ligne_existante.quantite += quantite
+                ligne_existante.save()
+                ligne = ligne_existante
+            else:
+                # Sinon, créer une nouvelle ligne
+                ligne = LigneCommande.objects.create(
+                    commande=commande,
+                    menu=menu,
+                    plat=plat,
+                    quantite=quantite,
+                    prix_unitaire=prix_unitaire
+                )
+            
+            serializer = self.get_serializer(ligne)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -685,83 +822,440 @@ class SupprimerProfilNutritionnelView(generics.DestroyAPIView):
 
 
 class RecommenderPlatsView(generics.ListAPIView):
-    """Vue pour obtenir les plats recommandés basés sur le profil nutritionnel de l'utilisateur"""
-    serializer_class = PlatSerializer
+    """Vue pour obtenir les menus recommandés basés sur le profil nutritionnel de l'utilisateur"""
     permission_classes = [IsAuthenticated]
     
     # Configuration des limites de recommandation
     MAX_RECOMMENDATIONS = 100
+    
+    def get_serializer_class(self):
+        """Retourne le serializer approprié"""
+        from .serializers import MenuRecommandationSerializer
+        return MenuRecommandationSerializer
+    
+    def _calculer_score_menu(self, menu, client):
+        """Calcule le score pour un menu basé sur le profil du client"""
+        try:
+            profil = client.profil_nutritionnel
+            preferences = SystemeIA.objects.first().analyser_preferences(client) if SystemeIA.objects.first() else {}
+            
+            valeurs = menu.calculer_valeur_nutritionnelle_totale()
+            score = 0
+            
+            # Score basé sur l'objectif nutritionnel
+            if profil.objectif == 'perte_poids' and valeurs['calories'] < 600:
+                score += 30
+            elif profil.objectif == 'prise_muscle' and valeurs['proteines'] > 30:
+                score += 30
+            elif profil.objectif == 'performance' and valeurs['calories'] > 700:
+                score += 30
+                
+            # Score basé sur les préférences historiques
+            if preferences.get('preferences'):
+                if valeurs['calories'] < 400 and preferences['preferences'].get('leger', 0) > 0:
+                    score += 20
+                elif valeurs['calories'] > 700 and preferences['preferences'].get('energetique', 0) > 0:
+                    score += 20
+                    
+            # Score nutritionnel
+            score_nutritionnel = (valeurs['proteines'] * 2 - valeurs['lipides']) / 100 if valeurs.get('proteines') else 0
+            score += max(0, min(20, score_nutritionnel))
+            
+            return round(score, 2)
+        except Exception:
+            return 0.0
+    
+    def get_queryset(self):
+        """Retourne les menus recommandés basés sur le profil nutritionnel"""
+        try:
+            utilisateur = self.request.user
+            client = Client.objects.get(utilisateur=utilisateur)
+            
+            # Récupérer les menus recommandés via le système IA
+            ia_system = SystemeIA.objects.first() or SystemeIA.objects.create()
+            menus_recommandes = ia_system.recommander_menus(client, limite=self.MAX_RECOMMENDATIONS)
+            return menus_recommandes
+        except Client.DoesNotExist:
+            return Menu.objects.none()
+        except Exception as e:
+            # Si erreur, retourner les menus actifs
+            return Menu.objects.filter(est_actif=True)[:self.MAX_RECOMMENDATIONS]
+    
+    def list(self, request, *args, **kwargs):
+        """Retourne les menus recommandés personnalisés pour l'utilisateur avec scores"""
+        try:
+            utilisateur = request.user
+            client = Client.objects.get(utilisateur=utilisateur)
+            
+            # Récupérer les menus recommandés via le système IA
+            ia_system = SystemeIA.objects.first() or SystemeIA.objects.create()
+            menus_recommandes = ia_system.recommander_menus(client, limite=self.MAX_RECOMMENDATIONS)
+            
+            # Sérialiser les menus avec la liste de plats
+            serializer = self.get_serializer(menus_recommandes, many=True)
+            data = serializer.data
+            
+            # Ajouter le score à chaque menu
+            for menu_data in data:
+                try:
+                    menu = Menu.objects.get(id_menu=menu_data['id_menu'])
+                    menu_data['score'] = self._calculer_score_menu(menu, client)
+                except Menu.DoesNotExist:
+                    menu_data['score'] = 0.0
+            
+            return Response(data, status=status.HTTP_200_OK)
+        
+        except Client.DoesNotExist:
+            return Response([], status=status.HTTP_200_OK)
+        except Exception as e:
+            # Si erreur, retourner les menus actifs disponibles
+            menus = Menu.objects.filter(est_actif=True)[:self.MAX_RECOMMENDATIONS]
+            serializer = self.get_serializer(menus, many=True)
+            data = serializer.data
+            
+            # Ajouter un score par défaut
+            for menu_data in data:
+                menu_data['score'] = 0.0
+            
+            return Response(data, status=status.HTTP_200_OK)
+
+
+class RecommenderPlatsDirectView(generics.ListAPIView):
+    """Vue pour obtenir les plats recommandés basés sur le profil nutritionnel de l'utilisateur"""
+    permission_classes = [IsAuthenticated]
+    
+    # Configuration des limites de recommandation
+    MAX_RECOMMENDATIONS = 100
+    
+    def get_serializer_class(self):
+        """Retourne le serializer approprié"""
+        from .serializers import PlatRecommandationSerializer
+        return PlatRecommandationSerializer
     
     def get_queryset(self):
         """Retourne les plats recommandés basés sur le profil nutritionnel"""
         try:
             utilisateur = self.request.user
             client = Client.objects.get(utilisateur=utilisateur)
-            profil = ProfilNutritionnel.objects.get(client=client)
             
-            # Récupérer les plats recommandés (limite: MAX_RECOMMENDATIONS)
-            plats_recommandes = profil.recommander_plats(limite=self.MAX_RECOMMENDATIONS)
-            return plats_recommandes
+            # Récupérer tous les plats disponibles
+            plats = Plat.objects.filter(est_disponible=True)[:self.MAX_RECOMMENDATIONS]
+            return plats
         except Client.DoesNotExist:
             return Plat.objects.none()
-        except ProfilNutritionnel.DoesNotExist:
-            # Si pas de profil, retourner les plats disponibles
+        except Exception as e:
+            # Si erreur, retourner les plats disponibles
             return Plat.objects.filter(est_disponible=True)[:self.MAX_RECOMMENDATIONS]
     
     def list(self, request, *args, **kwargs):
-        """Override pour ajouter les scores aux plats recommandés"""
+        """Retourne les plats recommandés personnalisés pour l'utilisateur avec scores professionnels"""
         try:
             utilisateur = request.user
             client = Client.objects.get(utilisateur=utilisateur)
-            profil = ProfilNutritionnel.objects.get(client=client)
+            profil = client.profil_nutritionnel
             
-            try:
-                categorie_imc = profil.determiner_categorie_imc()
-            except AttributeError:
-                return Response(
-                    {'error': 'La méthode determiner_categorie_imc n\'est pas disponible'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+            # Utiliser la méthode recommander_plats() du profil nutritionnel
+            # Cette méthode retourne déjà les plats triés par score
+            plats_recommandes = profil.recommander_plats(limite=self.MAX_RECOMMENDATIONS)
             
-            # Récupérer les plats avec leurs scores
-            plats_disponibles = Plat.objects.filter(est_disponible=True)
-            plats_avec_score = []
+            # Sérialiser les plats
+            serializer = self.get_serializer(plats_recommandes, many=True)
+            data = serializer.data
             
-            # Utiliser get_serializer pour les plats (plus efficient en contexte)
-            for plat in plats_disponibles:
+            # Calculer le score PROFESSIONNEL pour chaque plat
+            for i, plat_data in enumerate(data):
                 try:
-                    score = Plat.calculer_score_recommendation(
-                        plat,
-                        categorie_imc,
-                        allergies=profil.allergies,
-                        restrictions=profil.restrictions_alimentaires,
-                        age=profil.age,
-                        sexe=profil.sexe
-                    )
-                    
-                    # Ajouter le score au plat sérialisé
-                    plat_data = self.get_serializer(plat).data
+                    plat = Plat.objects.get(id_plat=plat_data['id_plat'])
+                    # Utiliser la nouvelle méthode professionnelle
+                    score = Plat.calculer_score_professionnel(plat, profil)
                     plat_data['score'] = score
-                    
-                    plats_avec_score.append((plat_data, score))
-                except (AttributeError, ValueError):
-                    continue
+                except Plat.DoesNotExist:
+                    plat_data['score'] = 0.0
             
-            # Trier par score décroissant et garder les plats avec score > 0
-            plats_avec_score.sort(key=lambda x: x[1], reverse=True)
-            plats_filtres = [p[0] for p in plats_avec_score if p[1] > 0][:self.MAX_RECOMMENDATIONS]
+            # Trier par score décroissant
+            data = sorted(data, key=lambda x: x['score'], reverse=True)
             
-            return Response(plats_filtres, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
         
+        except ProfilNutritionnel.DoesNotExist:
+            return Response([], status=status.HTTP_200_OK)
         except Client.DoesNotExist:
             return Response([], status=status.HTTP_200_OK)
-        except ProfilNutritionnel.DoesNotExist:
-            # Si pas de profil, retourner les plats disponibles sans score
+        except Exception as e:
+            print(f"Erreur dans recommander_plats: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            # Si erreur, retourner les plats disponibles avec score par défaut
             plats = Plat.objects.filter(est_disponible=True)[:self.MAX_RECOMMENDATIONS]
-            plats_data = self.get_serializer(plats, many=True).data
+            serializer = self.get_serializer(plats, many=True)
+            data = serializer.data
             
-            # Ajouter un score par défaut pour les plats sans profil
-            for plat in plats_data:
-                plat['score'] = 0.0
+            # Ajouter un score par défaut
+            for plat_data in data:
+                plat_data['score'] = 0.0
             
-            return Response(plats_data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
+
+
+# ============================================
+# COMMANDE VIEWS (Panier, Checkout, Commandes)
+# ============================================
+
+@require_http_methods(["GET", "POST"])
+def panier(request):
+    """
+    Affiche le panier (cart) de l'utilisateur
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    try:
+        client = Client.objects.get(utilisateur=request.user)
+        # Récupérer ou créer la commande panier de l'utilisateur
+        commande, created = Commande.objects.get_or_create(
+            client=client,
+            statut='panier'
+        )
+    except Client.DoesNotExist:
+        messages.error(request, "Veuillez d'abord créer un profil client")
+        return redirect('accueil')
+    
+    # Recalculer le total
+    commande.calculer_total()
+    
+    context = {
+        'commande': commande,
+    }
+    return render(request, 'commande/panier.html', context)
+
+
+@require_http_methods(["GET", "POST"])
+def checkout(request):
+    """
+    Page de validation et finalisation de la commande
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    try:
+        client = Client.objects.get(utilisateur=request.user)
+        commande = Commande.objects.get(client=client, statut='panier')
+    except (Client.DoesNotExist, Commande.DoesNotExist):
+        messages.error(request, "Votre panier est vide")
+        return redirect('panier')
+    
+    if request.method == 'POST':
+        # Mettre à jour la commande avec les infos de livraison
+        commande.adresse_livraison = request.POST.get('adresse_livraison', '')
+        commande.notes = request.POST.get('notes', '')
+        commande.statut = 'confirmee'
+        commande.save()
+        
+        messages.success(request, "Commande confirmée avec succès!")
+        return redirect('commande_confirmation', commande_id=commande.id_commande)
+    
+    context = {
+        'commande': commande,
+        'user': request.user,
+    }
+    return render(request, 'commande/checkout.html', context)
+
+
+def commande_confirmation(request, commande_id):
+    """
+    Page de confirmation après la commande
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    try:
+        commande = Commande.objects.get(id_commande=commande_id)
+        
+        # Vérifier que l'utilisateur est propriétaire de la commande
+        if commande.client.utilisateur != request.user:
+            messages.error(request, "Accès non autorisé")
+            return redirect('accueil')
+    except Commande.DoesNotExist:
+        messages.error(request, "Commande non trouvée")
+        return redirect('accueil')
+    
+    context = {
+        'commande': commande,
+        'user': request.user,
+    }
+    return render(request, 'commande/commande_confirmation.html', context)
+
+
+def mes_commandes(request):
+    """
+    Affiche l'historique des commandes de l'utilisateur
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    try:
+        client = Client.objects.get(utilisateur=request.user)
+        commandes = client.commandes.all().order_by('-date')
+    except Client.DoesNotExist:
+        messages.error(request, "Veuillez d'abord créer un profil client")
+        return redirect('accueil')
+    
+    context = {
+        'commandes': commandes,
+    }
+    return render(request, 'commande/mes_commandes.html', context)
+
+
+def commande_detail(request, commande_id):
+    """
+    Affiche les détails d'une commande spécifique
+    """
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    try:
+        commande = Commande.objects.get(id_commande=commande_id)
+        
+        # Vérifier que l'utilisateur est propriétaire de la commande
+        if commande.client.utilisateur != request.user:
+            messages.error(request, "Accès non autorisé")
+            return redirect('accueil')
+    except Commande.DoesNotExist:
+        messages.error(request, "Commande non trouvée")
+        return redirect('mes_commandes')
+    
+    context = {
+        'commande': commande,
+        'user': request.user,
+    }
+    return render(request, 'commande/commande_detail.html', context)
+
+
+# ============================================
+# UNIFIED MENUS AND PLATS VIEWSET
+# ============================================
+
+class UnifiedMenuItemViewSet(viewsets.ViewSet):
+    """
+    ViewSet unifié pour combiner Menus et Plats avec catégorisation par régime.
+    Permet de récupérer tous les articles (Menus + Plats) avec filtrage par catégorie de régime.
+    """
+    permission_classes = [AllowAny]
+    
+    def list(self, request):
+        """
+        Liste tous les Menus et Plats avec filtrage optionnel par catégorie de régime.
+        Paramètres de requête:
+        - diet_category: 'high-protein', 'low-carb', 'vegan', 'gluten-free', ou 'autre'
+        - item_type: 'menu' ou 'plat' pour filtrer par type
+        """
+        diet_category = request.query_params.get('diet_category', None)
+        item_type = request.query_params.get('item_type', None)
+        
+        items = []
+        
+        # Récupérer les menus actifs
+        if item_type is None or item_type == 'menu':
+            menus = Menu.objects.filter(est_actif=True)
+            
+            if diet_category:
+                menus = menus.filter(diet_category=diet_category)
+            
+            for menu in menus:
+                serializer = UnifiedMenuItemSerializer(menu)
+                items.append(serializer.data)
+        
+        # Récupérer les plats disponibles
+        if item_type is None or item_type == 'plat':
+            plats = Plat.objects.filter(est_disponible=True)
+            
+            # Filtrer par catégorie de régime basée sur les propriétés du plat
+            if diet_category:
+                filtered_plats = []
+                for plat in plats:
+                    if diet_category in plat.get_diet_categories():
+                        filtered_plats.append(plat)
+                plats = filtered_plats
+            
+            for plat in plats:
+                serializer = UnifiedMenuItemSerializer(plat)
+                items.append(serializer.data)
+        
+        return Response(items, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'])
+    def diet_categories(self, request):
+        """Retourne les catégories de régime disponibles"""
+        categories = [
+            {'id': 'high-protein', 'name': 'High Protein'},
+            {'id': 'low-carb', 'name': 'Low Carb'},
+            {'id': 'vegan', 'name': 'Vegan'},
+            {'id': 'gluten-free', 'name': 'Sans Gluten'},
+            {'id': 'autre', 'name': 'Autre'},
+        ]
+        return Response(categories, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'])
+    def search(self, request):
+        """
+        Recherche dans les Menus et Plats par nom ou description.
+        Paramètres: q (query string)
+        """
+        query = request.query_params.get('q', '').strip()
+        if not query:
+            return Response(
+                {'error': 'Le paramètre q est requis'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        items = []
+        
+        # Rechercher dans les menus
+        menus = Menu.objects.filter(
+            est_actif=True
+        ).filter(
+            Q(nom__icontains=query) | Q(description__icontains=query)
+        )
+        for menu in menus:
+            serializer = UnifiedMenuItemSerializer(menu)
+            items.append(serializer.data)
+        
+        # Rechercher dans les plats
+        plats = Plat.objects.filter(
+            est_disponible=True
+        ).filter(
+            Q(nom__icontains=query) | Q(description__icontains=query)
+        )
+        for plat in plats:
+            serializer = UnifiedMenuItemSerializer(plat)
+            items.append(serializer.data)
+        
+        return Response(items, status=status.HTTP_200_OK)
+
+
+# ============================================
+# COMMANDE API VIEWSET ENHANCEMENTS
+# ============================================
+
+# Ajouter la méthode calculer_nutrition_totale au modèle Commande
+# Dans models.py:
+# def calculer_nutrition_totale(self):
+#     """Calcule les valeurs nutritionnelles totales de la commande"""
+#     total_calories = 0
+#     total_proteines = 0
+#     total_glucides = 0
+#     total_lipides = 0
+#
+#     for ligne in self.lignecommande_set.all():
+#         valeurs = ligne.menu.calculer_valeur_nutritionnelle_totale()
+#         total_calories += valeurs.get('calories', 0) * ligne.quantite
+#         total_proteines += valeurs.get('proteines', 0) * ligne.quantite
+#         total_glucides += valeurs.get('glucides', 0) * ligne.quantite
+#         total_lipides += valeurs.get('lipides', 0) * ligne.quantite
+#
+#     return {
+#         'calories': total_calories,
+#         'proteines': total_proteines,
+#         'glucides': total_glucides,
+#         'lipides': total_lipides
+#     }
