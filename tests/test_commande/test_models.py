@@ -1,0 +1,3 @@
+"""
+Commande app tests.
+"""

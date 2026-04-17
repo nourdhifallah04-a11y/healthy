@@ -1,0 +1,3 @@
+"""
+Plats app tests.
+"""
