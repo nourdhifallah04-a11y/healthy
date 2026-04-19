@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}GreenPlate | Profil Nutritionnel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'profil_nutritionnel/profil.css' %}">
+{% endblock %}
+
+{% block content %}
+    <!-- En-tête de page -->
+    <div class="page-header">
+        <h1>Mon Profil <span class="highlight">Nutritionnel</span></h1>
+        <p>Ces informations permettent à notre IA de personnaliser vos menus</p>
+    </div>
+
+    <!-- Formulaire Profil Nutritionnel -->
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-apple-alt"></i>
+                </div>
+                <h2>Informations personnelles</h2>
+                <p>Complétez votre profil pour une expérience sur mesure</p>
+            </div>
+
+            <form id="profilForm">
+                <!-- Section Informations de base -->
+                <div class="form-section">
+                    <h3><i class="fas fa-user"></i> Informations de base</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-alt"></i> Âge</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="age" placeholder="Ex: 25" min="10" max="120">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-weight-scale"></i> Poids (kg)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="weight" placeholder="Ex: 70" step="0.1" min="20" max="300">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-ruler"></i> Taille (cm)</label>
+                            <div class="input-wrapper">
+                                <input type="number" id="height" placeholder="Ex: 175" min="100" max="250">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-venus-mars"></i> Sexe</label>
+                            <div class="input-wrapper">
+                                <select id="gender">
+                                    <option value="">Sélectionner</option>
+                                    <option value="homme">Homme</option>
+                                    <option value="femme">Femme</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Objectif Santé -->
+                <div class="form-section">
+                    <h3><i class="fas fa-bullseye"></i> Objectif santé</h3>
+                    <div class="form-group full-width">
+                        <div class="input-wrapper">
+                            <select id="goal">
+                                <option value="">Sélectionner votre objectif</option>
+                                <option value="perte">Perte de poids</option>
+                                <option value="maintien">Maintien / Équilibre</option>
+                                <option value="muscle">Prise de masse musculaire</option>
+                                <option value="bien-etre">Bien-être général</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Niveau d'activité -->
+                <div class="form-section">
+                    <h3><i class="fas fa-heartbeat"></i> Niveau d'activité physique</h3>
+                    <div class="form-group full-width">
+                        <div class="input-wrapper">
+                            <select id="activity">
+                                <option value="">Sélectionner votre niveau</option>
+                                <option value="sedentaire">Sédentaire (peu ou pas d'exercice)</option>
+                                <option value="leger">Légèrement actif (1-2 jours/semaine)</option>
+                                <option value="modere">Modérément actif (3-4 jours/semaine)</option>
+                                <option value="actif">Actif (5-6 jours/semaine)</option>
+                                <option value="tres-actif">Très actif (7 jours/semaine)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Allergies  -->
+                <div class="form-section">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Allergies</h3>
+                    <div class="checkbox-grid">
+                        <label class="check-item">
+                            <input type="checkbox" value="gluten"> Sans Gluten
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="lactose"> Sans Lactose
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="vegan"> Vegan
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="vegetarien"> Végétarien
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="noix"> Noix
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="fruits-mer"> Fruits de mer
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="oeufs"> Œufs
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="soja"> Soja
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Section restrictions alimentaires -->
+                <div class="form-section">
+                    <h3><i class="fas fa-utensils"></i> Restrictions alimentaires</h3>
+                    <div class="checkbox-grid">
+                        <label class="check-item">
+                            <input type="checkbox" value="halal"> Halal
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="sans-sucre"> Sans sucre ajouté
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="low-carb"> Low Carb
+                        </label>
+                        <label class="check-item">
+                            <input type="checkbox" value="high-protein"> High Protein
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Section Résultats IMC -->
+                <div class="form-section imc-section">
+                    <h3><i class="fas fa-calculator"></i> Votre IMC</h3>
+                    <div class="imc-result" id="imcResult">
+                        <div class="imc-value">
+                            <span id="imcValue">--</span>
+                            <small>kg/m²</small>
+                        </div>
+                        <div class="imc-status" id="imcStatus">
+                            <span>Entrez votre poids et taille</span>
+                        </div>
+                    </div>
+                    <div class="imc-scale">
+                        <div class="scale-bar">
+                            <div class="scale-segment underweight">Insuffisance pondérale</div>
+                            <div class="scale-segment normal">Normal</div>
+                            <div class="scale-segment overweight">Surpoids</div>
+                            <div class="scale-segment obese">Obésité</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-save">
+                        <i class="fas fa-save"></i> Enregistrer mon profil
+                    </button>
+                    <button type="button" class="btn btn-reset" id="resetBtn">
+                        <i class="fas fa-undo-alt"></i> Réinitialiser
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'profil_nutritionnel/profil.js' %}"></script>
+{% endblock %}

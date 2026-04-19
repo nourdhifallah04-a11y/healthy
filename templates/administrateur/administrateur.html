@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens - Admin Login{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'administrateur/administrateur.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="auth-container">
+            <!-- Côté gauche - Bannière Admin -->
+            <div class="auth-banner admin-banner">
+                <div class="banner-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2>Espace<br>Administrateur</h2>
+                <p>Gérez les menus, les utilisateurs et les statistiques de la plateforme.</p>
+                <div class="banner-stats">
+                    <div class="stat">
+                        <div class="stat-number">150+</div>
+                        <div class="stat-label">Plats gérés</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">1000+</div>
+                        <div class="stat-label">Utilisateurs</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Sécurité</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Côté droit - Formulaire Admin -->
+            <div class="auth-form-container">
+                <div class="form-header">
+                    <div class="logo-mini">Fresh<span>&</span>Greens</div>
+                    <h3>Accès administrateur</h3>
+                    <p>Veuillez vous identifier pour accéder au dashboard</p>
+                </div>
+
+                <form id="adminLoginForm">
+                    <div class="input-group">
+                        <label><i class="fas fa-user"></i> Identifiant</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="username" placeholder="Nom d'utilisateur" required>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label><i class="fas fa-lock"></i> Mot de passe</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="password" placeholder="••••••••" required>
+                            <span class="toggle-password" onclick="togglePassword('password', this)">
+                                <i class="far fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">Se connecter</button>
+                    
+                    <div class="login-footer">
+                        <a href="{% url 'accueil' %}"><i class="fas fa-arrow-left"></i> Retour au site</a>
+                        <a href="#" id="forgotPassword"><i class="fas fa-question-circle"></i> Mot de passe oublié ?</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'administrateur/administrateur.js' %}"></script>
+{% endblock %}

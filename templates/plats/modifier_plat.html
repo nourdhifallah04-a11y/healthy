@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens - Modifier un plat{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'plats/modifier_plats/modifier_plats.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="container">
+            <div class="form-card">
+                <div class="form-header">
+                    <a href="{% url 'list_plats' %}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i> Retour
+                    </a>
+                    <div class="header-title">
+                        <div class="header-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <h1>Modifier le plat</h1>
+                        <p>Modifiez les informations du plat</p>
+                    </div>
+                </div>
+
+                <div id="messageSucces" class="message success">
+                    <i class="fas fa-check-circle"></i>
+                    <span></span>
+                </div>
+                <div id="messageErreur" class="message error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span></span>
+                </div>
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Mise à jour en cours...</p>
+                </div>
+
+                <form id="formModifierPlat" onsubmit="sauvegarderPlat(event)">
+                    <!-- Section Informations générales -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-info-circle"></i> Informations générales</h3>
+                        
+                        <div class="form-group">
+                            <label for="nom">Nom du plat <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-utensil-spoon input-icon"></i>
+                                <input type="text" id="nom" name="nom" placeholder="Ex: Poulet au curry" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description <span class="required">*</span></label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-align-left input-icon"></i>
+                                <textarea id="description" name="description" placeholder="Décrivez le plat..." required></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Prix et Calories -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-chart-line"></i> Informations nutritionnelles</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="prix">Prix (€) <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-euro-sign input-icon"></i>
+                                    <input type="number" id="prix" name="prix" step="0.01" min="0" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="calorie">Calories (kcal) <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-fire input-icon"></i>
+                                    <input type="number" id="calorie" name="calorie" step="0.1" min="0" placeholder="0" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="proteine">Protéines (g) <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-dumbbell input-icon"></i>
+                                    <input type="number" id="proteine" name="proteine" step="0.1" min="0" placeholder="0" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="glucides">Glucides (g)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-bread-slice input-icon"></i>
+                                    <input type="number" id="glucides" name="glucides" step="0.1" min="0" placeholder="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="lipides">Lipides (g)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-oil-can input-icon"></i>
+                                    <input type="number" id="lipides" name="lipides" step="0.1" min="0" placeholder="0" value="0">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="fibres">Fibres (g)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-leaf input-icon"></i>
+                                    <input type="number" id="fibres" name="fibres" step="0.1" min="0" placeholder="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section Image -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-image"></i> Image du plat</h3>
+                        
+                        <div class="form-group">
+                            <label>Image actuelle</label>
+                            <div class="image-container">
+                                <img id="currentImage" class="image-preview" alt="Image actuelle" style="display: none;">
+                                <div id="noImage" class="no-image">
+                                    <i class="fas fa-image"></i>
+                                    <p>Aucune image</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="image">Changer l'image</label>
+                            <div class="file-upload">
+                                <input type="file" id="image" name="image" accept="image/*" onchange="previsualiserImage(event)">
+                                <label for="image" class="file-label">
+                                    <i class="fas fa-cloud-upload-alt"></i> Choisir une nouvelle image
+                                </label>
+                                <span class="file-name" id="fileName">Aucun fichier sélectionné</span>
+                            </div>
+                            <img id="imagePreview" class="image-preview" alt="Prévisualisation" style="display: none;">
+                        </div>
+                    </div>
+
+                    <!-- Section Options -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-cog"></i> Options</h3>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="estDisponible" name="estDisponible">
+                            <label for="estDisponible">Plat disponible</label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="isNew" name="isNew">
+                            <label for="isNew">Marquer comme nouveau</label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{% url 'list_plats' %}" class="btn-cancel">Annuler</a>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'plats/modifier_plats/modifier_plats.js' %}"></script>
+{% endblock %}

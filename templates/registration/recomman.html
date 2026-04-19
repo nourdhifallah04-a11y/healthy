@@ -1,0 +1,30 @@
+from django.shortcuts import render
+from .models import Plat
+
+def recommandation_ia(request):
+    # 1. Récupérer les contraintes envoyées par l'utilisateur
+    max_calories = request.GET.get('max_cal')
+    min_proteines = request.GET.get('min_prot')
+    regime = request.GET.get('regime')
+
+    # 2. Filtrage de base (QuerySet)
+    plats = Plat.objects.all()
+
+    if regime:
+        plats = plats.filter(regime=regime)
+    
+    if max_calories:
+        plats = plats.filter(calories__lte=max_calories) # __lte = inférieur ou égal
+        
+    if min_proteines:
+        plats = plats.filter(proteines__gte=min_proteines) # __gte = supérieur ou égal
+
+    # 3. Simulation d'Intelligence : Tri par densité nutritionnelle
+    # Ici, l'IA privilégie les plats les moins caloriques parmis la sélection
+    recommandations = plats.order_by('calories')[:3] 
+
+    context = {
+        'recommandations': recommandations,
+        'tout_les_plats': plats
+    }
+    return render(request, 'healthy/recommandations.html', context)

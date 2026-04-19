@@ -1,0 +1,558 @@
+<!-- Navbar Enhancement Guide HTML -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Navbar Améliorée - Fresh & Green</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --vert-sauge: #9BBF8F;
+            --vert-feuille: #5A7D5C;
+            --vert-profond: #2E4A2F;
+            --beige-pale: #FDF7ED;
+            --accent-miel: #D9B48B;
+        }
+
+        body {
+            background-color: var(--beige-pale);
+            color: var(--vert-profond);
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--vert-profond), var(--vert-feuille));
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--vert-sauge);
+            box-shadow: 0 4px 12px rgba(46, 74, 47, 0.1);
+        }
+
+        .section h3 {
+            color: var(--vert-profond);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section h3 i {
+            color: var(--vert-sauge);
+        }
+
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #d63384;
+            font-family: 'Courier New', monospace;
+        }
+
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .code-block code {
+            color: inherit;
+            background: none;
+            padding: 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list i {
+            color: var(--vert-sauge);
+            margin-top: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .badge-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--vert-sauge), var(--vert-feuille));
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background-color: rgba(155, 191, 143, 0.1);
+            color: var(--vert-profond);
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background-color: rgba(155, 191, 143, 0.05);
+        }
+
+        .file-tree {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .file-tree .folder { color: var(--vert-feuille); font-weight: 600; }
+        .file-tree .file { color: var(--vert-profond); }
+        .file-tree .file.css { color: #1572B6; }
+        .file-tree .file.js { color: #F7DF1E; }
+        .file-tree .file.html { color: #E34C26; }
+
+        .alert-custom {
+            background-color: rgba(155, 191, 143, 0.1);
+            border-left: 4px solid var(--vert-sauge);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .nav-demo {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            padding: 0.75rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .checklist input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--vert-sauge);
+        }
+
+        footer {
+            background: var(--vert-profond);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-leaf me-2"></i> Navbar Améliorée - Fresh & Green</h1>
+            <p class="lead mb-0">Documentation complète avec Bootstrap 5, Bootstrap Icons et Font Awesome 6</p>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="section">
+            <h3><i class="bi bi-list"></i> Table des Matières</h3>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><a href="#overview">Vue d'ensemble</a></li>
+                <li class="list-group-item"><a href="#features">Nouvelles Fonctionnalités</a></li>
+                <li class="list-group-item"><a href="#components">Composants Principaux</a></li>
+                <li class="list-group-item"><a href="#files">Fichiers Modifiés</a></li>
+                <li class="list-group-item"><a href="#usage">Guide d'Utilisation</a></li>
+                <li class="list-group-item"><a href="#customization">Personnalisation</a></li>
+                <li class="list-group-item"><a href="#examples">Exemples</a></li>
+                <li class="list-group-item"><a href="#best-practices">Bonnes Pratiques</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview -->
+        <div class="section" id="overview">
+            <h3><i class="bi bi-star"></i> Vue d'ensemble</h3>
+            <p>
+                La navbar a été entièrement refactorisée pour offrir une expérience utilisateur moderne et cohérente.
+                Elle utilise les dernières fonctionnalités de Bootstrap 5, combinées avec les icônes Bootstrap Icons
+                et Font Awesome 6 pour créer une interface visuellement attrayante et fonctionnelle.
+            </p>
+
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <div class="alert-custom">
+                        <strong><i class="bi bi-lightning"></i> Performance</strong>
+                        <p>CSS optimisé, animations GPU-friendly, chargement CDN</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="alert-custom">
+                        <strong><i class="bi bi-universal-access"></i> Accessibilité</strong>
+                        <p>Navigation au clavier, ARIA labels, contraste suffisant</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="alert-custom">
+                        <strong><i class="bi bi-phone"></i> Responsive</strong>
+                        <p>Adapté à tous les appareils, breakpoints Bootstrap</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="section" id="features">
+            <h3><i class="bi bi-gift"></i> Nouvelles Fonctionnalités</h3>
+
+            <h5 class="mt-4 mb-3">1. Design Bootstrap 5 Native</h5>
+            <ul class="feature-list">
+                <li><i class="bi bi-check-circle"></i>Utilise les classes Bootstrap 5 natives</li>
+                <li><i class="bi bi-check-circle"></i>Responsive automatique avec <code>navbar-expand-lg</code></li>
+                <li><i class="bi bi-check-circle"></i>Position sticky pour la navbar</li>
+                <li><i class="bi bi-check-circle"></i>Support complet du mode sombre</li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">2. Logo Amélioré</h5>
+            <ul class="feature-list">
+                <li><i class="bi bi-check-circle"></i>Icône Font Awesome stylisée</li>
+                <li><i class="bi bi-check-circle"></i>Couleurs multiples pour chaque mot</li>
+                <li><i class="bi bi-check-circle"></i>Animation au survol</li>
+                <li><i class="bi bi-check-circle"></i>Responsive et centré</li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">3. Navigation Enrichie</h5>
+            <ul class="feature-list">
+                <li><i class="bi bi-check-circle"></i>Icônes intégrées pour chaque lien</li>
+                <li><i class="bi bi-check-circle"></i>Indicateur visuel de la page active</li>
+                <li><i class="bi bi-check-circle"></i>Transitions fluides</li>
+                <li><i class="bi bi-check-circle"></i>Divider vertical entre sections</li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">4. Profil Utilisateur Amélioré</h5>
+            <ul class="feature-list">
+                <li><i class="bi bi-check-circle"></i>Avatar avec bordure colorée</li>
+                <li><i class="bi bi-check-circle"></i>Dropdown menu moderne</li>
+                <li><i class="bi bi-check-circle"></i>Menu différencié Admin/Client</li>
+                <li><i class="bi bi-check-circle"></i>Animation slideDown au survol</li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">5. Notification Badge</h5>
+            <ul class="feature-list">
+                <li><i class="bi bi-check-circle"></i>Badge animé avec pulse effect</li>
+                <li><i class="bi bi-check-circle"></i>Position absolue responsive</li>
+                <li><i class="bi bi-check-circle"></i>Ombre dynamique</li>
+            </ul>
+        </div>
+
+        <!-- Components -->
+        <div class="section" id="components">
+            <h3><i class="bi bi-puzzle"></i> Composants Principaux</h3>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Composant</th>
+                        <th>Ancien</th>
+                        <th>Nouveau</th>
+                        <th>Améliorations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Navbar</strong></td>
+                        <td><code>div.navbar</code></td>
+                        <td><code>nav.navbar</code></td>
+                        <td>HTML sémantique, Bootstrap native</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Logo</strong></td>
+                        <td>Custom HTML</td>
+                        <td><code>a.navbar-brand</code></td>
+                        <td>Élément sémantique, responsive</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Menu Toggler</strong></td>
+                        <td>Div custom</td>
+                        <td><code>button.navbar-toggler</code></td>
+                        <td>Accessibilité, ARIA labels</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Navigation</strong></td>
+                        <td><code>ul.nav-links</code></td>
+                        <td><code>ul.navbar-nav</code></td>
+                        <td>Structure Bootstrap, icônes intégrées</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dropdown</strong></td>
+                        <td>Custom CSS</td>
+                        <td>Bootstrap Dropdown</td>
+                        <td>Animation fluide, plus accessible</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Files -->
+        <div class="section" id="files">
+            <h3><i class="bi bi-file-earmark"></i> Fichiers Modifiés et Créés</h3>
+
+            <div class="file-tree">
+                📁 healthy/<br>
+                &nbsp;&nbsp;📁 templates/<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="file html">✏️ base.html</span> - Navbar HTML refactorisée<br>
+                &nbsp;&nbsp;📁 static/accueil/<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="file css">✏️ style.css</span> - Styles navbar améliorés<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="file css">🆕 navbar-advanced.css</span> - Styles avancés et animations<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="file css">🆕 navbar-themes.css</span> - Thèmes et variantes<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="file js">🆕 navbar-enhanced.js</span> - Interactions JavaScript<br>
+                📄 <span class="file">🆕 NAVBAR_IMPROVEMENTS.md</span> - Documentation complète<br>
+                📄 <span class="file">🆕 NAVBAR_GUIDE.html</span> - Ce guide
+            </div>
+
+            <div class="alert-custom mt-3">
+                <strong><i class="bi bi-info-circle"></i> Note:</strong>
+                Tous les fichiers existants ont été préservés. Les améliorations sont ajoutées via des fichiers CSS et JS supplémentaires.
+            </div>
+        </div>
+
+        <!-- Usage -->
+        <div class="section" id="usage">
+            <h3><i class="bi bi-play-circle"></i> Guide d'Utilisation</h3>
+
+            <h5 class="mt-4 mb-3">Structure HTML de Base</h5>
+            <div class="code-block">
+<pre>&lt;nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top shadow-sm nav-enhanced"&gt;
+    &lt;div class="container-fluid px-md-5"&gt;
+        &lt;!-- Logo --&gt;
+        &lt;a class="navbar-brand" href="#"&gt;
+            &lt;i class="fas fa-leaf"&gt;&lt;/i&gt;
+            &lt;span&gt;Fresh&lt;/span&gt; &amp; &lt;span&gt;Green&lt;/span&gt;
+        &lt;/a&gt;
+
+        &lt;!-- Mobile Toggle --&gt;
+        &lt;button class="navbar-toggler" type="button" data-bs-toggle="collapse"&gt;
+            &lt;i class="fas fa-bars fs-5"&gt;&lt;/i&gt;
+        &lt;/button&gt;
+
+        &lt;!-- Navigation Links --&gt;
+        &lt;div class="collapse navbar-collapse" id="navbarNav"&gt;
+            &lt;ul class="navbar-nav ms-auto"&gt;
+                &lt;li class="nav-item"&gt;
+                    &lt;a class="nav-link nav-link-enhanced" href="#"&gt;
+                        &lt;i class="bi bi-home"&gt;&lt;/i&gt;Accueil
+                    &lt;/a&gt;
+                &lt;/li&gt;
+                &lt;!-- ... plus de liens ... --&gt;
+            &lt;/ul&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/nav&gt;</pre>
+            </div>
+
+            <h5 class="mt-4 mb-3">Classes CSS Principales</h5>
+            <div class="alert-custom">
+                <ul class="mb-0">
+                    <li><code>.nav-enhanced</code> - Style principal de la navbar</li>
+                    <li><code>.nav-link-enhanced</code> - Style des liens de navigation</li>
+                    <li><code>.navbar-brand</code> - Style du logo</li>
+                    <li><code>.dropdown-menu</code> - Style du dropdown menu</li>
+                </ul>
+            </div>
+
+            <h5 class="mt-4 mb-3">JavaScript Integration</h5>
+            <p>Le fichier <code>navbar-enhanced.js</code> fournit:</p>
+            <ul class="feature-list">
+                <li><i class="bi bi-check-circle"></i>Détection automatique du lien actif</li>
+                <li><i class="bi bi-check-circle"></i>Animations fluides des interactions</li>
+                <li><i class="bi bi-check-circle"></i>Gestion du dropdown mobile</li>
+                <li><i class="bi bi-check-circle"></i>Smooth scroll pour les ancres</li>
+            </ul>
+        </div>
+
+        <!-- Customization -->
+        <div class="section" id="customization">
+            <h3><i class="bi bi-palette"></i> Personnalisation</h3>
+
+            <h5 class="mt-4 mb-3">1. Modifier les Couleurs</h5>
+            <p>Les couleurs peuvent être personnalisées en modifiant les variables CSS dans <code>style.css</code>:</p>
+            <div class="code-block">
+<pre>:root {
+    --vert-sauge: #9BBF8F;
+    --vert-feuille: #5A7D5C;
+    --vert-profond: #2E4A2F;
+    --accent-miel: #D9B48B;
+    /* ... autres variables ... */
+}</pre>
+            </div>
+
+            <h5 class="mt-4 mb-3">2. Changer les Icônes</h5>
+            <p>Utilisez Font Awesome 6 ou Bootstrap Icons:</p>
+            <div class="code-block">
+<pre>&lt;!-- Font Awesome --&gt;
+&lt;i class="fas fa-icon-name"&gt;&lt;/i&gt;
+
+&lt;!-- Bootstrap Icons --&gt;
+&lt;i class="bi bi-icon-name"&gt;&lt;/i&gt;</pre>
+            </div>
+
+            <h5 class="mt-4 mb-3">3. Appliquer des Thèmes</h5>
+            <p>Utilisez les classes de thème dans <code>navbar-themes.css</code>:</p>
+            <div class="code-block">
+<pre>&lt;nav class="navbar nav-enhanced navbar-theme-dark"&gt;
+&lt;nav class="navbar nav-enhanced navbar-accent"&gt;
+&lt;nav class="navbar nav-enhanced navbar-lg navbar-strong"&gt;</pre>
+            </div>
+
+            <h5 class="mt-4 mb-3">4. Ajuster l'Espacement</h5>
+            <p>Modifiez les variables CSS pour l'espacement:</p>
+            <div class="code-block">
+<pre>.nav-link-enhanced {
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.4rem;
+}</pre>
+            </div>
+        </div>
+
+        <!-- Examples -->
+        <div class="section" id="examples">
+            <h3><i class="bi bi-lightbulb"></i> Exemples Pratiques</h3>
+
+            <h5 class="mt-4 mb-3">Exemple 1: Navbar Simple</h5>
+            <div class="code-block">
+<pre>&lt;nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top nav-enhanced"&gt;
+    &lt;div class="container-fluid"&gt;
+        &lt;a class="navbar-brand" href="#"&gt;Fresh & Green&lt;/a&gt;
+        &lt;!-- ... reste de la navbar ... --&gt;
+    &lt;/div&gt;
+&lt;/nav&gt;</pre>
+            </div>
+
+            <h5 class="mt-4 mb-3">Exemple 2: Ajouter un Lien</h5>
+            <div class="code-block">
+<pre>&lt;li class="nav-item"&gt;
+    &lt;a class="nav-link nav-link-enhanced" href="/about"&gt;
+        &lt;i class="bi bi-info-circle me-2"&gt;&lt;/i&gt;À Propos
+    &lt;/a&gt;
+&lt;/li&gt;</pre>
+            </div>
+
+            <h5 class="mt-4 mb-3">Exemple 3: Ajouter un Item au Dropdown</h5>
+            <div class="code-block">
+<pre>&lt;li&gt;
+    &lt;a class="dropdown-item d-flex align-items-center gap-2" href="/settings"&gt;
+        &lt;i class="bi bi-gear" style="color: var(--vert-sauge);"&gt;&lt;/i&gt;
+        &lt;span&gt;Paramètres&lt;/span&gt;
+    &lt;/a&gt;
+&lt;/li&gt;</pre>
+            </div>
+
+            <h5 class="mt-4 mb-3">Exemple 4: Thème Sombre</h5>
+            <div class="code-block">
+<pre>&lt;nav class="navbar navbar-expand-lg navbar-dark sticky-top nav-enhanced navbar-theme-dark"&gt;
+    &lt;!-- ... navbar content ... --&gt;
+&lt;/nav&gt;</pre>
+            </div>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="section" id="best-practices">
+            <h3><i class="bi bi-check2-all"></i> Bonnes Pratiques</h3>
+
+            <h5 class="mt-4 mb-3">✅ À Faire</h5>
+            <ul class="feature-list">
+                <li><i class="bi bi-check-circle"></i>Utiliser les classes Bootstrap 5 natives</li>
+                <li><i class="bi bi-check-circle"></i>Inclure les attributs ARIA pour l'accessibilité</li>
+                <li><i class="bi bi-check-circle"></i>Optimiser les icônes pour les appareils mobiles</li>
+                <li><i class="bi bi-check-circle"></i>Tester la navbar sur différents écrans</li>
+                <li><i class="bi bi-check-circle"></i>Utiliser les variables CSS pour les couleurs</li>
+                <li><i class="bi bi-check-circle"></i>Implémenter le keyboard navigation</li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">❌ À Éviter</h5>
+            <ul class="feature-list">
+                <li><i class="bi bi-x-circle"></i>Surcharger la navbar avec trop de liens</li>
+                <li><i class="bi bi-x-circle"></i>Utiliser des icônes mal dimensionnées</li>
+                <li><i class="bi bi-x-circle"></i>Ignorer l'accessibilité et le contraste</li>
+                <li><i class="bi bi-x-circle"></i>Ajouter des animations trop lentes</li>
+                <li><i class="bi bi-x-circle"></i>Faire des dropdowns trop profonds</li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">Checklist de Performance</h5>
+            <ul class="checklist">
+                <li><input type="checkbox" disabled checked> CSS optimisé avec variables CSS</li>
+                <li><input type="checkbox" disabled checked> Animations GPU-friendly</li>
+                <li><input type="checkbox" disabled checked> CDN pour les dépendances</li>
+                <li><input type="checkbox" disabled checked> Minification des assets</li>
+                <li><input type="checkbox" disabled checked> Lazy loading des images</li>
+                <li><input type="checkbox" disabled checked> Tests de performance</li>
+            </ul>
+        </div>
+
+        <!-- Resources -->
+        <div class="section">
+            <h3><i class="bi bi-link"></i> Ressources Utiles</h3>
+            <ul class="feature-list">
+                <li><i class="bi bi-link"></i><a href="https://getbootstrap.com/docs/5.3/components/navbar/" target="_blank">Bootstrap 5 Navbar Documentation</a></li>
+                <li><i class="bi bi-link"></i><a href="https://icons.getbootstrap.com/" target="_blank">Bootstrap Icons Library</a></li>
+                <li><i class="bi bi-link"></i><a href="https://fontawesome.com/icons" target="_blank">Font Awesome Icons Library</a></li>
+                <li><i class="bi bi-link"></i><a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank">WCAG Accessibility Guidelines</a></li>
+            </ul>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p><strong>🌿 Fresh & Green - Navbar Améliorée</strong></p>
+            <p>Conçu avec Bootstrap 5, Bootstrap Icons et Font Awesome 6</p>
+            <p style="font-size: 0.9rem; opacity: 0.8;">© 2026 - Tous droits réservés</p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

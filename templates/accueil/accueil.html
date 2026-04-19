@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens - Accueil{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accueil/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Slider automatique -->
+    <div class="hero-slider">
+        <div class="slides-container" id="slidesContainer">
+            <div class="slide active" style="background-image: linear-gradient(0deg, rgba(46,74,47,0.4), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200');">
+                <div class="slide-content">
+                    <h2>Manger frais, rayonner santé 🌿</h2>
+                    <p>Des ingrédients 100% naturels</p>
+                </div>
+            </div>
+            <div class="slide" style="background-image: linear-gradient(0deg, rgba(46,74,47,0.4), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200');">
+                <div class="slide-content">
+                    <h2>Équilibre & vitalité</h2>
+                    <p>Des recettes vertes pour tous les jours</p>
+                </div>
+            </div>
+            <div class="slide" style="background-image: linear-gradient(0deg, rgba(46,74,47,0.4), rgba(0,0,0,0.2)), url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200');">
+                <div class="slide-content">
+                    <h2>Faites le plein d'énergie</h2>
+                    <p>Bien-être & design apaisant</p>
+                </div>
+            </div>
+        </div>
+        <div class="slider-nav" id="sliderDots"></div>
+    </div>
+   <!-- Cartes client & administrateur -->
+    <div class="cards-wrapper">
+        <div class="cards-container">
+            <!-- Carte Client -->
+            <div class="auth-card client-card" id="clientCard">
+                <div class="card-icon">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3>ESPACE CLIENT</h3>
+                <p>Créez ou modifiez votre profil nutritionnel pour des menus sur mesure.</p>
+                <a href="{% url 'login' %}" class="btn btn-connecter" id="clientBtn">SE CONNECTER</a>
+                <div class="card-footer">
+                    <span class="badge">🍽️ Menus personnalisés</span>
+                </div>
+            </div>
+
+            <!-- Carte Administrateur -->
+            <div class="auth-card admin-card" id="adminCard">
+                <div class="card-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>ESPACE ADMINISTRATEUR</h3>
+                <p>Gérez les menus, les utilisateurs et les statistiques de la plateforme.</p>
+                <a href="{% url 'administrateur' %}"class="btn btn-gestion" id="adminBtn">ACCÈS GESTION</a>
+                <div class="card-footer">
+                    <span class="badge">📊 Dashboard complet</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Témoignage -->
+    <div class="testimonial">
+        <div class="testimonial-content">
+            <i class="fas fa-quote-left"></i>
+            <p>"Une plateforme intuitive qui m'aide à mieux manger au quotidien."</p>
+            <span>- Marie, utilisatrice satisfaite</span>
+        </div>
+    </div>
+
+
+    <!-- Section valeurs -->
+    <h2 class="section-title">Notre philosophie healthy</h2>
+    <p class="section-sub">Simplicité, fraîcheur et équilibre dans chaque assiette</p>
+    <div class="cards-grid">
+        <div class="card">
+            <i class="fas fa-apple-alt"></i>
+            <h3>100% naturel</h3>
+            <p>Des produits de saison, locaux et sans additifs.</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-hand-sparkles"></i>
+            <h3>Recettes équilibrées</h3>
+            <p>Nutritionniste à votre écoute pour des menus sains.</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-leaf"></i>
+            <h3>Éco-responsable</h3>
+            <p>Emballages recyclables et engagement zéro déchet.</p>
+        </div>
+    </div>
+
+    <!-- Bloc interactif JS -->
+    <div class="wellness-duo">
+        <div class="counter-box">
+            <i class="fas fa-heartbeat" style="font-size: 2rem; color: var(--vert-sauge);"></i>
+            <h3>Ton score bien-être</h3>
+            <div class="health-number" id="wellnessScore">0</div>
+            <p>Clique pour augmenter ton énergie ✨</p>
+            <button class="btn-health" id="boostBtn"><i class="fas fa-plus-circle"></i> Booster +5</button>
+            <button class="btn-health" id="resetScoreBtn" style="background: var(--accent-miel); margin-left: 8px;">Reset</button>
+        </div>
+        <div class="quote-box">
+            <i class="fas fa-quote-left" style="color: var(--vert-sauge);"></i>
+            <h3>Inspiration du jour</h3>
+            <div class="daily-quote" id="dailyQuote">"Mangez comme si vous aimiez la vie, bougez comme si vous aimiez votre corps."</div>
+            <button class="btn-health" id="newQuoteBtn"><i class="fas fa-sync-alt"></i> Nouvelle pensée</button>
+        </div>
+    </div>
+
+    <!-- Section Recommandations N8N -->
+    <div class="recommendations-section" style="background: linear-gradient(135deg, #2e4a2f 0%, #4a7050 100%); padding: 40px 20px; margin: 40px 0; border-radius: 12px; text-align: center; color: white;">
+        <h2 style="margin-bottom: 15px; font-size: 28px;">🎯 Obtenez vos recommandations personnalisées</h2>
+        <p style="margin-bottom: 20px; font-size: 16px; opacity: 0.95;">Connectez-vous et recevez des suggestions de plats adaptées à votre profil nutritionnel</p>
+        
+        {% if user.is_authenticated %}
+            <button id="getRecommendationsBtn" class="btn-recommendation" 
+                    data-profil-id="{% if profil_nutritionnel %}{{ profil_nutritionnel.id }}{% endif %}"
+                    style="background: #ffd700; color: #2e4a2f; padding: 12px 30px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s;">
+                <i class="fas fa-magic"></i> Obtenir mon profil nutritionnel
+            </button>
+            <div id="recommendationsLoader" style="display: none; margin-top: 15px;">
+                <p><i class="fas fa-spinner fa-spin"></i> Chargement...</p>
+            </div>
+            <div id="recommendationsResult" style="margin-top: 20px; text-align: left; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; display: none;">
+                <h3 style="margin-bottom: 15px;">✨ Votre profil nutritionnel:</h3>
+                <div id="recommendationsContent"></div>
+            </div>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn-recommendation" style="display: inline-block; background: #ffd700; color: #2e4a2f; padding: 12px 30px; font-size: 16px; text-decoration: none; border-radius: 8px; font-weight: bold; transition: all 0.3s;">
+                <i class="fas fa-sign-in-alt"></i> Se connecter pour voir les recommandations
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Newsletter -->
+    <div class="newsletter-section">
+        <i class="fas fa-envelope-open-text" style="font-size: 2rem;"></i>
+        <h3>Recevez notre élan healthy</h3>
+        <p>Conseils, menus et recettes vertes chaque semaine</p>
+        <div class="newsletter-form">
+            <input type="email" id="newsEmail" placeholder="Votre adresse email">
+            <button id="subscribeNewsBtn">S'abonner</button>
+        </div>
+        <small style="display: block; margin-top: 12px;">Aucun spam, que du bien-être 🌱</small>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'accueil/script.js' %}"></script>
+{% endblock %}

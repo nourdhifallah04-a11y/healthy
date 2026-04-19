@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens - Gestion des Plats{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'plats/list_plats.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="container">
+            <div class="page-card">
+                <div class="page-header">
+                    <div class="header-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="header-title">
+                        <h1>Gestion des Plats</h1>
+                        <p>Gérez votre catalogue de plats (ajout, modification, suppression)</p>
+                    </div>
+                    <a href="{% url 'ajouter_plat' %}" class="btn-add">
+                        <i class="fas fa-plus"></i> Ajouter un plat
+                    </a>
+                </div>
+
+                <!-- Tableau responsive -->
+                <div class="table-responsive">
+                    <table class="plats-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Description</th>
+                                <th>Calories</th>
+                                <th>Protéines</th>
+                                <th>Glucides</th>
+                                <th>Lipides</th>
+                                <th>Fibres</th>
+                                <th>Prix</th>
+                                <th>Nouveau</th>
+                                <th>Dispo</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="platsList">
+                            <tr class="empty-row">
+                                <td colspan="11">
+                                    <div class="empty-state">
+                                        <i class="fas fa-utensils"></i>
+                                        <p>Aucun plat pour le moment</p>
+                                        <a href="{% url 'ajouter_plat' %}" class="btn-add-small">
+                                            <i class="fas fa-plus"></i> Ajouter votre premier plat
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="modalSuppression" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2>Confirmer la suppression</h2>
+            <p id="modalMessage">Êtes-vous sûr de vouloir supprimer ce plat ? Cette action est irréversible.</p>
+            <div class="modal-actions">
+                <button class="btn-confirm" onclick="confirmerSuppression()">Supprimer</button>
+                <button class="btn-cancel-modal" onclick="fermerModalSuppression()">Annuler</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'plats/list_plats.js' %}"></script>
+{% endblock %}

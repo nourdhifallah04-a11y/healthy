@@ -1,0 +1,508 @@
+{% extends "registration/base.html" %}
+{% load static %}
+
+{% block title %}Connexion Client - Fresh & Greens{% endblock %}
+
+{% block content %}
+<section class="client-login-section">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-icon">
+        <i class="fas fa-seedling"></i>
+      </div>
+      <h1>Connexion Client</h1>
+      <p class="subtitle">Accédez à votre profil nutritionnel personnalisé</p>
+      
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="alert">
+              <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+              {{ message }}
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <form method="post" class="client-login-form">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+          <div class="form-errors">
+            {% for error in form.non_field_errors %}
+              <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}" class="form-label">
+            <i class="fas fa-envelope"></i> {{ form.email.label }}
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="invalid-feedback" style="display: block;">
+              {% for error in form.email.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.password.id_for_label }}" class="form-label">
+            <i class="fas fa-lock"></i> {{ form.password.label }}
+          </label>
+          <div class="password-wrapper">
+            {{ form.password }}
+            <span class="toggle-password" onclick="togglePassword('{{ form.password.id_for_label }}', this)">
+              <i class="far fa-eye"></i>
+            </span>
+          </div>
+          {% if form.password.errors %}
+            <div class="invalid-feedback" style="display: block;">
+              {% for error in form.password.errors %}
+                <span>{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="form-options">
+          <label class="checkbox-label">
+            <input type="checkbox" name="remember"> Se souvenir de moi
+          </label>
+          <a href="{% url 'password_reset' %}" class="forgot-link">Mot de passe oublié ?</a>
+        </div>
+        
+        <button class="btn btn-primary btn-block" type="submit">
+          <i class="fas fa-sign-in-alt"></i> Se connecter
+        </button>
+      </form>
+      
+      <div class="auth-separator">
+        <span>ou</span>
+      </div>
+      
+      <div class="social-buttons">
+        <button type="button" class="btn-google" onclick="socialLogin('google')">
+          <i class="fab fa-google"></i> Google
+        </button>
+        <button type="button" class="btn-facebook" onclick="socialLogin('facebook')">
+          <i class="fab fa-facebook-f"></i> Facebook
+        </button>
+      </div>
+      
+      <div class="login-footer">
+        <p>
+          Pas encore de compte ? 
+          <a href="#" class="link-primary">Créer un compte</a>
+        </p>
+        <p class="mt-2">
+          <a href="{% url 'accueil' %}" class="link-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à l'accueil
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ========== VARIABLES BEIGE & VERT ========== */
+  :root {
+    --beige-pale: #FDF7ED;
+    --beige-doux: #F5EDDA;
+    --beige-moyen: #E8DCC6;
+    --vert-sauge: #9BBF8F;
+    --vert-feuille: #5A7D5C;
+    --vert-profond: #2E4A2F;
+    --accent-miel: #D9B48B;
+    --ombre: rgba(46, 74, 47, 0.08);
+    --ombre-moyenne: rgba(46, 74, 47, 0.12);
+    --succes: #27ae60;
+    --erreur: #e74c3c;
+  }
+
+  .client-login-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--beige-pale) 0%, var(--beige-doux) 100%);
+    padding: 20px;
+  }
+  
+  .login-container {
+    width: 100%;
+    max-width: 450px;
+    animation: fadeInUp 0.6s ease;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .login-card {
+    background: white;
+    border-radius: 32px;
+    box-shadow: 0 20px 40px var(--ombre-moyenne);
+    padding: 2.5rem;
+    transition: transform 0.3s ease;
+  }
+  
+  .login-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .login-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(145deg, var(--vert-feuille), var(--vert-profond));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.2rem;
+  }
+  
+  .login-icon i {
+    font-size: 2rem;
+    color: white;
+  }
+  
+  .login-card h1 {
+    margin: 0 0 10px 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--vert-profond);
+    font-family: 'Playfair Display', serif;
+  }
+  
+  .subtitle {
+    text-align: center;
+    color: #6C7A6A;
+    margin-bottom: 1.8rem;
+    font-size: 0.85rem;
+  }
+  
+  /* ========== FORMULAIRE ========== */
+  .client-login-form .form-group {
+    margin-bottom: 1.2rem;
+  }
+  
+  .client-login-form .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--vert-profond);
+    font-size: 0.85rem;
+  }
+  
+  .client-login-form .form-label i {
+    margin-right: 6px;
+    color: var(--vert-sauge);
+  }
+  
+  .client-login-form input[type="email"],
+  .client-login-form input[type="password"],
+  .client-login-form input[type="text"] {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--beige-moyen);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    transition: 0.3s;
+    font-family: 'Poppins', sans-serif;
+    background: var(--beige-pale);
+    box-sizing: border-box;
+  }
+  
+  .client-login-form input[type="email"]:focus,
+  .client-login-form input[type="password"]:focus,
+  .client-login-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--vert-sauge);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(155, 191, 143, 0.2);
+  }
+  
+  .password-wrapper {
+    position: relative;
+  }
+  
+  .toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6C7A6A;
+  }
+  
+  .toggle-password:hover {
+    color: var(--vert-feuille);
+  }
+  
+  /* ========== OPTIONS ========== */
+  .form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #6C7A6A;
+  }
+  
+  .checkbox-label input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--vert-feuille);
+  }
+  
+  .forgot-link {
+    color: var(--vert-feuille);
+    text-decoration: none;
+  }
+  
+  .forgot-link:hover {
+    text-decoration: underline;
+  }
+  
+  /* ========== BOUTON PRINCIPAL ========== */
+  .btn-primary {
+    width: 100%;
+    padding: 0.9rem;
+    background: linear-gradient(135deg, var(--vert-feuille), var(--vert-profond));
+    color: white;
+    border: none;
+    border-radius: 60px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--ombre-moyenne);
+  }
+  
+  /* ========== SÉPARATEUR ========== */
+  .auth-separator {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+  }
+  
+  .auth-separator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--beige-moyen);
+  }
+  
+  .auth-separator span {
+    background: white;
+    padding: 0 1rem;
+    position: relative;
+    color: #6C7A6A;
+    font-size: 0.8rem;
+  }
+  
+  /* ========== BOUTONS SOCIAUX ========== */
+  .social-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .btn-google,
+  .btn-facebook {
+    flex: 1;
+    padding: 0.8rem;
+    border: 2px solid var(--beige-moyen);
+    background: white;
+    border-radius: 60px;
+    cursor: pointer;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    color: var(--vert-profond);
+  }
+  
+  .btn-google:hover,
+  .btn-facebook:hover {
+    background: var(--beige-doux);
+    border-color: var(--vert-sauge);
+    transform: translateY(-2px);
+  }
+  
+  .btn-google i {
+    color: #DB4437;
+  }
+  
+  .btn-facebook i {
+    color: #4267B2;
+  }
+  
+  /* ========== FOOTER ========== */
+  .login-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--beige-moyen);
+  }
+  
+  .login-footer p {
+    margin: 0.3rem 0;
+    font-size: 0.8rem;
+  }
+  
+  .link-primary {
+    color: var(--vert-feuille);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  
+  .link-primary:hover {
+    text-decoration: underline;
+  }
+  
+  .link-secondary {
+    color: #6C7A6A;
+    text-decoration: none;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .link-secondary:hover {
+    color: var(--vert-feuille);
+  }
+  
+  /* ========== ALERTS ========== */
+  .invalid-feedback {
+    color: var(--erreur);
+    font-size: 0.7rem;
+    margin-top: 5px;
+  }
+  
+  .alert {
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .alert-danger {
+    background-color: #fdecea;
+    color: var(--erreur);
+    border: 1px solid #fadbd8;
+  }
+  
+  .alert-success {
+    background-color: #e8f8f0;
+    color: var(--succes);
+    border: 1px solid #d5f5e3;
+  }
+  
+  .close {
+    margin-left: auto;
+    font-size: 1.2rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: inherit;
+  }
+  
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 480px) {
+    .login-card {
+      padding: 1.5rem;
+    }
+    
+    .login-card h1 {
+      font-size: 1.5rem;
+    }
+    
+    .social-buttons {
+      flex-direction: column;
+    }
+    
+    .form-options {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+  }
+</style>
+
+<script>
+  // ========== TOGGLE PASSWORD ==========
+  function togglePassword(inputId, element) {
+    const input = document.getElementById(inputId);
+    const icon = element.querySelector('i');
+    
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+  
+  // ========== RÉSEAUX SOCIAUX ==========
+  function socialLogin(provider) {
+    alert(`Connexion avec ${provider} - Fonctionnalité à venir`);
+  }
+  
+  // ========== FERMETURE DES ALERTES ==========
+  document.addEventListener('DOMContentLoaded', function() {
+    const closeButtons = document.querySelectorAll('.close');
+    closeButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        this.parentElement.style.display = 'none';
+      });
+    });
+    
+    console.log('🌿 Page de connexion client chargée avec succès !');
+  });
+</script>
+{% endblock %}

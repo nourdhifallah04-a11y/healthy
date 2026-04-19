@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens | Menu Healthy{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'menu/menu.css' %}">
+<link rel="stylesheet" href="{% static 'menu/unified-browse.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section class="hero-section">
+        <h1>Nos <span class="highlight">Menus</span> Healthy</h1>
+        <p>Découvrez nos menus équilibrés préparés avec des ingrédients frais et naturels</p>
+    </section>
+
+    <section class="unified-browse-section">
+        <div class="search-filter-bar">
+            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Rechercher un menu...">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">Tous</button>
+                <button class="filter-btn" data-filter="nouveau">Nouveautés</button>
+                <button class="filter-btn" data-filter="proteine">Haute Protéine</button>
+            </div>
+        </div>
+
+        <div class="items-grid" id="menuGrid">
+            <!-- Les menus seront chargés dynamiquement par JavaScript -->
+        </div>
+    </section>
+
+    <!-- Modal Ajouter au Panier -->
+    <div id="addToCartModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Ajouter au Panier</h2>
+            <form id="addToCartForm">
+                <div class="form-group">
+                    <label for="quantity">Quantité:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" max="100" value="1" required>
+                </div>
+                <div class="form-group">
+                    <p id="itemInfo"></p>
+                </div>
+                <button type="submit" class="btn-primary">Ajouter au Panier</button>
+                <button type="button" class="btn-secondary" onclick="closeAddToCartModal()">Annuler</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'menu/menu.js' %}"></script>
+<script src="{% static 'commande/commande.js' %}"></script>
+{% endblock %}

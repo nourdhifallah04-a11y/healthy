@@ -1,0 +1,127 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>📊 Dashboard Monitoring des Scores</title>
+<style>
+  :root {
+    --ok: #16a34a; --warn: #f59e0b; --crit: #dc2626; --info: #0ea5e9;
+    --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: var(--bg); color: var(--text); margin: 0; padding: 24px; }
+  h1 { margin: 0 0 6px; font-size: 28px; }
+  p.sub { color: var(--muted); margin: 0 0 24px; }
+  .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
+  .card { background: var(--card); border-radius: 14px; padding: 20px;
+          box-shadow: 0 4px 12px rgba(0,0,0,.25); border: 1px solid #334155; }
+  .card h2 { margin: 0 0 14px; font-size: 18px; display:flex; justify-content:space-between; }
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight:600; }
+  .b-OK { background: var(--ok); color: white; }
+  .b-WARNING_LOW_MEAN, .b-WARNING_HIGH_MEAN, .b-WARNING { background: var(--warn); color: #1a1a1a; }
+  .b-CRITICAL { background: var(--crit); color: white; }
+  .b-INSUFFICIENT_DATA, .b-UNKNOWN, .b-INFO { background: #475569; color: white; }
+  .metric { display: flex; justify-content: space-between; padding: 6px 0;
+            border-bottom: 1px dashed #334155; font-size: 14px; }
+  .metric:last-child { border-bottom: none; }
+  .metric .v { font-weight: 600; color: #f1f5f9; }
+  .alerts { margin-top: 28px; }
+  .alert { padding: 10px 14px; border-radius: 8px; margin-bottom: 8px;
+           border-left: 4px solid; font-size: 13px; background: var(--card); }
+  .alert.CRITICAL { border-color: var(--crit); }
+  .alert.WARNING  { border-color: var(--warn); }
+  .alert.INFO     { border-color: var(--info); }
+  .alert .ts { color: var(--muted); font-size: 11px; margin-right: 8px; }
+  .actions { margin: 18px 0; }
+  button { background: #334155; color: white; border: none; padding: 8px 16px;
+           border-radius: 6px; cursor: pointer; font-size: 13px; }
+  button:hover { background: #475569; }
+  .empty { color: var(--muted); font-style: italic; padding: 12px 0; }
+  .gauge { height: 6px; background: #334155; border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .gauge > div { height: 100%; background: linear-gradient(90deg, var(--crit), var(--warn), var(--ok)); }
+</style>
+</head>
+<body>
+  <h1>📊 Monitoring des Scores Nutritionnels</h1>
+  <p class="sub">Surveillance en temps réel • Détection d'anomalies • Statistiques</p>
+
+  <div class="actions">
+    <button onclick="refresh()">🔄 Rafraîchir</button>
+    <button onclick="resetAll()" style="background:#7f1d1d;">🗑️ Reset compteurs</button>
+    <span id="last-update" style="color:var(--muted);margin-left:12px;font-size:12px;"></span>
+  </div>
+
+  <div class="grid" id="cards">
+    {% for type, s in stats.items %}
+    <div class="card">
+      <h2>
+        {{ type|title }}
+        <span class="badge b-{{ s.health }}">{{ s.health }}</span>
+      </h2>
+      {% if s.samples == 0 %}
+        <p class="empty">Aucune donnée enregistrée pour le moment.</p>
+      {% else %}
+        <div class="metric"><span>Échantillons</span><span class="v">{{ s.samples }}</span></div>
+        <div class="metric"><span>Total cumulé</span><span class="v">{{ s.total_recorded }}</span></div>
+        <div class="metric"><span>Moyenne</span><span class="v">{{ s.mean }}</span></div>
+        <div class="metric"><span>Médiane</span><span class="v">{{ s.median }}</span></div>
+        <div class="metric"><span>Écart-type (σ)</span><span class="v">{{ s.stddev }}</span></div>
+        <div class="metric"><span>Variance</span><span class="v">{{ s.variance }}</span></div>
+        <div class="metric"><span>Min / Max</span><span class="v">{{ s.min }} / {{ s.max }}</span></div>
+        <div class="metric"><span>Anomalies</span><span class="v" style="color:var(--crit);">{{ s.anomalies }}</span></div>
+        <div class="metric"><span>Outliers</span><span class="v" style="color:var(--warn);">{{ s.outliers }}</span></div>
+        <div class="gauge"><div style="width: {{ s.mean }}%;"></div></div>
+      {% endif %}
+    </div>
+    {% empty %}
+      <div class="card"><p class="empty">Aucun calcul de score n'a encore été enregistré.</p></div>
+    {% endfor %}
+  </div>
+
+  <div class="alerts">
+    <h2>🚨 Alertes récentes</h2>
+    <div id="alert-list">
+      {% for a in alerts %}
+        <div class="alert {{ a.level }}">
+          <span class="ts">{{ a.timestamp }}</span>
+          <strong>[{{ a.level }}]</strong> [{{ a.score_type }}] {{ a.message }}
+        </div>
+      {% empty %}
+        <p class="empty">Aucune alerte. Tout va bien ! ✅</p>
+      {% endfor %}
+    </div>
+  </div>
+
+<script>
+const API = "{% url 'monitoring_api' %}";
+const RESET = "{% url 'monitoring_reset' %}";
+const CSRF = "{{ csrf_token }}";
+
+async function refresh() {
+  try {
+    const r = await fetch(API);
+    const d = await r.json();
+    document.getElementById('last-update').textContent =
+      'MAJ: ' + new Date().toLocaleTimeString();
+    console.log('Stats:', d);
+    // Rechargement complet si structure change
+    location.reload();
+  } catch (e) { console.error(e); }
+}
+
+async function resetAll() {
+  if (!confirm('Réinitialiser tous les compteurs ?')) return;
+  await fetch(RESET, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+  });
+  location.reload();
+}
+
+// Auto-refresh toutes les 30s
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>
+

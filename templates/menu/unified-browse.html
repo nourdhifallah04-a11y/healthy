@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens | Browse Menus & Dishes{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'menu/menu.css' %}">
+<link rel="stylesheet" href="{% static 'specialdiet/specialdiet.css' %}">
+<link rel="stylesheet" href="{% static 'menu/unified-browse.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section class="hero-section">
+        <h1>Browse Our <span class="highlight">Menu</span></h1>
+        <p>Explore our healthy dishes and curated menus tailored to your nutritional needs</p>
+    </section>
+
+    <section class="unified-browse-section">
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-bar">
+            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search menus and dishes...">
+            <div class="view-toggle">
+                <button class="view-btn active" data-view="all">All Items</button>
+                <button class="view-btn" data-view="menu">Menus Only</button>
+                <button class="view-btn" data-view="plat">Dishes Only</button>
+            </div>
+        </div>
+
+        <!-- Diet Category Filter -->
+        <div class="diet-categories-filter">
+            <button class="diet-filter-btn active" data-diet="all">
+                <i class="fas fa-th"></i> All
+            </button>
+            <button class="diet-filter-btn" data-diet="high-protein">
+                <i class="fas fa-dumbbell"></i> High Protein
+            </button>
+            <button class="diet-filter-btn" data-diet="low-carb">
+                <i class="fas fa-chart-line"></i> Low Carb
+            </button>
+            <button class="diet-filter-btn" data-diet="vegan">
+                <i class="fas fa-seedling"></i> Vegan
+            </button>
+            <button class="diet-filter-btn" data-diet="gluten-free">
+                <i class="fas fa-leaf"></i> Gluten-Free
+            </button>
+        </div>
+
+        <!-- Items Grid -->
+        <div class="items-grid" id="itemsGrid">
+            <!-- Items will be loaded dynamically -->
+            <div class="loading">Loading items...</div>
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResults" class="no-results" style="display: none;">
+            <p>🍽️ No items found matching your filters</p>
+        </div>
+    </section>
+
+    <!-- Add to Cart Modal -->
+    <div id="addToCartModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add to Cart</h2>
+            <form id="addToCartForm">
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" max="100" value="1" required>
+                </div>
+                <div class="form-group">
+                    <p id="itemInfo"></p>
+                </div>
+                <button type="submit" class="btn-primary">Add to Cart</button>
+                <button type="button" class="btn-secondary" onclick="closeAddToCartModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'menu/unified-browse.js' %}"></script>
+<script src="{% static 'commande/commande.js' %}"></script>
+{% endblock %}

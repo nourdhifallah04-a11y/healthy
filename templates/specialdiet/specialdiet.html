@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens | Special Diet{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'specialdiet/specialdiet.css' %}">
+{% endblock %}
+
+{% block content %}
+        <h1>Special <span class="highlight">Diet</span></h1>
+        <p>Des plats adaptés à vos besoins nutritionnels spécifiques</p>
+    </section>
+
+    <section class="diet-section">
+        <div class="diet-categories">
+            <div class="diet-card" data-diet="high-protein">
+                <i class="fas fa-dumbbell"></i>
+                <h3>High Protein</h3>
+                <p>Pour vos objectifs sportifs</p>
+            </div>
+            <div class="diet-card" data-diet="low-carb">
+                <i class="fas fa-chart-line"></i>
+                <h3>Low Carb</h3>
+                <p>Peu de glucides</p>
+            </div>
+            <div class="diet-card" data-diet="vegan">
+                <i class="fas fa-seedling"></i>
+                <h3>Vegan</h3>
+                <p>100% végétal</p>
+            </div>
+            <div class="diet-card" data-diet="gluten-free">
+                <i class="fas fa-leaf"></i>
+                <h3>Sans Gluten</h3>
+                <p>Pour intolérants</p>
+            </div>
+             <div class="diet-card" data-diet="plat-recommander">
+                <i class="fas fa-thumbs-up"></i>
+                <h3>Plat recommander</h3>
+                <p>Nos meilleurs choix</p>
+            </div>
+        </div>
+
+        <div class="diet-results">
+            <h2>Plats recommandés pour <span id="selectedDiet">High Protein</span></h2>
+            <div class="menu-grid" id="dietGrid"></div>
+        </div>
+
+        <!-- Modal Ajouter au Panier -->
+        <div id="addToCartModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Ajouter au Panier</h2>
+                <form id="addToCartForm">
+                    <div class="form-group">
+                        <label for="quantity">Quantité:</label>
+                        <input type="number" id="quantity" name="quantity" min="1" max="100" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <p id="itemInfo"></p>
+                    </div>
+                    <button type="submit" class="btn-primary">Ajouter au Panier</button>
+                    <button type="button" class="btn-secondary" onclick="closeAddToCartModal()">Annuler</button>
+                </form>
+            </div>
+        </div>
+        
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'specialdiet/spec.js' %}"></script>
+<script src="{% static 'commande/commande.js' %}"></script>
+<!-- Passer les données des plats au JavaScript -->
+<script>
+    const dietMealsFromDB = {{ diet_meals_json }};
+</script>
+{% endblock %}

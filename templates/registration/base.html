@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Healthy{% endblock %}</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4efe6;
+      --panel: #fffaf2;
+      --text: #1d2a24;
+      --muted: #66756d;
+      --accent: #0b6e4f;
+      --accent-dark: #084c37;
+      --danger: #a63d40;
+      --border: #d8cfbf;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top left, rgba(11, 110, 79, 0.12), transparent 28%),
+        linear-gradient(135deg, #f4efe6, #efe5d0);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .shell {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .brand {
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(29, 42, 36, 0.08);
+    }
+    .page-header,
+    .actions,
+    .topbar nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .messages {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+      display: grid;
+      gap: 10px;
+    }
+    .messages li {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(11, 110, 79, 0.1);
+      border: 1px solid rgba(11, 110, 79, 0.18);
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fff;
+      text-decoration: none;
+      cursor: pointer;
+      font: inherit;
+    }
+    .button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .button.danger {
+      background: var(--danger);
+    }
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .profile-grid div,
+    .form-row {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--border);
+    }
+    dt {
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    dd {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .form-row {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font: inherit;
+      background: #fff;
+    }
+    .errorlist {
+      color: var(--danger);
+      margin: 8px 0 0;
+    }
+    @media (max-width: 640px) {
+      .shell { padding: 20px 14px 32px; }
+      .card { padding: 18px; }
+    }
+  </style>
+
+      <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <nav>
+        {% if request.user.is_authenticated %}
+          <span>Connecte en tant que {{ request.user.username }}</span>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="button secondary" type="submit">Se deconnecter</button>
+          </form>
+        {% endif %}
+      </nav>
+    </header>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

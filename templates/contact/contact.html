@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens | Contact{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'contact/contact.css' %}">
+{% endblock %}
+
+{% block content %}
+        <h1>Contactez-<span class="highlight">nous</span></h1>
+        <p>Une question ? Un conseil ? N'hésitez pas à nous écrire</p>
+    </section>
+
+    <section class="contact-section">
+        <div class="contact-info">
+            <div class="info-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Adresse</h3>
+                <p>23 Rue Oum Kalthoum<br>Nabeul 8000, Tunisie</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-phone"></i>
+                <h3>Téléphone</h3>
+                <p>+216 24 345 505</p>
+            </div>
+            <div class="info-card">
+                <i class="fas fa-envelope"></i>
+                <h3>Email</h3>
+                <p>info@freshandgreens.com</p>
+            </div>
+        </div>
+
+        <div class="contact-form">
+            <h2>Envoyez-nous un message</h2>
+            <form id="contactForm">
+                <div class="form-group">
+                    <input type="text" id="name" placeholder="Votre nom" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="email" placeholder="Votre email" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="subject" placeholder="Sujet">
+                </div>
+                <div class="form-group">
+                    <textarea id="message" rows="5" placeholder="Votre message..." required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Envoyer le message</button>
+            </form>
+        </div>
+    </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'contact/contact.js' %}"></script>
+{% endblock %}

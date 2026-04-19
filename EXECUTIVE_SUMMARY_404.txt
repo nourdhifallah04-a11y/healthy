@@ -1,0 +1,42 @@
+# 📋 RÉSUMÉ EXÉCUTIF - CORRECTION 404
+
+## ✅ FIX APPLIQUÉ
+
+**Erreur**: POST `/api/ligne-commande/` → 404 (Not Found)
+**Cause**: Envoi de `plat_id` au lieu de `menu_id`
+**Solution**: Changer le source des données de `/api/plats/` à `/api/menus/`
+**Résultat**: ✅ 201 Created - Fonctionne
+
+## 🔧 MODIFICATIONS
+
+**Fichier**: `static/specialdiet/spec.js`
+
+**3 changements clés**:
+1. Ligne ~80: `fetch('/api/plats/')` → `fetch('/api/menus/')`
+2. Ligne ~24: `id_plat` → `id_menu`
+3. Ligne ~373: Meilleure gestion d'erreurs dans le POST
+
+## ✅ VALIDÉ PAR
+
+- ✅ test_spec_js_fix.py (3/3 tests passed)
+- ✅ test_simulation_browser.py (Simulation complète OK)
+- ✅ test_with_cookie.py (API endpoint OK)
+
+## 🚀 À FAIRE
+
+1. ✅ Modifications faites
+2. ✅ Tests passés
+3. ⏭️ Commit et push du fichier `spec.js` modifié
+4. ⏭️ Tester en production
+
+## 📊 RÉSULTAT
+
+| Before | After |
+|--------|-------|
+| ❌ 404 | ✅ 201 |
+| ❌ Pas d'ajout | ✅ Ajout OK |
+| ❌ Erreur utilisateur | ✅ Message succès |
+
+---
+
+**STATUS**: ✅ COMPLET - PRÊT POUR PRODUCTION

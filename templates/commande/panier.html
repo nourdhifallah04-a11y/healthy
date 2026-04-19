@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mon Panier - Healthy Nutrition{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'commande/commande.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container panier-container">
+    <div class="panier-header" style="position: relative; display: inline-block;">
+        <h1 class="page-title">
+            <i class="fas fa-shopping-cart"></i> Mon Panier
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; display: none;" id="cart-count">
+                0
+            </span>
+        </h1>
+    </div>
+    
+    <!-- Messages de succès ou erreur -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="panier-content">
+        <!-- Colonne gauche: Articles du panier -->
+        <div class="panier-items">
+            {% if commande.lignecommande_set.all %}
+                <div class="items-section">
+                    <h2>Articles du panier ({{ commande.lignecommande_set.count }})</h2>
+                    
+                    <table class="panier-table">
+                        <thead>
+                            <tr>
+                                <th>Article</th>
+                                <th>Type</th>
+                                <th>Valeur Nutritionnelle</th>
+                                <th>Prix Unitaire</th>
+                                <th>Quantité</th>
+                                <th>Sous-total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ligne in commande.lignecommande_set.all %}
+                                <tr class="ligne-item" data-ligne-id="{{ ligne.id }}">
+                                    <td class="item-name">
+                                        {% if ligne.menu %}
+                                            <h4>{{ ligne.menu.nom }}</h4>
+                                            <p class="item-description">{{ ligne.menu.description|truncatewords:15 }}</p>
+                                        {% elif ligne.plat %}
+                                            <h4>{{ ligne.plat.nom }}</h4>
+                                            <p class="item-description">{{ ligne.plat.description|truncatewords:15 }}</p>
+                                        {% endif %}
+                                    </td>
+                                    <td class="item-type">
+                                        {% if ligne.menu %}
+                                            <span class="badge badge-menu">Menu</span>
+                                        {% elif ligne.plat %}
+                                            <span class="badge badge-plat">Dish</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="item-nutrition">
+                                        <ul>
+                                            {% if ligne.menu %}
+                                                <li><strong>Items:</strong> {{ ligne.menu.plats.all|length }}</li>
+                                                {% with vals=ligne.menu.calculer_valeur_nutritionnelle_totale %}
+                                                    <li><strong>Cal:</strong> {{ vals.calories|floatformat:0 }}</li>
+                                                    <li><strong>Prot:</strong> {{ vals.proteines|floatformat:1 }}g</li>
+                                                {% endwith %}
+                                            {% elif ligne.plat %}
+                                                <li><strong>Cal:</strong> {{ ligne.plat.calorie|floatformat:0 }}</li>
+                                                <li><strong>Prot:</strong> {{ ligne.plat.proteine|floatformat:1 }}g</li>
+                                                <li><strong>Carbs:</strong> {{ ligne.plat.glucides|floatformat:1 }}g</li>
+                                            {% endif %}
+                                        </ul>
+                                    </td>
+                                    <td class="item-price">{{ ligne.prix_unitaire|floatformat:2 }}€</td>
+                                    <td class="item-quantity">
+                                        <div class="quantity-control">
+                                            <button class="qty-btn qty-minus" data-ligne-id="{{ ligne.id }}">-</button>
+                                            <input type="number" class="qty-input" value="{{ ligne.quantite }}" min="1" data-ligne-id="{{ ligne.id }}">
+                                            <button class="qty-btn qty-plus" data-ligne-id="{{ ligne.id }}">+</button>
+                                        </div>
+                                    </td>
+                                    <td class="item-subtotal">{{ ligne.sous_total|floatformat:2 }}€</td>
+                                    <td class="item-actions">
+                                        <button class="btn-remove" data-ligne-id="{{ ligne.id }}" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-panier">
+                    <div class="empty-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h2>Votre panier est vide</h2>
+                    <p>Commencez par ajouter des menus à votre panier</p>
+                    <a href="{% url 'menu' %}" class="btn btn-primary btn-lg">Voir les menus</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Colonne droite: Résumé et checkout -->
+        {% if commande.lignecommande_set.all %}
+            <aside class="panier-summary">
+                <div class="summary-box">
+                    <h3>Résumé de la commande</h3>
+                    
+                    <div class="summary-item">
+                        <span>Nombre d'articles:</span>
+                        <span class="summary-value" id="total-items">{{ commande.lignecommande_set.count }}</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span>Sous-total:</span>
+                        <span class="summary-value" id="subtotal">{{ commande.total|floatformat:2 }}€</span>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <span>Frais de livraison:</span>
+                        <span class="summary-value" id="shipping-cost">0.00€</span>
+                    </div>
+                    
+                    <div class="summary-item discount-section">
+                        <label for="promo-code">Code promo:</label>
+                        <input type="text" id="promo-code" placeholder="Entrez un code" class="promo-input">
+                        <button id="apply-promo" class="btn btn-secondary btn-sm">Appliquer</button>
+                    </div>
+                    
+                    <div class="summary-total">
+                        <span>Total:</span>
+                        <span id="total-price" class="total-value">{{ commande.total|floatformat:2 }}€</span>
+                    </div>
+                    
+                    <a href="{% url 'checkout' %}" class="btn btn-primary btn-block btn-lg">
+                        <i class="fas fa-check"></i> Passer la commande
+                    </a>
+                    
+                    <a href="{% url 'menu' %}" class="btn btn-secondary btn-block">
+                        <i class="fas fa-arrow-left"></i> Continuer mes achats
+                    </a>
+                </div>
+                
+                <!-- Recommandations -->
+                <div class="recommendations-box">
+                    <h4>Recommandations</h4>
+                    <p class="recommendations-text">Ajoutez d'autres menus pour équilibrer votre nutrition.</p>
+                </div>
+            </aside>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal pour confirmation de suppression -->
+<div class="modal" id="modal-delete">
+    <div class="modal-content">
+        <h3>Confirmer la suppression</h3>
+        <p>Êtes-vous sûr de vouloir supprimer cet article du panier?</p>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="modal-cancel">Annuler</button>
+            <button class="btn btn-danger" id="modal-confirm">Supprimer</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'commande/commande.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initPanier();
+});
+</script>
+{% endblock %}
