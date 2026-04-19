@@ -5,6 +5,15 @@ from .models import (
     Menu, Commande, LigneCommande, SystemeIA
 )
 
+# Importer les fonctions cache et constantes
+try:
+    from .score_constants import get_cached_score, set_cached_score
+except ImportError:
+    def get_cached_score(key, func=None):
+        return func() if func else None
+    def set_cached_score(key, value):
+        return value
+
 Utilisateur = get_user_model()
 
 class UtilisateurSerializer(serializers.ModelSerializer):
@@ -49,6 +58,7 @@ class PlatSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def get_score_nutritionnel(self, obj):
+        """Obtient le score nutritionnel du plat (utilise le cache du modèle)"""
         return obj.calculer_score_nutritionnel()
 
 class MenuSerializer(serializers.ModelSerializer):
@@ -60,10 +70,11 @@ class MenuSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def get_valeur_nutritionnelle(self, obj):
+        """Retourne les valeurs nutritionnelles totales du menu"""
         return obj.calculer_valeur_nutritionnelle_totale()
 
 class PlatRecommandationSerializer(serializers.ModelSerializer):
-    """Serializer pour les plats recommandés avec score"""
+    """Serializer optimisé pour les plats recommandés avec score"""
     valeur_nutritionnelle = serializers.SerializerMethodField()
     score = serializers.FloatField(read_only=True)
     score_nutritionnel = serializers.SerializerMethodField()
@@ -75,7 +86,7 @@ class PlatRecommandationSerializer(serializers.ModelSerializer):
                   'valeur_nutritionnelle']
     
     def get_valeur_nutritionnelle(self, obj):
-        """Retourne les valeurs nutritionnelles du plat"""
+        """Retourne les valeurs nutritionnelles du plat (optimisé)"""
         return {
             'calories': obj.calorie,
             'proteines': obj.proteine,
@@ -86,13 +97,23 @@ class PlatRecommandationSerializer(serializers.ModelSerializer):
         }
     
     def get_score_nutritionnel(self, obj):
-        """Calcule le score nutritionnel du plat"""
+        """Calcule le score nutritionnel du plat (optimisé)"""
+        cache_key = f"score_nutr_{obj.id_plat}"
+        cached = get_cached_score(cache_key)
+        if cached is not None:
+            return cached
+        
+        # Formule rapide : (protéines * 2 - lipides) / 100
+        score = 0.0
         if obj.proteine > 0:
-            return round((obj.proteine * 2 - obj.lipides) / 100, 2)
-        return 0.0
+            score = (obj.proteine * 2 - obj.lipides) / 100
+        
+        final_score = round(score, 2)
+        set_cached_score(cache_key, final_score)
+        return final_score
 
 class MenuRecommandationSerializer(serializers.ModelSerializer):
-    """Serializer pour les menus recommandés avec liste de plats"""
+    """Serializer optimisé pour les menus recommandés avec liste de plats"""
     plats = serializers.SerializerMethodField()
     valeur_nutritionnelle = serializers.SerializerMethodField()
     prix_total = serializers.SerializerMethodField()

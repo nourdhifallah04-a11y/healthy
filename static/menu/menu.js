@@ -2,10 +2,26 @@
 let meals = [];
 let menus = [];
 
+// ========== CONSTANTES D'OPTIMISATION DU SCORE ==========
+const SCORE_CONSTANTS = {
+    PROTEIN_MAX: 50,
+    PROTEIN_REF: 50,
+    FIBER_MAX: 20,
+    FIBER_REF: 30,
+    BALANCE_MAX: 30,
+    BALANCE_PENALTY: 50,
+    IDEAL_RATIOS: { carbs: 0.4, protein: 0.3, fat: 0.3 },
+    CALS_PER_CARB: 4,
+    CALS_PER_PROTEIN: 4,
+    CALS_PER_FAT: 9
+};
+
+// Cache pour éviter les recalculs
+const scoreCache = new Map();
+
 /**
- * Calcule le score nutritionnel du menu
+ * Calcule le score nutritionnel du menu (optimisé)
  * Score basé sur : protéines (priorité haute), fibres, équilibre macros
- * Formule : (Protéines * 2) + Fibres + (équilibre macro bonus)
  * @param {number} protein - Protéines totales en grammes
  * @param {number} fiber - Fibres totales en grammes
  * @param {number} carbs - Glucides totaux en grammes
@@ -13,29 +29,42 @@ let menus = [];
  * @returns {number} Score du menu (0-100)
  */
 function calculerScoreMenu(protein, fiber, carbs, fat) {
-    // Score base sur les protéines (max 50 points)
-    const scoreProtein = Math.min(50, (protein / 50) * 50);
+    // Clé de cache
+    const cacheKey = `${protein},${fiber},${carbs},${fat}`;
+    if (scoreCache.has(cacheKey)) {
+        return scoreCache.get(cacheKey);
+    }
     
-    // Score base sur les fibres (max 20 points)
-    const scoreFiber = Math.min(20, (fiber / 30) * 20);
+    // Score protéine (max 50 points)
+    const scoreProtein = Math.min(SCORE_CONSTANTS.PROTEIN_MAX, protein * (SCORE_CONSTANTS.PROTEIN_MAX / SCORE_CONSTANTS.PROTEIN_REF));
+    
+    // Score fibre (max 20 points)
+    const scoreFiber = Math.min(SCORE_CONSTANTS.FIBER_MAX, fiber * (SCORE_CONSTANTS.FIBER_MAX / SCORE_CONSTANTS.FIBER_REF));
     
     // Score d'équilibre macro (max 30 points)
-    // Idéal : 40% carbs, 30% protein, 30% fat
-    const totalCals = (carbs * 4) + (protein * 4) + (fat * 9);
-    let scoreBalance = 30;
+    const totalCals = (carbs * SCORE_CONSTANTS.CALS_PER_CARB) + 
+                      (protein * SCORE_CONSTANTS.CALS_PER_PROTEIN) + 
+                      (fat * SCORE_CONSTANTS.CALS_PER_FAT);
+    
+    let scoreBalance = SCORE_CONSTANTS.BALANCE_MAX;
     if (totalCals > 0) {
-        const carbsRatio = (carbs * 4) / totalCals;
-        const proteinRatio = (protein * 4) / totalCals;
-        const fatRatio = (fat * 9) / totalCals;
+        const carbsRatio = (carbs * SCORE_CONSTANTS.CALS_PER_CARB) / totalCals;
+        const proteinRatio = (protein * SCORE_CONSTANTS.CALS_PER_PROTEIN) / totalCals;
+        const fatRatio = (fat * SCORE_CONSTANTS.CALS_PER_FAT) / totalCals;
         
-        // Distance à l'idéal (40%, 30%, 30%)
-        const distance = Math.abs(carbsRatio - 0.4) + Math.abs(proteinRatio - 0.3) + Math.abs(fatRatio - 0.3);
-        scoreBalance = Math.max(0, 30 - (distance * 50));
+        const distance = Math.abs(carbsRatio - SCORE_CONSTANTS.IDEAL_RATIOS.carbs) + 
+                         Math.abs(proteinRatio - SCORE_CONSTANTS.IDEAL_RATIOS.protein) + 
+                         Math.abs(fatRatio - SCORE_CONSTANTS.IDEAL_RATIOS.fat);
+        
+        scoreBalance = Math.max(0, SCORE_CONSTANTS.BALANCE_MAX - (distance * SCORE_CONSTANTS.BALANCE_PENALTY));
     }
     
     // Score total (0-100)
-    const totalScore = scoreProtein + scoreFiber + scoreBalance;
-    return Math.min(100, Math.round(totalScore));
+    const totalScore = Math.min(100, Math.round(scoreProtein + scoreFiber + scoreBalance));
+    
+    // Mise en cache du résultat
+    scoreCache.set(cacheKey, totalScore);
+    return totalScore;
 }
 
 /**
@@ -165,6 +194,9 @@ function displayMeals() {
             meal.name.toLowerCase().includes(currentSearch.toLowerCase())
         );
     }
+
+    // Tri par score nutritionnel (décroissant)
+    filteredMeals.sort((a, b) => (b.score || 0) - (a.score || 0));
 
     // Affichage des résultats
     if (filteredMeals.length === 0) {

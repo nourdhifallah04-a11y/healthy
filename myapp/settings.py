@@ -156,3 +156,16 @@ LOGGING = {
         },
     },
 }
+
+# ========== CONFIGURATION N8N WEBHOOK ==========
+# Timeout pour les appels au webhook n8n (en secondes)
+# Augmentez cette valeur si vos workflows n8n prennent du temps
+# Par défaut: 120 secondes (2 minutes)
+N8N_WEBHOOK_TIMEOUT = int(os.getenv('N8N_WEBHOOK_TIMEOUT', '120'))
+
+# URL du webhook n8n pour les recommandations nutritionnelles
+# Par défaut: http://localhost:5678/webhook/reco-nutrition
+N8N_WEBHOOK_URL = os.getenv(
+    'N8N_WEBHOOK_URL', 
+    'http://localhost:5678/webhook/reco-nutrition'
+)

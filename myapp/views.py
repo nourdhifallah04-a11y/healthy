@@ -11,10 +11,26 @@ from django.views.decorators.http import require_http_methods
 from django.utils.html import mark_safe
 from django.conf import settings
 import json
+import requests
+import logging
+import threading
+import uuid
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
 from .models import (
     Client, Plat, Menu, Commande, SystemeIA,
     ProfilNutritionnel, LigneCommande, Administrateur, Utilisateur
 )
+
+# ===== Configuration Timeout N8N =====
+N8N_WEBHOOK_TIMEOUT = getattr(settings, 'N8N_WEBHOOK_TIMEOUT', 600)  # Default: 120 secondes
+N8N_WEBHOOK_URL = getattr(settings, 'N8N_WEBHOOK_URL', 'http://localhost:5678/webhook/reco-nutrition')
+
+# ===== Async Jobs Cache =====
+# Dictionnaire pour stocker les résultats des jobs async
+# Clé: job_id, Valeur: {'status': 'pending|completed|failed', 'result': {...}, 'error': {...}, 'timestamp': datetime}
+async_jobs_cache = {}
 from .serializers import (
     ClientSerializer, PlatSerializer, MenuSerializer, CommandeSerializer,
     ProfilNutritionnelSerializer, SystemeIASerializer, LigneCommandeSerializer,
@@ -108,7 +124,18 @@ def login_admin(request):
 
 def accueil(request):
     """Affiche la page d'accueil"""
-    return render(request, 'accueil/accueil.html', {})
+    context = {}
+    
+    # Ajouter le profil nutritionnel au contexte si l'utilisateur est authentifié
+    if request.user.is_authenticated:
+        try:
+            client = Client.objects.get(utilisateur=request.user)
+            profil = ProfilNutritionnel.objects.get(client=client)
+            context['profil_nutritionnel'] = profil
+        except (Client.DoesNotExist, ProfilNutritionnel.DoesNotExist):
+            pass
+    
+    return render(request, 'accueil/accueil.html', context)
 
 
 def menu(request):
@@ -879,35 +906,52 @@ class RecommenderPlatsView(generics.ListAPIView):
         return MenuRecommandationSerializer
     
     def _calculer_score_menu(self, menu, client):
-        """Calcule le score pour un menu basé sur le profil du client"""
+        """Calcule le score pour un menu basé sur le profil du client (optimisé avec cache)"""
+        from .score_constants import get_cached_score, set_cached_score
+        
         try:
+            # Clé de cache
+            cache_key = f"menu_score_{menu.id_menu}_{client.id if hasattr(client, 'id') else 'unknown'}"
+            cached_score = get_cached_score(cache_key)
+            if cached_score is not None:
+                return cached_score
+            
             profil = client.profil_nutritionnel
-            preferences = SystemeIA.objects.first().analyser_preferences(client) if SystemeIA.objects.first() else {}
-            
             valeurs = menu.calculer_valeur_nutritionnelle_totale()
-            score = 0
+            score = 0.0
             
-            # Score basé sur l'objectif nutritionnel
-            if profil.objectif == 'perte_poids' and valeurs['calories'] < 600:
-                score += 30
-            elif profil.objectif == 'prise_muscle' and valeurs['proteines'] > 30:
-                score += 30
-            elif profil.objectif == 'performance' and valeurs['calories'] > 700:
-                score += 30
+            # Score basé sur l'objectif nutritionnel (max 30)
+            if profil.objectif == 'perte_poids':
+                score += 30 if valeurs['calories'] < 600 else (20 if valeurs['calories'] < 800 else 5)
+            elif profil.objectif == 'prise_muscle':
+                score += 30 if valeurs['proteines'] > 30 else (20 if valeurs['proteines'] > 20 else 5)
+            elif profil.objectif == 'performance':
+                score += 30 if valeurs['calories'] > 700 else (20 if valeurs['calories'] > 500 else 5)
+            else:
+                score += 15  # Score neutre pour objectif unknown
+            
+            # Score nutritionnel (max 20)
+            if valeurs.get('proteines'):
+                score_nutritionnel = (valeurs['proteines'] * 2 - valeurs['lipides']) / 100
+                score += max(0, min(20, score_nutritionnel))
+            
+            # Score d'équilibre macro (max 20)
+            total_cals = (valeurs.get('glucides', 0) * 4) + (valeurs.get('proteines', 0) * 4) + (valeurs.get('lipides', 0) * 9)
+            if total_cals > 0:
+                carbs_ratio = (valeurs.get('glucides', 0) * 4) / total_cals
+                protein_ratio = (valeurs.get('proteines', 0) * 4) / total_cals
+                fat_ratio = (valeurs.get('lipides', 0) * 9) / total_cals
                 
-            # Score basé sur les préférences historiques
-            if preferences.get('preferences'):
-                if valeurs['calories'] < 400 and preferences['preferences'].get('leger', 0) > 0:
-                    score += 20
-                elif valeurs['calories'] > 700 and preferences['preferences'].get('energetique', 0) > 0:
-                    score += 20
-                    
-            # Score nutritionnel
-            score_nutritionnel = (valeurs['proteines'] * 2 - valeurs['lipides']) / 100 if valeurs.get('proteines') else 0
-            score += max(0, min(20, score_nutritionnel))
+                distance = abs(carbs_ratio - 0.4) + abs(protein_ratio - 0.3) + abs(fat_ratio - 0.3)
+                balance_score = max(0, 20 - (distance * 25))
+                score += balance_score
             
-            return round(score, 2)
-        except Exception:
+            final_score = round(min(100, max(0, score)), 2)
+            set_cached_score(cache_key, final_score)
+            
+            return final_score
+        except Exception as e:
+            print(f"Erreur lors du calcul du score menu: {e}")
             return 0.0
     
     def get_queryset(self):
@@ -1239,6 +1283,345 @@ class UnifiedMenuItemViewSet(viewsets.ViewSet):
             {'id': 'autre', 'name': 'Autre'},
         ]
         return Response(categories, status=status.HTTP_200_OK)
+
+
+# ===== N8N Webhook Integration =====
+
+class JobStatusView(generics.GenericAPIView):
+    """
+    Vue pour récupérer le statut et les résultats d'un job async
+    GET /api/profil-nutritionnel/recommander-n8n/job-status/?job_id=<uuid>
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        """
+        Récupère le statut et les résultats d'un job async
+        """
+        job_id = request.query_params.get('job_id')
+        
+        if not job_id:
+            logger.warning("Requête job_status sans job_id")
+            return Response({
+                'success': False,
+                'error': 'job_id est requis',
+                'usage': '/api/profil-nutritionnel/recommander-n8n/job-status/?job_id=<uuid>'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        logger.info(f"JobStatusView.get() - job_id: {job_id}")
+        
+        if job_id not in async_jobs_cache:
+            logger.warning(f"Job {job_id} non trouvé ou expiré")
+            return Response({
+                'success': False,
+                'error': 'Job non trouvé ou expiré'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        job = async_jobs_cache[job_id]
+        
+        # Nettoyer les anciens jobs (plus de 1 heure)
+        if (datetime.now() - job['timestamp']).total_seconds() > 3600:
+            logger.warning(f"Job {job_id} expiré (plus de 1 heure)")
+            del async_jobs_cache[job_id]
+            return Response({
+                'success': False,
+                'error': 'Job expiré (plus de 1 heure)'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        response_data = {
+            'job_id': job_id,
+            'status': job['status'],
+            'timestamp': job['timestamp'].isoformat()
+        }
+        
+        logger.info(f"Job {job_id} - Status: {job['status']}")
+        
+        if job['status'] == 'pending':
+            return Response(response_data, status=status.HTTP_202_ACCEPTED)
+        elif job['status'] == 'completed':
+            response_data.update(job['result'])
+            logger.info(f"Job {job_id} complété avec succès")
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:  # failed
+            response_data.update(job['error'])
+            logger.error(f"Job {job_id} échoué")
+            return Response(response_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RecommenderIAProfilNutritionnelWebhookView(generics.GenericAPIView):
+    """
+    Vue pour appeler le webhook n8n et obtenir les recommandations nutritionnelles IA.
+    Analyse du profil nutritionnel et recommandations personnalisées.
+    
+    POST /api/profil-nutritionnel/recommander-n8n/
+    Body: {
+        "profil_id": 1,           (optionnel, utilisera le profil de l'utilisateur courant sinon)
+        "async": false             (optionnel, default: false. Si true, retourne immédiatement avec un job_id)
+    }
+    
+    Webhook n8n: http://localhost:5678/webhook/reco-nutrition
+    
+    Réponse: Analyse du profil nutritionnel avec priorités et macronutriments cibles
+    
+    Options:
+    - Mode Synchrone (async: false ou absent):
+      - Attendra la réponse du webhook (timeout configurable)
+      - Retournera la réponse complète avec profil_analyse
+    
+    - Mode Asynchrone (async: true):
+      - Retournera immédiatement avec un job_id
+      - Le traitement se fait en arrière-plan
+      - Utiliser GET /api/profil-nutritionnel/recommander-n8n/job-status/{job_id}/ pour vérifier l'état
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def _call_n8n_webhook(self, job_id, payload, logger_info=None):
+        """
+        Fonction pour appeler le webhook n8n en arrière-plan (utilisée pour async)
+        """
+        try:
+            logger.info(f"[Job {job_id}] Appel du webhook n8n en arrière-plan...")
+            logger.info(f"[Job {job_id}] Payload: {json.dumps(payload, indent=2)}")
+            
+            response = requests.post(
+                N8N_WEBHOOK_URL,
+                json=payload,
+                timeout=N8N_WEBHOOK_TIMEOUT
+            )
+            
+            logger.info(f"[Job {job_id}] Réponse n8n (status {response.status_code}): {response.text[:500]}")
+            
+            if response.status_code == 200:
+                try:
+                    recommendations = response.json()
+                except json.JSONDecodeError:
+                    recommendations = {'raw_response': response.text}
+                
+                # Stocker le résultat dans le cache
+                async_jobs_cache[job_id] = {
+                    'status': 'completed',
+                    'result': {
+                        'success': True,
+                        'message': 'Recommandations obtenues avec succès',
+                        'profil': payload['profil'],
+                        'recommendations': recommendations
+                    },
+                    'timestamp': datetime.now()
+                }
+                logger.info(f"[Job {job_id}] Résultat stocké avec succès")
+            else:
+                async_jobs_cache[job_id] = {
+                    'status': 'failed',
+                    'error': {
+                        'success': False,
+                        'error': f'Erreur du webhook n8n: {response.status_code}',
+                        'details': response.text[:1000]
+                    },
+                    'timestamp': datetime.now()
+                }
+                logger.error(f"[Job {job_id}] Erreur: {response.status_code}")
+        
+        except requests.exceptions.Timeout as e:
+            logger.error(f"[Job {job_id}] Timeout du webhook n8n: {str(e)}")
+            async_jobs_cache[job_id] = {
+                'status': 'failed',
+                'error': {
+                    'success': False,
+                    'error': f'Timeout du webhook n8n après {N8N_WEBHOOK_TIMEOUT}s',
+                    'details': str(e)
+                },
+                'timestamp': datetime.now()
+            }
+        
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"[Job {job_id}] Erreur de connexion: {str(e)}")
+            async_jobs_cache[job_id] = {
+                'status': 'failed',
+                'error': {
+                    'success': False,
+                    'error': f'Impossible de se connecter au webhook n8n',
+                    'webhook_url': N8N_WEBHOOK_URL,
+                    'details': str(e)
+                },
+                'timestamp': datetime.now()
+            }
+        
+        except Exception as e:
+            logger.error(f"[Job {job_id}] Erreur générale: {str(e)}")
+            async_jobs_cache[job_id] = {
+                'status': 'failed',
+                'error': {
+                    'success': False,
+                    'error': f'Erreur lors de l\'appel au webhook',
+                    'details': str(e)
+                },
+                'timestamp': datetime.now()
+            }
+    
+    def post(self, request, *args, **kwargs):
+        """
+        Appelle le webhook n8n avec les données du profil nutritionnel
+        Mode synchrone par défaut, asynchrone si async=true
+        """
+        logger.info(f"=== RecommenderIAProfilNutritionnelWebhookView.post() appelée ===")
+        logger.info(f"Utilisateur authentifié: {request.user}")
+        logger.info(f"Content-Type: {request.content_type}")
+        logger.info(f"Timeout configuré: {N8N_WEBHOOK_TIMEOUT}s")
+        
+        # Vérifier si mode async demandé
+        is_async = request.data.get('async', False)
+        logger.info(f"Mode async: {is_async}")
+        
+        try:
+            # Récupérer le profil nutritionnel
+            try:
+                profil_id = request.data.get('profil_id')
+                logger.info(f"profil_id extrait: {profil_id}")
+            except Exception as e:
+                logger.error(f"Erreur lors de l'extraction de profil_id: {str(e)}")
+                profil_id = None
+            
+            if profil_id:
+                try:
+                    profil = ProfilNutritionnel.objects.get(id=profil_id)
+                    logger.info(f"Profil trouvé par ID: {profil_id}")
+                except ProfilNutritionnel.DoesNotExist:
+                    logger.error(f"Profil avec ID {profil_id} non trouvé")
+                    return Response({
+                        'success': False,
+                        'error': 'Profil nutritionnel non trouvé'
+                    }, status=status.HTTP_404_NOT_FOUND)
+            else:
+                # Utiliser le profil de l'utilisateur courant
+                try:
+                    utilisateur = request.user
+                    client = Client.objects.get(utilisateur=utilisateur)
+                    profil = ProfilNutritionnel.objects.get(client=client)
+                    logger.info(f"Profil trouvé pour l'utilisateur: {utilisateur}")
+                except Client.DoesNotExist:
+                    logger.error(f"Pas de Client trouvé pour l'utilisateur {utilisateur}")
+                    return Response({
+                        'success': False,
+                        'error': 'Aucun client trouvé pour cet utilisateur'
+                    }, status=status.HTTP_404_NOT_FOUND)
+                except ProfilNutritionnel.DoesNotExist:
+                    logger.error(f"Pas de ProfilNutritionnel trouvé")
+                    return Response({
+                        'success': False,
+                        'error': 'Profil nutritionnel non trouvé pour cet utilisateur'
+                    }, status=status.HTTP_404_NOT_FOUND)
+            
+            # Préparer le payload pour n8n
+            payload = {
+                'profil': {
+                    'age': profil.age,
+                    'poids': float(profil.poids),
+                    'taille': float(profil.taille),
+                    'sexe': profil.sexe,
+                    'objectif': profil.objectif,
+                    'allergies': profil.allergies or '',
+                    'restrictions_alimentaires': profil.restrictions_alimentaires or '',
+                    'niveau_activite': profil.niveau_activite,
+                    'imc': float(profil.calculer_imc()) if profil.calculer_imc() else None,
+                    'bmr': float(profil.calculer_bmr()) if profil.calculer_bmr() else None,
+                    'calories_cibles': float(profil.besoins_caloriques_journaliers()) if profil.besoins_caloriques_journaliers() else None,
+                    'categorie_imc': str(profil.determiner_categorie_imc()) if profil.determiner_categorie_imc() else None
+                }
+            }
+            
+            # MODE ASYNCHRONE
+            if is_async:
+                job_id = str(uuid.uuid4())
+                logger.info(f"Mode ASYNC activé - Job ID: {job_id}")
+                
+                # Marquer le job comme en attente
+                async_jobs_cache[job_id] = {
+                    'status': 'pending',
+                    'result': None,
+                    'timestamp': datetime.now()
+                }
+                
+                # Lancer le traitement en arrière-plan (thread)
+                thread = threading.Thread(
+                    target=self._call_n8n_webhook,
+                    args=(job_id, payload),
+                    daemon=True
+                )
+                thread.start()
+                logger.info(f"Thread lancé pour job {job_id}")
+                
+                return Response({
+                    'success': True,
+                    'message': 'Traitement lancé en arrière-plan',
+                    'job_id': job_id,
+                    'status': 'pending',
+                    'check_status_url': f'/api/profil-nutritionnel/recommander-n8n/job-status/{job_id}/'
+                }, status=status.HTTP_202_ACCEPTED)
+            
+            # MODE SYNCHRONE (par défaut)
+            else:
+                logger.info(f"Mode SYNCHRONE (timeout: {N8N_WEBHOOK_TIMEOUT}s)")
+                
+                try:
+                    response = requests.post(
+                        N8N_WEBHOOK_URL,
+                        json=payload,
+                        timeout=N8N_WEBHOOK_TIMEOUT
+                    )
+                    
+                    logger.info(f"Réponse n8n (status {response.status_code}): {response.text[:500]}")
+                    
+                    if response.status_code == 200:
+                        try:
+                            recommendations = response.json()
+                        except json.JSONDecodeError:
+                            recommendations = {'raw_response': response.text}
+                        
+                        return Response({
+                            'success': True,
+                            'message': 'Recommandations obtenues avec succès',
+                            'profil': payload['profil'],
+                            'recommendations': recommendations
+                        }, status=status.HTTP_200_OK)
+                    else:
+                        return Response({
+                            'success': False,
+                            'error': f'Erreur du webhook n8n: {response.status_code}',
+                            'details': response.text[:1000]
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                
+                except requests.exceptions.Timeout as e:
+                    logger.error(f"Timeout du webhook n8n: {str(e)}")
+                    return Response({
+                        'success': False,
+                        'error': f'Timeout du webhook n8n après {N8N_WEBHOOK_TIMEOUT}s',
+                        'details': str(e),
+                        'suggestion': 'Essayez avec "async": true pour un traitement en arrière-plan'
+                    }, status=status.HTTP_504_GATEWAY_TIMEOUT)
+                
+                except requests.exceptions.ConnectionError as e:
+                    logger.error(f"Erreur de connexion: {str(e)}")
+                    return Response({
+                        'success': False,
+                        'error': f'Impossible de se connecter au webhook n8n',
+                        'webhook_url': N8N_WEBHOOK_URL,
+                        'details': str(e)
+                    }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                
+                except Exception as e:
+                    logger.error(f"Erreur générale: {str(e)}")
+                    return Response({
+                        'success': False,
+                        'error': f'Erreur lors de l\'appel au webhook',
+                        'details': str(e)
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        except Exception as e:
+            logger.error(f"Erreur générale dans RecommenderIAProfilNutritionnelWebhookView: {str(e)}")
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=False, methods=['get'])
     def search(self, request):

@@ -4,6 +4,30 @@ from django.utils import timezone
 from decimal import Decimal
 from typing import Dict, List
 
+# ========== IMPORTS CONSTANTES SCORING CENTRALISÉES ==========
+try:
+    from .score_constants import (
+        get_cached_score, 
+        set_cached_score, 
+        clear_score_cache,
+        get_age_gender_profile,
+        SIMPLE_SCORE_CONFIG, 
+        BMI_STRATEGIES, 
+        DIETARY_RESTRICTIONS,
+        AGE_GENDER_PROFILES
+    )
+except ImportError:
+    # Fallback si score_constants.py n'existe pas encore
+    def get_cached_score(key, func=None):
+        return func() if func else None
+    def set_cached_score(key, value):
+        return value
+    def clear_score_cache():
+        pass
+    SIMPLE_SCORE_CONFIG = {}
+    BMI_STRATEGIES = {}
+    DIETARY_RESTRICTIONS = {}
+
 
 class UtilisateurManager(BaseUserManager):
     """Manager personnalisé pour utiliser l'email comme identifiant"""
@@ -279,360 +303,371 @@ class Plat(models.Model):
         return categories if categories else ['autre']
     
     def calculer_score_nutritionnel(self) -> int:
-        """Calcule un score nutritionnel de 0 à 100 basé sur les valeurs nutritionnelles"""
-        score = 50  # Score de base
+        """Calcule un score nutritionnel de 0 à 100 basé sur les valeurs nutritionnelles (optimisé avec cache)"""
+        # Clé de cache basée sur les valeurs nutritionnelles du plat
+        cache_key = f"score_{self.id_plat}_{self.calorie}_{self.proteine}_{self.fibres}_{self.lipides}"
         
-        # Bonus pour les protéines (important pour la satiété et la musculature)
-        if self.proteine > 30:
-            score += 20
-        elif self.proteine > 20:
-            score += 10
-            
-        # Malus pour les calories élevées
-        if self.calorie > 800:
-            score -= 20
-        elif self.calorie > 600:
-            score -= 10
-            
-        # Bonus pour les fibres (satiété et santé digestive)
-        if self.fibres > 10:
-            score += 15
-        elif self.fibres > 5:
-            score += 8
-            
-        # Malus pour les lipides saturés
-        if self.lipides > 30:
-            score -= 15
-        elif self.lipides > 20:
-            score -= 8
-            
-        return max(0, min(100, score))
+        # Vérifier le cache
+        cached_score = get_cached_score(cache_key)
+        if cached_score is not None:
+            return cached_score
+        
+        cfg = SIMPLE_SCORE_CONFIG if SIMPLE_SCORE_CONFIG else {
+            'base': 50,
+            'protein': {'high_threshold': 30, 'high_bonus': 20, 'medium_threshold': 20, 'medium_bonus': 10},
+            'calories': {'high_threshold': 800, 'high_malus': 20, 'medium_threshold': 600, 'medium_malus': 10},
+            'fiber': {'high_threshold': 10, 'high_bonus': 15, 'medium_threshold': 5, 'medium_bonus': 8},
+            'fat': {'high_threshold': 30, 'high_malus': 15, 'medium_threshold': 20, 'medium_malus': 8}
+        }
+        score = cfg['base']
+        
+        # Bonus protéines
+        if self.proteine > cfg['protein']['high_threshold']:
+            score += cfg['protein']['high_bonus']
+        elif self.proteine > cfg['protein']['medium_threshold']:
+            score += cfg['protein']['medium_bonus']
+        
+        # Malus calories
+        if self.calorie > cfg['calories']['high_threshold']:
+            score -= cfg['calories']['high_malus']
+        elif self.calorie > cfg['calories']['medium_threshold']:
+            score -= cfg['calories']['medium_malus']
+        
+        # Bonus fibres
+        if self.fibres > cfg['fiber']['high_threshold']:
+            score += cfg['fiber']['high_bonus']
+        elif self.fibres > cfg['fiber']['medium_threshold']:
+            score += cfg['fiber']['medium_bonus']
+        
+        # Malus lipides
+        if self.lipides > cfg['fat']['high_threshold']:
+            score -= cfg['fat']['high_malus']
+        elif self.lipides > cfg['fat']['medium_threshold']:
+            score -= cfg['fat']['medium_malus']
+        
+        # Clamp le score entre 0 et 100 et mettre en cache
+        final_score = max(0, min(100, score))
+        set_cached_score(cache_key, final_score)
+        
+        return final_score
     
     @staticmethod
     def calculer_score_recommendation(plat: "Plat", categorie_imc: str, 
                                      allergies: str = "", restrictions: str = "",
-                                     age: int = None, sexe: str = None) -> float:
-        """
-        Calcule un score de recommandation pour un plat basé sur la catégorie IMC, 
-        allergies, restrictions alimentaires, âge et sexe
+                                     age: int = None, sexe: str = None, debug: bool = False) -> float:
+        """Calcule un score de recommandation pour un plat basé sur IMC, allergies, restrictions (optimisé)"""
+        # Clé de cache
+        cache_key = f"rec_{plat.id_plat}_{categorie_imc}_{allergies}_{restrictions}_{age}_{sexe}"
+        cached = get_cached_score(cache_key)
+        if cached is not None:
+            return cached
         
-        Stratégies par catégorie IMC:
-        - Insuffisance pondérale: Calories élevées, protéines modérées
-        - Normal: Équilibre optimal entre tous les nutriments
-        - Surpoids: Faibles calories, protéines élevées, lipides bas, fibres élevées
-        - Obésité: Très faibles calories, protéines très élevées, très faibles lipides
-        
-        Facteurs d'âge et de sexe:
-        - Les femmes ont des besoins caloriques et en fer plus spécifiques
-        - Les hommes ont généralement des besoins protéiques plus élevés
-        - Les jeunes ont des besoins énergétiques supérieurs
-        
-        Args:
-            plat: Instance du modèle Plat
-            categorie_imc: Catégorie d'IMC ('insuffisance_ponderale', 'normal', 'surpoids', 'obesite')
-            allergies: Chaîne contenant les allergies du client (ex: "arachide, lactose")
-            restrictions: Chaîne contenant les restrictions alimentaires (ex: "végétarien, sans gluten")
-            age: Âge du client (optionnel)
-            sexe: Sexe du client ('homme', 'femme') (optionnel)
-        
-        Returns:
-            Score de recommandation (0-100), retourne 0 si allergie/restriction détectée
-        """
-        # Vérifier les allergies et restrictions alimentaires
         texte_plat = (plat.nom + " " + plat.description).lower()
         
-        print(f"\n  [CALCUL SCORE] Plat: {plat.nom}")
-        print(f"  Valeurs: Cal={plat.calorie:.0f} | Prot={plat.proteine:.1f}g | Gluc={plat.glucides:.1f}g | Lip={plat.lipides:.1f}g | Fib={plat.fibres:.1f}g")
+        # Utiliser les constantes avec fallback
+        dietary_res = DIETARY_RESTRICTIONS if DIETARY_RESTRICTIONS else {
+            'vegetarien': {'keywords': ['viande', 'poulet', 'boeuf', 'poisson', 'saumon', 'thon', 'canard']},
+            'vegane': {'keywords': ['viande', 'poulet', 'boeuf', 'poisson', 'oeuf', 'lait', 'fromage', 'beurre']},
+            'sans gluten': {'keywords': ['blé', 'gluten', 'pain', 'pate', 'biscuit', 'cereale']},
+            'sans lactose': {'keywords': ['lait', 'fromage', 'beurre', 'creme', 'yaourt']}
+        }
         
-        # Vérifier les allergies
+        # 1. Vérifier allergies et restrictions
         if allergies:
-            allergies_list = [a.strip().lower() for a in allergies.split(',')]
-            for allergie in allergies_list:
-                if allergie and allergie in texte_plat:
-                    print(f"  ❌ ALLERGIE DÉTECTÉE: {allergie}")
-                    return 0.0  # Score nul si allergie détectée
+            for allergie in [a.strip().lower() for a in allergies.split(',') if a.strip()]:
+                if allergie in texte_plat:
+                    set_cached_score(cache_key, 0.0)
+                    return 0.0
         
-        # Vérifier les restrictions
         if restrictions:
-            restrictions_list = [r.strip().lower() for r in restrictions.split(',')]
-            for restriction in restrictions_list:
-                if restriction:
-                    # Restreint si le texte du plat le mentionne
-                    if restriction in texte_plat:
-                        print(f"  ❌ RESTRICTION VIOLÉE: {restriction}")
-                        return 0.0  # Score nul si restriction violée
-                    
-                    # Cas spécifiques de restrictions communes
-                    if restriction == 'vegetarien' and any(x in texte_plat for x in ['viande', 'poulet', 'boeuf', 'poisson', 'saumon', 'thon']):
-                        print(f"  ❌ RESTRICTION VIOLÉE: {restriction} (détecté viande/poisson)")
-                        return 0.0
-                    elif restriction == 'vegane' and any(x in texte_plat for x in ['viande', 'poulet', 'boeuf', 'poisson', 'oeuf', 'lait', 'fromage', 'beurre']):
-                        print(f"  ❌ RESTRICTION VIOLÉE: {restriction} (détecté produit animal)")
-                        return 0.0
-                    elif restriction == 'sans gluten' and any(x in texte_plat for x in ['blé', 'gluten', 'pain', 'pate', 'biscuit', 'cereale']):
-                        print(f"  ❌ RESTRICTION VIOLÉE: {restriction} (détecté gluten)")
-                        return 0.0
-                    elif restriction == 'sans lactose' and any(x in texte_plat for x in ['lait', 'fromage', 'beurre', 'creme', 'yaourt']):
-                        print(f"  ❌ RESTRICTION VIOLÉE: {restriction} (détecté lactose)")
+            for restriction in [r.strip().lower() for r in restrictions.split(',') if r.strip()]:
+                if restriction in dietary_res:
+                    keywords = dietary_res[restriction]['keywords']
+                    if any(kw in texte_plat for kw in keywords):
+                        set_cached_score(cache_key, 0.0)
                         return 0.0
         
-        print(f"  ✓ Pas d'allergie/restriction")
-        score = 0.0
+        # 2. Score basé sur la catégorie IMC (0-100 directement)
+        strategies = BMI_STRATEGIES if BMI_STRATEGIES else {}
+        strategy = strategies.get(categorie_imc, strategies.get('normal', {}))
+        strategy_score = Plat._score_by_strategy(plat, strategy)  # Déjà 0-100 avec caps
         
-        print(f"  ✓ Pas d'allergie/restriction")
-        score = 0.0
+        # 3. Ajouter bonus/malus d'âge/sexe (max ±15 pour rester dans [0,100])
+        age_bonus = Plat._bonus_age_sexe(plat, age, sexe, categorie_imc)
         
-        if categorie_imc == 'insuffisance_ponderale':
-            print(f"  📊 Catégorie: INSUFFISANCE PONDÉRALE")
-            # Pour insuffisance pondérale: favoriser calories, protéines, glucides
-            # Bonus calories (1000 kcal = max bonus)
-            bonus_cal = min((plat.calorie / 1000) * 25, 25)
-            score += bonus_cal
-            print(f"    • Calories: +{bonus_cal:.2f} (idéal: 1000 kcal)")
-            
-            # Bonus protéines (40g = max bonus)
-            bonus_prot = min((plat.proteine / 40) * 25, 25)
-            score += bonus_prot
-            print(f"    • Protéines: +{bonus_prot:.2f} (idéal: 40g)")
-            
-            # Bonus glucides (50g = max bonus)
-            bonus_gluc = min((plat.glucides / 50) * 20, 20)
-            score += bonus_gluc
-            print(f"    • Glucides: +{bonus_gluc:.2f} (idéal: 50g)")
-            
-            # Bonus lipides modérés (30g = max bonus)
-            bonus_lip = min((plat.lipides / 30) * 15, 15)
-            score += bonus_lip
-            print(f"    • Lipides: +{bonus_lip:.2f} (idéal: 30g)")
-            
-            # Bonus fibres (10g = max bonus)
-            bonus_fib = min((plat.fibres / 10) * 15, 15)
-            score += bonus_fib
-            print(f"    • Fibres: +{bonus_fib:.2f} (idéal: 10g)")
+        # Clamp le bonus à -15 à +15 pour éviter dépasser 100
+        age_bonus = max(-15, min(15, age_bonus))
         
-        elif categorie_imc == 'normal':
-            print(f"  📊 Catégorie: NORMAL")
-            # Équilibre optimal
-            # Score de base: calories modérées (500-700 kcal idéal)
-            if 400 <= plat.calorie <= 800:
-                bonus_cal = 20
-            elif 300 <= plat.calorie <= 900:
-                bonus_cal = 15
-            elif plat.calorie <= 200 or plat.calorie > 1000:
-                bonus_cal = 5
-            else:
-                bonus_cal = 10
-            score += bonus_cal
-            print(f"    • Calories: +{bonus_cal:.2f} (idéal: 400-800 kcal)")
-            
-            # Protéines bonnes (20-35g idéal)
-            if 20 <= plat.proteine <= 35:
-                bonus_prot = 25
-            elif 15 <= plat.proteine <= 40:
-                bonus_prot = 18
-            elif plat.proteine > 40:
-                bonus_prot = 12
-            else:
-                bonus_prot = 5
-            score += bonus_prot
-            print(f"    • Protéines: +{bonus_prot:.2f} (idéal: 20-35g)")
-            
-            # Glucides équilibrés (30-50g idéal)
-            if 30 <= plat.glucides <= 50:
-                bonus_gluc = 20
-            elif 20 <= plat.glucides <= 60:
-                bonus_gluc = 15
-            else:
-                bonus_gluc = 5
-            score += bonus_gluc
-            print(f"    • Glucides: +{bonus_gluc:.2f} (idéal: 30-50g)")
-            
-            # Lipides modérés (10-25g idéal)
-            if 10 <= plat.lipides <= 25:
-                bonus_lip = 15
-            elif 5 <= plat.lipides <= 30:
-                bonus_lip = 10
-            else:
-                bonus_lip = 3
-            score += bonus_lip
-            print(f"    • Lipides: +{bonus_lip:.2f} (idéal: 10-25g)")
-            
-            # Fibres bonnes (5-12g idéal)
-            if 5 <= plat.fibres <= 12:
-                bonus_fib = 20
-            elif plat.fibres > 3:
-                bonus_fib = 12
-            else:
-                bonus_fib = 5
-            score += bonus_fib
-            print(f"    • Fibres: +{bonus_fib:.2f} (idéal: 5-12g)")
+        # Score final avec validation post-calcul
+        final_score = strategy_score + (age_bonus * 0.5)  # Réduire impact bonus age
         
-        elif categorie_imc == 'surpoids':
-            print(f"  📊 Catégorie: SURPOIDS")
-            # Faibles calories, protéines élevées, lipides bas, fibres élevées
-            # Malus calories élevées (500 kcal max)
-            if plat.calorie <= 500:
-                bonus_cal = 30
-            elif plat.calorie <= 700:
-                bonus_cal = 20
-            elif plat.calorie <= 900:
-                bonus_cal = 10
-            else:
-                bonus_cal = 2
-            score += bonus_cal
-            print(f"    • Calories: +{bonus_cal:.2f} (max: 500 kcal)")
-            
-            # Bonus protéines élevées (25-40g idéal)
-            if 25 <= plat.proteine <= 40:
-                bonus_prot = 30
-            elif 20 <= plat.proteine <= 45:
-                bonus_prot = 22
-            elif plat.proteine >= 15:
-                bonus_prot = 15
-            else:
-                bonus_prot = 5
-            score += bonus_prot
-            print(f"    • Protéines: +{bonus_prot:.2f} (idéal: 25-40g)")
-            
-            # Malus glucides (limiter à 30-40g)
-            if plat.glucides <= 30:
-                bonus_gluc = 18
-            elif plat.glucides <= 45:
-                bonus_gluc = 12
-            elif plat.glucides <= 60:
-                bonus_gluc = 6
-            else:
-                bonus_gluc = 1
-            score += bonus_gluc
-            print(f"    • Glucides: +{bonus_gluc:.2f} (max: 30g)")
-            
-            # Malus lipides (max 15g idéal)
-            if plat.lipides <= 15:
-                bonus_lip = 20
-            elif plat.lipides <= 20:
-                bonus_lip = 14
-            elif plat.lipides <= 30:
-                bonus_lip = 8
-            else:
-                bonus_lip = 2
-            score += bonus_lip
-            print(f"    • Lipides: +{bonus_lip:.2f} (max: 15g)")
-            
-            # Bonus fibres (8-15g idéal)
-            if 8 <= plat.fibres <= 15:
-                bonus_fib = 22
-            elif plat.fibres >= 5:
-                bonus_fib = 15
-            else:
-                bonus_fib = 5
-            score += bonus_fib
-            print(f"    • Fibres: +{bonus_fib:.2f} (idéal: 8-15g)")
+        # VALIDATION POST-CALCUL: Garantir score ∈ [0, 100]
+        final_score = max(0, min(100, final_score))
+        final_score = round(final_score, 2)
+        set_cached_score(cache_key, final_score)
         
-        elif categorie_imc == 'obesite':
-            print(f"  📊 Catégorie: OBÉSITÉ")
-            # Très faibles calories, protéines très élevées, très faibles lipides
-            # Malus calories très strictes (≤ 400 kcal)
-            if plat.calorie <= 350:
-                bonus_cal = 35
-            elif plat.calorie <= 450:
-                bonus_cal = 25
-            elif plat.calorie <= 600:
-                bonus_cal = 12
-            else:
-                bonus_cal = 1
-            score += bonus_cal
-            print(f"    • Calories: +{bonus_cal:.2f} (max: 350 kcal)")
-            
-            # Bonus protéines très élevées (30-50g idéal)
-            if 30 <= plat.proteine <= 50:
-                bonus_prot = 35
-            elif 25 <= plat.proteine <= 55:
-                bonus_prot = 25
-            elif plat.proteine >= 20:
-                bonus_prot = 15
-            else:
-                bonus_prot = 3
-            score += bonus_prot
-            print(f"    • Protéines: +{bonus_prot:.2f} (idéal: 30-50g)")
-            
-            # Malus glucides très stricts (≤ 25g)
-            if plat.glucides <= 20:
-                bonus_gluc = 20
-            elif plat.glucides <= 35:
-                bonus_gluc = 12
-            elif plat.glucides <= 50:
-                bonus_gluc = 5
-            else:
-                bonus_gluc = 1
-            score += bonus_gluc
-            print(f"    • Glucides: +{bonus_gluc:.2f} (max: 20g)")
-            
-            # Malus lipides très stricts (≤ 10g)
-            if plat.lipides <= 10:
-                bonus_lip = 25
-            elif plat.lipides <= 15:
-                bonus_lip = 15
-            elif plat.lipides <= 25:
-                bonus_lip = 8
-            else:
-                bonus_lip = 2
-            score += bonus_lip
-            print(f"    • Lipides: +{bonus_lip:.2f} (max: 10g)")
-            
-            # Bonus fibres très élevées (10-20g idéal)
-            if 10 <= plat.fibres <= 20:
-                bonus_fib = 25
-            elif plat.fibres >= 6:
-                bonus_fib = 16
-            else:
-                bonus_fib = 4
-            score += bonus_fib
-            print(f"    • Fibres: +{bonus_fib:.2f} (idéal: 10-20g)")
+        return final_score
+    
+    @staticmethod
+    def _score_by_strategy(plat: "Plat", strategy: Dict) -> float:
+        """
+        Calcule le score basé sur une stratégie nutritionnelle.
+        Chaque nutrient est capé à sa valeur max, garantissant un score ≤ 100.
+        """
+        scores = {}
         
-        # Facteurs d'âge et de sexe
-        print(f"  👤 Facteurs personnels: Âge={age} ans, Sexe={sexe}")
-        bonus_age_sexe = 0.0
-        
-        # Bonus pour les femmes: besoins en fer élevés, moins de calories
-        if sexe == 'femme':
-            bonus_age_sexe += 2  # Léger bonus pour inclusivité
-            # Malus léger si calories très élevées (les femmes ont généralement moins de besoins caloriques)
-            if categorie_imc in ['normal', 'insuffisance_ponderale']:
-                if plat.calorie > 700:
-                    bonus_age_sexe -= 3
-            print(f"    • Genre: Femme +{2:.1f} (besoins nutritionnels spécifiques)")
-        
-        # Bonus pour les hommes: protéines élevées, plus de calories
-        elif sexe == 'homme':
-            bonus_age_sexe += 1  # Bonus modéré
-            # Bonus si protéines élevées (les hommes ont généralement plus de besoins protéiques)
-            if plat.proteine > 25:
-                bonus_age_sexe += 2
-            print(f"    • Genre: Homme +{1 + (2 if plat.proteine > 25 else 0):.1f} (besoins protéiques)")
-        
-        # Bonus pour l'âge
-        if age:
-            if age < 20:
-                # Jeunes: besoins énergétiques élevés
-                bonus_age_sexe += min((plat.calorie / 1000) * 3, 3)
-                print(f"    • Âge < 20 ans: +{min((plat.calorie / 1000) * 3, 3):.2f} (besoins énergétiques élevés)")
-            elif age >= 50:
-                # Seniors: moins de calories, plus de fibres et calcium
-                if plat.calorie < 600:
-                    bonus_age_sexe += 2
-                if plat.fibres > 5:
-                    bonus_age_sexe += 1
-                print(f"    • Âge >= 50 ans: +{(2 if plat.calorie < 600 else 0) + (1 if plat.fibres > 5 else 0):.2f} (nutrition pour seniors)")
+        # === CALORIES (max 25 pts) ===
+        cal_score = 0
+        if 'calories_max' in strategy:
+            if plat.calorie <= strategy['calories_max']:
+                cal_score = 25  # Excellent
+            elif plat.calorie <= strategy['calories_max'] * 1.2:
+                cal_score = 15  # Acceptable
             else:
-                # Adultes: balance normale
-                bonus_age_sexe += 0
-                print(f"    • Âge 20-49 ans: +0.00 (nutrition standard adulte)")
+                cal_score = 0   # Trop calorique
+        elif 'calories_range' in strategy:
+            cal_min, cal_max = strategy['calories_range']
+            if cal_min <= plat.calorie <= cal_max:
+                cal_score = 25  # Parfait dans la range
+            elif cal_min - 100 <= plat.calorie < cal_min or cal_max < plat.calorie <= cal_max + 100:
+                cal_score = 12  # Proche de la range
+            else:
+                cal_score = 0   # Hors range
+        elif 'calories_min' in strategy:
+            if plat.calorie >= strategy['calories_min']:
+                cal_score = 25  # Bon
+            elif plat.calorie >= strategy['calories_min'] * 0.8:
+                cal_score = 15  # Acceptable
+            else:
+                cal_score = 5   # Insuffisant mais pas pénalité totale
+        scores['calories'] = min(cal_score, 25)
         
-        score += bonus_age_sexe
+        # === PROTÉINES (max 30 pts) ===
+        prot_score = 0
+        if 'protein_range' in strategy:
+            p_min, p_max = strategy['protein_range']
+            if p_min <= plat.proteine <= p_max:
+                prot_score = 30  # Parfait
+            elif p_min - 5 <= plat.proteine < p_min:
+                prot_score = 15  # Légèrement faible mais acceptable
+            elif plat.proteine > p_max:
+                prot_score = 20  # Bonus pour très protéiné
+            else:
+                prot_score = 5   # Bien en dessous, mais pas 0 (penalty dégradée)
+        elif 'protein_min' in strategy:
+            if plat.proteine >= strategy['protein_min']:
+                prot_score = 30  # Bon
+            elif plat.proteine >= strategy['protein_min'] - 5:
+                prot_score = 15  # Légèrement faible
+            else:
+                prot_score = 5   # Très faible mais pas 0
+        scores['protein'] = min(prot_score, 30)
         
-        score_final = round(score, 2)
-        print(f"  ✅ Score final (avec facteurs personnels): {score_final}/100\n")
-        return score_final
+        # === GLUCIDES (max 20 pts) ===
+        carbs_score = 0
+        if 'carbs_max' in strategy:
+            if plat.glucides <= strategy['carbs_max']:
+                carbs_score = 20  # Excellent
+            elif plat.glucides <= strategy['carbs_max'] * 1.3:
+                carbs_score = 10  # Acceptable
+            else:
+                carbs_score = 0   # Trop
+        elif 'carbs_range' in strategy:
+            c_min, c_max = strategy['carbs_range']
+            if c_min <= plat.glucides <= c_max:
+                carbs_score = 20  # Parfait
+            else:
+                carbs_score = 10  # Proche ou hors range
+        scores['carbs'] = min(carbs_score, 20)
+        
+        # === LIPIDES (max 20 pts) ===
+        fat_score = 0
+        if 'fat_max' in strategy:
+            if plat.lipides <= strategy['fat_max']:
+                fat_score = 20  # Excellent
+            elif plat.lipides <= strategy['fat_max'] * 1.5:
+                fat_score = 10  # Acceptable
+            else:
+                fat_score = 0   # Trop gras
+        elif 'fat_range' in strategy:
+            f_min, f_max = strategy['fat_range']
+            if f_min <= plat.lipides <= f_max:
+                fat_score = 20  # Parfait
+            else:
+                fat_score = 10  # Proche ou hors range
+        scores['fat'] = min(fat_score, 20)
+        
+        # === FIBRES (max 15 pts) ===
+        fiber_score = 0
+        if 'fiber_range' in strategy:
+            fib_min, fib_max = strategy['fiber_range']
+            if fib_min <= plat.fibres <= fib_max:
+                fiber_score = 15  # Parfait
+            else:
+                fiber_score = 8   # Hors range mais pas pénalité totale
+        elif 'fiber_min' in strategy:
+            if plat.fibres >= strategy['fiber_min']:
+                fiber_score = 15  # Bon
+            else:
+                fiber_score = 8   # Insuffisant mais pas 0
+        scores['fiber'] = min(fiber_score, 15)
+        
+        # Total : max 25 + 30 + 20 + 20 + 15 = 110, mais limiter à 100
+        total = sum(scores.values())
+        return min(100, total)
+    
+    @staticmethod
+    def _bonus_age_sexe(plat: "Plat", age: int = None, sexe: str = None, imc_cat: str = 'normal') -> float:
+        """
+        Calcule un bonus intelligent basé sur l'âge, le sexe et les besoins nutritionnels spécifiques.
+        
+        Les bonus récompensent les plats qui correspondent aux besoins réels de chaque profil :
+        - Jeunes: besoins énergétiques élevés, croissance musculaire, glucides énergétiques
+        - Adultes: équilibre nutritionnel optimalisé
+        - Seniors: protéines et fibres pour santé, calories modérées
+        """
+        bonus = 0.0
+        
+        # Obtenir le profil d'âge/sexe
+        profile = get_age_gender_profile(age, sexe)
+        if not profile:
+            return 0.0
+        
+        # === BONUS ÉNERGÉTIQUE (PRIMAIRE POUR JEUNES) ===
+        energy_bonus = profile.get('energy_bonus', 0)
+        
+        # SUPER BONUS ÉNERGIE POUR JEUNES (< 20 ans)
+        if age and age < 20:
+            # Jeunes ont ABSOLUMENT BESOIN de calories et protéines
+            if plat.calorie >= 650 and plat.proteine >= 40:
+                # Profil musculaire/énergétique idéal pour jeunes
+                bonus += 30
+            elif plat.calorie >= 550 and plat.proteine >= 35:
+                # Bon profil énergétique
+                bonus += 25
+            elif plat.calorie >= 450 and plat.proteine >= 30:
+                # Acceptable
+                bonus += 15
+            elif plat.calorie >= 350 and plat.proteine >= 20:
+                # Modéré
+                bonus += 8
+            elif plat.calorie < 300:
+                # Insuffisant pour jeunes
+                bonus -= 10
+        elif plat.calorie >= profile.get('preferred_calories_min', 400):
+            # Non-jeunes: approche par calories
+            if plat.calorie <= profile.get('preferred_calories_max', 700):
+                # Calories dans la plage idéale
+                bonus += energy_bonus
+            elif plat.calorie <= profile.get('preferred_calories_max', 700) + 200:
+                # Légèrement au-dessus
+                if age and age < 50:
+                    bonus += energy_bonus * 0.5
+                else:
+                    bonus += energy_bonus * 0.2
+            else:
+                # Calories très hautes
+                if age and age >= 50:
+                    bonus -= 8  # Seniors: trop calorique
+                else:
+                    bonus -= 3  # Adultes: modéré
+        else:
+            # Calories insuffisantes
+            if age and age >= 50:
+                bonus -= 2  # Seniors: c'est ok si léger
+            else:
+                bonus -= 5  # Jeunes/adultes: besoin de calories
+        
+        # === BONUS PROTÉINES (TRÈS IMPORTANT POUR JEUNES ET SENIORS) ===
+        protein_bonus = profile.get('protein_bonus', 0)
+        protein_min = profile.get('preferred_protein_min', 20)
+        protein_max = profile.get('preferred_protein_max', 40)
+        
+        if plat.proteine >= protein_min:
+            if plat.proteine <= protein_max + 15:  # Accepte un peu plus
+                bonus += protein_bonus
+            else:
+                # Protéines très élevées (> 55g) - bon surtout pour jeunes/seniors
+                if age and (age < 20 or age >= 50):
+                    bonus += protein_bonus * 0.7
+                else:
+                    bonus += protein_bonus * 0.3
+        elif plat.proteine >= protein_min - 5:
+            # Légèrement au-dessous du min
+            bonus += protein_bonus * 0.4
+        else:
+            # Protéines insuffisantes
+            bonus -= 8
+        
+        # === BONUS GLUCIDES POUR JEUNES (ÉNERGIE) ===
+        if age and age < 20:
+            # Jeunes ont BESOIN de glucides pour énergie
+            if plat.glucides >= 30:
+                bonus += 12  # Excellent
+            elif plat.glucides >= 20:
+                bonus += 8   # Bon
+            elif plat.glucides >= 10:
+                bonus += 4   # Modéré
+            elif plat.glucides < 5:
+                # Très peu de glucides
+                if plat.calorie >= 600 and plat.proteine >= 40:
+                    # Profil fortement protéiné/calorique (ex: steak)
+                    # C'est acceptable car fournit l'énergie par calories
+                    bonus += 0   # Neutre, compensé par bonus énergétique
+                else:
+                    # Manque d'énergie globale
+                    bonus -= 5
+        
+        # === BONUS FIBRES (IMPORTANT POUR SENIORS) ===
+        fiber_bonus = profile.get('fiber_bonus', 0)
+        fiber_min = profile.get('preferred_fiber_min', 5)
+        
+        if plat.fibres >= fiber_min:
+            if plat.fibres <= 15:
+                bonus += fiber_bonus * (min(plat.fibres, 12) / 10)
+            else:
+                # Beaucoup de fibres - bon pour tous
+                bonus += fiber_bonus
+        elif age and age >= 50 and plat.fibres >= fiber_min - 2:
+            # Seniors tolérent un peu moins de fibres
+            bonus += fiber_bonus * 0.4
+        elif age and age < 50 and plat.fibres >= 3:
+            # Jeunes/adultes avec quelques fibres
+            bonus += fiber_bonus * 0.2
+        
+        # === MALUS POUR LIPIDES TRÈS ÉLEVÉS (SANS JUSTIFICATION) ===
+        if plat.lipides > 40:
+            if plat.proteine < 30:
+                # Gras sans protéines justifie = malus fort
+                bonus -= 10
+            elif age and age < 20:
+                # Jeunes en croissance peuvent tolérer
+                bonus -= 2
+            else:
+                # Adultes/seniors: malus modéré
+                bonus -= 5
+        elif plat.lipides > 25:
+            if plat.proteine < 25:
+                bonus -= 3
+        
+        # === BONUS ÉQUILIBRE GLOBAL POUR ADULTES ===
+        if profile.get('prefer_balanced') and age and 20 <= age < 50:
+            # Adultes apprécient l'équilibre macros
+            if plat.calorie > 0:
+                ratio_carbs = (plat.glucides * 4) / plat.calorie
+                ratio_prot = (plat.proteine * 4) / plat.calorie
+                ratio_lipides = (plat.lipides * 9) / plat.calorie
+                
+                if 0.30 <= ratio_carbs <= 0.60 and 0.20 <= ratio_prot <= 0.50 and 0.15 <= ratio_lipides <= 0.40:
+                    bonus += 8
+        
+        # === BONUS SPÉCIAL SENIOR: PLATS LÉGERS MAIS NUTRITIFS ===
+        if age and age >= 50:
+            if plat.calorie <= 600 and plat.proteine >= 25 and plat.fibres >= 5:
+                # Combinaison idéale pour senior
+                bonus += 10
+        
+        return bonus
     
     @staticmethod
     def calculer_score_professionnel(plat: "Plat", profil: "ProfilNutritionnel") -> float:

@@ -63,6 +63,8 @@ path('register/', views.register, name='register'),
     path("api/profil-nutritionnel/supprimer/", views.SupprimerProfilNutritionnelView.as_view(), name="supprimer_profil_nutritionnel"),
     path("api/profil-nutritionnel/recommander-menu/", views.RecommenderPlatsView.as_view(), name="recommander_plats"),
     path("api/profil-nutritionnel/recommander-plats/", views.RecommenderPlatsDirectView.as_view(), name="recommander_plats_direct"),
+    path("api/profil-nutritionnel/recommander-n8n/job-status/", views.JobStatusView.as_view(), name="recommander_n8n_job_status"),
+    path("api/profil-nutritionnel/recommander-n8n/", views.RecommenderIAProfilNutritionnelWebhookView.as_view(), name="recommander_n8n_webhook"),
     path("api/", include(router.urls)),
 ]
 

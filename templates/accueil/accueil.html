@@ -113,6 +113,31 @@
         </div>
     </div>
 
+    <!-- Section Recommandations N8N -->
+    <div class="recommendations-section" style="background: linear-gradient(135deg, #2e4a2f 0%, #4a7050 100%); padding: 40px 20px; margin: 40px 0; border-radius: 12px; text-align: center; color: white;">
+        <h2 style="margin-bottom: 15px; font-size: 28px;">🎯 Obtenez vos recommandations personnalisées</h2>
+        <p style="margin-bottom: 20px; font-size: 16px; opacity: 0.95;">Connectez-vous et recevez des suggestions de plats adaptées à votre profil nutritionnel</p>
+        
+        {% if user.is_authenticated %}
+            <button id="getRecommendationsBtn" class="btn-recommendation" 
+                    data-profil-id="{% if profil_nutritionnel %}{{ profil_nutritionnel.id }}{% endif %}"
+                    style="background: #ffd700; color: #2e4a2f; padding: 12px 30px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s;">
+                <i class="fas fa-magic"></i> Obtenir mon profil nutritionnel
+            </button>
+            <div id="recommendationsLoader" style="display: none; margin-top: 15px;">
+                <p><i class="fas fa-spinner fa-spin"></i> Chargement...</p>
+            </div>
+            <div id="recommendationsResult" style="margin-top: 20px; text-align: left; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; display: none;">
+                <h3 style="margin-bottom: 15px;">✨ Votre profil nutritionnel:</h3>
+                <div id="recommendationsContent"></div>
+            </div>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn-recommendation" style="display: inline-block; background: #ffd700; color: #2e4a2f; padding: 12px 30px; font-size: 16px; text-decoration: none; border-radius: 8px; font-weight: bold; transition: all 0.3s;">
+                <i class="fas fa-sign-in-alt"></i> Se connecter pour voir les recommandations
+            </a>
+        {% endif %}
+    </div>
+
     <!-- Newsletter -->
     <div class="newsletter-section">
         <i class="fas fa-envelope-open-text" style="font-size: 2rem;"></i>
