@@ -502,7 +502,7 @@ function getTopK(items, k) {
  * @param {number} limit - Nombre d'éléments à retourner
  * @returns {Array} Éléments triés par score de recommandation
  */
-function filterRecommendations(items, targets, limit = 5) {
+function filterRecommendations(items, targets, limit = 6) {
     if (!items?.length) return [];
 
     const scoredItems = new Array(items.length);

@@ -952,6 +952,8 @@ class Plat(models.Model):
 
         ctx = {'plat_id': getattr(plat, 'id_plat', None),
                'plat_nom': plat.nom,
+               'client_nom': str(profil.client.utilisateur),
+               'client_id': profil.client.utilisateur.id,
                'profil_objectif': profil.objectif}
 
         # --- 1. Restrictions / allergies -----------------------------------
@@ -960,6 +962,8 @@ class Plat(models.Model):
                 print(f"âŒ {plat.nom}: allergie/restriction â†’ score 0")
             if score_monitor:
                 score_monitor.record('professionnel', 0.0,
+                                     client_id=profil.client.utilisateur.id,
+                                     plat_id=plat.id_plat,
                                      context={**ctx, 'reason': 'restriction'})
             return (0.0, {'reason': 'restriction_violee'}) if return_details else 0.0
 
@@ -1003,7 +1007,10 @@ class Plat(models.Model):
 
         # --- 6. Monitoring -------------------------------------------------
         if score_monitor:
-            score_monitor.record('professionnel', score_final, context={
+            score_monitor.record('professionnel', score_final,
+                                 client_id=profil.client.utilisateur.id,
+                                 plat_id=plat.id_plat,
+                                 context={
                 **ctx,
                 'imc_cat': categorie_imc,
                 'breakdown': details,
