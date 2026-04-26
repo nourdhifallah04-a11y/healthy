@@ -1,0 +1,5 @@
+# Log directory for Django application
+# This directory will contain:
+# - django.log: Main application logs
+# - error.log: Error logs (if configured)
+# - performance.log: Performance metrics (if enabled)

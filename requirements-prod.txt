@@ -1,0 +1,23 @@
+# Dépendances pour la production
+-r requirements.txt
+
+# Database
+psycopg2-binary==2.9.9
+
+# Cache et Queue
+redis==5.0.1
+django-redis==5.4.0
+
+# Monitoring et Errors
+sentry-sdk==1.39.1
+
+# Security
+django-cors-headers==4.3.1
+python-decouple==3.8
+
+# Performance
+django-extensions==3.2.3
+whitenoise==6.6.0
+
+# API
+djangorestframework-simplejwt==5.3.2
