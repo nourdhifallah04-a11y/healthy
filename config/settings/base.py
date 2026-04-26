@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'apps.nutrition',
     'apps.scoring',
     'apps.orders',
+    'apps.ai',
 ]
 
 MIDDLEWARE = [
@@ -77,6 +78,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+# Custom User Model
+AUTH_USER_MODEL = 'users.Utilisateur'
 
 # Internationalization
 LANGUAGE_CODE = 'fr-fr'

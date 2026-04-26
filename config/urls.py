@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/v1/nutrition/', include('apps.nutrition.urls', namespace='nutrition')),
     path('api/v1/scoring/', include('apps.scoring.urls', namespace='scoring')),
     path('api/v1/orders/', include('apps.orders.urls', namespace='orders')),
+    path('api/v1/ai/', include('apps.ai.urls', namespace='ai')),
     path('api/v1/', include('apps.core.urls', namespace='core')),
 ]
 

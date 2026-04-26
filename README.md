@@ -1,6 +1,17 @@
-# Healthy Django Project
+# Healthy IA - Django Nutrition Platform
 
-This repository contains a Django application for managing a user's nutrition profile.
+A comprehensive Django application for managing users' nutrition profiles with AI-powered recommendations and N8N webhook integration.
+
+> **📚 New!** All documentation has been reorganized. See [**STRUCTURE.md**](STRUCTURE.md) for the complete guide to the project.
+
+## Quick Links
+
+- 📖 [**Full Documentation**](docs/README.md) - All guides and documentation
+- 🚀 [**Quick Start**](docs/setup/QUICK_START.md) - Get up and running in 5 minutes
+- 🏗️ [**Architecture**](docs/guides/ARCHITECTURE.md) - System design and components
+- 🧪 [**Tests Guide**](tests/README.md) - Running and understanding tests
+- 🔧 [**Troubleshooting**](docs/troubleshooting/README.md) - Common issues and fixes
+- 🔌 [**API & N8N**](docs/api/README.md) - Webhook and integration documentation
 
 ## Stack
 
