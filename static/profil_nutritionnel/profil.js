@@ -124,6 +124,10 @@ if (profilForm) {
         let allergies = [];
         let restrictions = [];
         
+        // Récupération des consentements
+        const donneesSanteSensibles = document.getElementById('sante-sensibles').checked;
+        const learningCollectif = document.getElementById('learning-collectif').checked;
+        
         // Trouver les sections par leur titre
         const sections = document.querySelectorAll('.form-section');
         sections.forEach(section => {
@@ -153,7 +157,9 @@ if (profilForm) {
             objectif: mapGoal(goal),  // Mapper les valeurs
             niveau_activite: mapActivity(activity),  // Mapper les valeurs
             allergies: allergies.join(', '),  // Joindre avec des virgules
-            restrictions_alimentaires: restrictions.join(', ')  // Joindre avec des virgules
+            restrictions_alimentaires: restrictions.join(', '),  // Joindre avec des virgules
+            donnees_sante_sensibles: donneesSanteSensibles,  // Ajouter le consentement
+            learning_collectif: learningCollectif  // Ajouter le consentement
         };
         
         // Envoyer les données à Django
@@ -379,6 +385,14 @@ function fillFormWithProfileData(profile) {
                 });
             }
         });
+    }
+    
+    // Charger les consentements
+    if (profile.donnees_sante_sensibles !== undefined) {
+        document.getElementById('sante-sensibles').checked = profile.donnees_sante_sensibles;
+    }
+    if (profile.learning_collectif !== undefined) {
+        document.getElementById('learning-collectif').checked = profile.learning_collectif;
     }
     
     // Mettre à jour l'IMC

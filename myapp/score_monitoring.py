@@ -154,7 +154,94 @@ class ScoreMonitor:
             parts.append(f"menu_id={menu_id}")
         return " [" + "] [".join(parts) + "]" if parts else ""
 
+    @staticmethod
+    def _make_json_safe(obj: Any) -> Any:
+        """Convertit un objet en format JSON-safe (primitifs uniquement).
+        
+        Gère les types primitifs, dict, list, float, int, str, bool, None.
+        Les autres objets sont convertis en string.
+        """
+        if obj is None or isinstance(obj, (bool, int, float, str)):
+            return obj
+        elif isinstance(obj, dict):
+            return {k: ScoreMonitor._make_json_safe(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [ScoreMonitor._make_json_safe(item) for item in obj]
+        else:
+            # Pour tout objet non-primitif, convertir en string
+            return str(obj)
+
     # -------------------------------------------------------------------- API
+    def _enrich_context_with_nutritional_data(self, context: Dict[str, Any],
+                                              client_id: Optional[int] = None,
+                                              plat_id: Optional[int] = None) -> Dict[str, Any]:
+        """Enrichit le contexte avec les données nutritionnelles du plat et IMC du client.
+        
+        Args:
+            context: Contexte existant
+            client_id: ID du client
+            plat_id: ID du plat
+            
+        Returns:
+            Contexte enrichi avec plat (nutritional data) et client (IMC) fields
+        """
+        enriched = dict(context)  # Copie du contexte existant
+        
+        # Enrichir avec données du plat si plat_id fourni
+        if plat_id is not None:
+            try:
+                from myapp.models import Plat
+                plat = Plat.objects.get(id_plat=plat_id)
+                enriched['plat'] = {
+                    'id': plat.id_plat,
+                    'nom': plat.nom,
+                    'calories': float(plat.calorie),
+                    'proteines': float(plat.proteine),
+                    'glucides': float(plat.glucides),
+                    'lipides': float(plat.lipides),
+                    'fibres': float(plat.fibres),
+                }
+            except Exception:
+                # Si le plat n'existe pas ou erreur BD, continuer sans données nutritionnelles
+                pass
+        
+        # Enrichir avec IMC du client si client_id fourni
+        if client_id is not None:
+            try:
+                from myapp.models import Client, Utilisateur
+                user = Utilisateur.objects.get(id=client_id)
+                client = user.client
+                
+                # Calculer IMC si date de naissance existe
+                if client.date_naissance:
+                    from datetime import date
+                    from dateutil.relativedelta import relativedelta
+                    age = relativedelta(date.today(), client.date_naissance).years
+                    
+                    # Récupérer poids/taille depuis ProfilNutritionnel
+                    try:
+                        from myapp.models import ProfilNutritionnel
+                        profile = ProfilNutritionnel.objects.filter(client=client).last()
+                        if profile:
+                            # Calculer IMC: poids (kg) / (taille (m))^2
+                            if profile.taille and profile.poids:
+                                taille_m = float(profile.taille) / 100  # Convertir cm en m
+                                imc = float(profile.poids) / (taille_m ** 2)
+                                enriched['client'] = {
+                                    'id': client_id,
+                                    'age': age,
+                                    'imc': round(imc, 2),
+                                }
+                    except Exception:
+                        enriched['client'] = {'id': client_id, 'age': age}
+                else:
+                    enriched['client'] = {'id': client_id}
+            except Exception:
+                # Si le client n'existe pas ou erreur, continuer sans données IMC
+                pass
+        
+        return enriched
+
     def record(self, score_type: str, value: float,
                context: Optional[Dict[str, Any]] = None,
                client_id: Optional[int] = None,
@@ -171,13 +258,18 @@ class ScoreMonitor:
             plat_id: ID du plat concerné (optionnel)
             menu_id: ID du menu concerné (optionnel)
         """
+        # Enrichir le contexte avec données nutritionnelles
+        enriched_context = self._enrich_context_with_nutritional_data(
+            context or {}, client_id=client_id, plat_id=plat_id
+        )
+        
         if not isinstance(value, (int, float)) or math.isnan(value):
             ids_str = self._format_ids(client_id, plat_id, menu_id)
             self._emit_alert(Alert(
                 level=ALERT_CRITICAL,
                 score_type=score_type,
                 message=f"Score non numérique reçu : {value!r}{ids_str}",
-                context=context or {},
+                context=enriched_context,
                 client_id=client_id,
                 plat_id=plat_id,
                 menu_id=menu_id,
@@ -187,7 +279,7 @@ class ScoreMonitor:
         record = ScoreRecord(
             score_type=score_type,
             value=float(value),
-            context=context or {},
+            context=enriched_context,
             client_id=client_id,
             plat_id=plat_id,
             menu_id=menu_id,
@@ -213,7 +305,7 @@ class ScoreMonitor:
                     score_type=score_type,
                     message=(f"[BUG CALCUL] Score INVALIDE {value:.1f} hors [0,100]{ids_str} | "
                              f"Type: {score_type} | Action: Vérifier algo calcul"),
-                    context=context or {},
+                    context=enriched_context,
                     client_id=client_id,
                     plat_id=plat_id,
                     menu_id=menu_id,
@@ -235,7 +327,7 @@ class ScoreMonitor:
                             message=(f"[VALEUR ABERRANTE] Z-score={zscore:.1f}{ids_str} | "
                                      f"Valeur: {value:.1f} (écart: {zscore*stdev:.1f}) | "
                                      f"Moy: {mean:.1f} | Action: Vérifier donnée"),
-                            context=context or {},
+                            context=enriched_context,
                             client_id=client_id,
                             plat_id=plat_id,
                             menu_id=menu_id,
@@ -248,12 +340,13 @@ class ScoreMonitor:
                 values = [r.value for r in buf]
                 stdev = statistics.pstdev(values)
                 if stdev > self._thresholds["max_stddev"]:
+                    ids_str = self._format_ids(client_id, plat_id, menu_id)
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
-                        message=(f"[INSTABILITÉ] Variance trop élevée σ={stdev:.1f} (seuil: {self._thresholds['max_stddev']:.1f}) | "
+                        message=(f"[INSTABILITÉ] Variance trop élevée σ={stdev:.1f}{ids_str} (seuil: {self._thresholds['max_stddev']:.1f}) | "
                                  f"Type: {score_type} | Action: Recalibrer algo"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
@@ -263,25 +356,27 @@ class ScoreMonitor:
             if counters["total"] >= 20:  # Au moins 20 scores
                 anomaly_rate = counters.get("anomalies", 0) / counters["total"]
                 if anomaly_rate > self._thresholds["anomaly_rate_critical"]:
+                    ids_str = self._format_ids(client_id, plat_id, menu_id)
                     self._emit_alert(Alert(
                         level=ALERT_CRITICAL,
                         score_type=score_type,
-                        message=(f"[SYSTÈME KO] Taux anomalies CRITIQUE {anomaly_rate*100:.1f}% "
+                        message=(f"[SYSTÈME KO] Taux anomalies CRITIQUE {anomaly_rate*100:.1f}%{ids_str} "
                                  f"({counters['anomalies']}/{counters['total']}) | "
                                  f"Action: Arrêt + investigation système urgente"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
                     ))
                 elif anomaly_rate > self._thresholds["anomaly_rate_warn"]:
+                    ids_str = self._format_ids(client_id, plat_id, menu_id)
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
-                        message=(f"[ANOMALIES ÉLEVÉES] Taux {anomaly_rate*100:.1f}% "
+                        message=(f"[ANOMALIES ÉLEVÉES] Taux {anomaly_rate*100:.1f}%{ids_str} "
                                  f"({counters['anomalies']}/{counters['total']}) | "
                                  f"Type: {score_type} | Action: Audit paramètres"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
@@ -291,13 +386,14 @@ class ScoreMonitor:
             if client_id is not None and value < self._thresholds["min_score"] or value > self._thresholds["max_score"]:
                 self._anomalies_by_client[client_id] = self._anomalies_by_client.get(client_id, 0) + 1
                 if self._anomalies_by_client[client_id] >= self._thresholds["anomaly_per_client_warn"]:
+                    ids_str = self._format_ids(client_id, plat_id, menu_id)
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
-                        message=(f"[CLIENT PROBLÉMATIQUE] ID {client_id} a "
+                        message=(f"[CLIENT PROBLÉMATIQUE] ID {client_id}{ids_str} a "
                                  f"{self._anomalies_by_client[client_id]} anomalies | "
                                  f"Action: Vérifier + nettoyer profil"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
@@ -307,13 +403,14 @@ class ScoreMonitor:
             if plat_id is not None and (value < self._thresholds["min_score"] or value > self._thresholds["max_score"]):
                 self._anomalies_by_plat[plat_id] = self._anomalies_by_plat.get(plat_id, 0) + 1
                 if self._anomalies_by_plat[plat_id] >= self._thresholds["anomaly_per_plat_warn"]:
+                    ids_str = self._format_ids(client_id, plat_id, menu_id)
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
-                        message=(f"[PLAT SUSPECT] ID {plat_id} cause "
+                        message=(f"[PLAT SUSPECT] ID {plat_id}{ids_str} cause "
                                  f"{self._anomalies_by_plat[plat_id]} anomalies | "
                                  f"Action: Audit données nutritionnelles"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
@@ -335,7 +432,7 @@ class ScoreMonitor:
                         message=(f"[{interpretation}] Variation importante: {direction} de "
                                  f"{mean_shift:.1f} pts ({pct_change:+.1f}%){ids_str} | "
                                  f"{prev_score:.1f} → {value:.1f}"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
@@ -346,13 +443,14 @@ class ScoreMonitor:
             if len(buf) >= self._thresholds["identical_scores_threshold"]:
                 recent_values = [r.value for r in list(buf)[-self._thresholds["identical_scores_threshold"]:]]
                 if len(set(recent_values)) == 1:  # Tous les scores sont identiques
+                    ids_str = self._format_ids(client_id, plat_id, menu_id)
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
-                        message=(f"[DUPLICATION SUSPECT] {len(recent_values)} scores identiques "
+                        message=(f"[DUPLICATION SUSPECT] {len(recent_values)} scores identiques{ids_str} "
                                  f"({value:.1f}) | Type: {score_type} | "
                                  f"Action: Vérifier données source"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
@@ -363,25 +461,27 @@ class ScoreMonitor:
                 values = [r.value for r in buf]
                 mean = statistics.fmean(values)
                 if mean < self._thresholds["min_mean_warn"]:
+                    ids_str = self._format_ids(client_id, plat_id, menu_id)
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
-                        message=(f"[STRATÉGIE TROP SÉVÈRE] Moyenne très basse {mean:.1f} "
+                        message=(f"[STRATÉGIE TROP SÉVÈRE] Moyenne très basse {mean:.1f}{ids_str} "
                                  f"(seuil: {self._thresholds['min_mean_warn']:.1f}) | "
                                  f"Action: Assouplir critères"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
                     ))
                 elif mean > self._thresholds["max_mean_warn"]:
+                    ids_str = self._format_ids(client_id, plat_id, menu_id)
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
-                        message=(f"[STRATÉGIE TROP LAXISTE] Moyenne très haute {mean:.1f} "
+                        message=(f"[STRATÉGIE TROP LAXISTE] Moyenne très haute {mean:.1f}{ids_str} "
                                  f"(seuil: {self._thresholds['max_mean_warn']:.1f}) | "
                                  f"Action: Durcir critères"),
-                        context=context or {},
+                        context=enriched_context,
                         client_id=client_id,
                         plat_id=plat_id,
                         menu_id=menu_id,
@@ -444,30 +544,164 @@ class ScoreMonitor:
             return "WARNING_HIGH_MEAN" # Stratégie trop laxiste
         return "OK"
 
-    # ---------------------------------------------------------------- ALERTS
+    # ================================================================ ALERTS
+    def _matches_nutritional_filters(self, alert: Alert,
+                                     plat_id: Optional[int] = None,
+                                     calorie_min: Optional[float] = None,
+                                     calorie_max: Optional[float] = None,
+                                     proteines_min: Optional[float] = None,
+                                     proteines_max: Optional[float] = None,
+                                     glucides_min: Optional[float] = None,
+                                     glucides_max: Optional[float] = None,
+                                     lipides_min: Optional[float] = None,
+                                     lipides_max: Optional[float] = None,
+                                     fibres_min: Optional[float] = None,
+                                     fibres_max: Optional[float] = None,
+                                     imc_min: Optional[float] = None,
+                                     imc_max: Optional[float] = None) -> bool:
+        """Vérifie si une alerte correspond aux filtres nutritionnels (AND logic).
+        
+        Args:
+            alert: Alert object to check
+            plat_id: Filter by plat ID
+            calorie_min/max, proteines_min/max, etc: Nutritional range filters
+            imc_min/max: Client IMC range filters
+            
+        Returns:
+            True if alert matches ALL provided filters, False otherwise
+        """
+        # Filtre par plat_id
+        if plat_id is not None and alert.plat_id != plat_id:
+            return False
+        
+        context = alert.context or {}
+        plat_data = context.get('plat', {})
+        client_data = context.get('client', {})
+        
+        # Filtres nutritionnels du plat
+        if calorie_min is not None and plat_data.get('calories') is not None:
+            if plat_data['calories'] < calorie_min:
+                return False
+        
+        if calorie_max is not None and plat_data.get('calories') is not None:
+            if plat_data['calories'] > calorie_max:
+                return False
+        
+        if proteines_min is not None and plat_data.get('proteines') is not None:
+            if plat_data['proteines'] < proteines_min:
+                return False
+        
+        if proteines_max is not None and plat_data.get('proteines') is not None:
+            if plat_data['proteines'] > proteines_max:
+                return False
+        
+        if glucides_min is not None and plat_data.get('glucides') is not None:
+            if plat_data['glucides'] < glucides_min:
+                return False
+        
+        if glucides_max is not None and plat_data.get('glucides') is not None:
+            if plat_data['glucides'] > glucides_max:
+                return False
+        
+        if lipides_min is not None and plat_data.get('lipides') is not None:
+            if plat_data['lipides'] < lipides_min:
+                return False
+        
+        if lipides_max is not None and plat_data.get('lipides') is not None:
+            if plat_data['lipides'] > lipides_max:
+                return False
+        
+        if fibres_min is not None and plat_data.get('fibres') is not None:
+            if plat_data['fibres'] < fibres_min:
+                return False
+        
+        if fibres_max is not None and plat_data.get('fibres') is not None:
+            if plat_data['fibres'] > fibres_max:
+                return False
+        
+        # Filtres IMC du client
+        if imc_min is not None and client_data.get('imc') is not None:
+            if client_data['imc'] < imc_min:
+                return False
+        
+        if imc_max is not None and client_data.get('imc') is not None:
+            if client_data['imc'] > imc_max:
+                return False
+        
+        return True
+
     def get_alerts(self, level: Optional[str] = None,
                    limit: int = 100,
-                   client_id: Optional[int] = None) -> List[Dict[str, Any]]:
-        """Récupère les alertes récentes.
+                   client_id: Optional[int] = None,
+                   plat_id: Optional[int] = None,
+                   calorie_min: Optional[float] = None,
+                   calorie_max: Optional[float] = None,
+                   proteines_min: Optional[float] = None,
+                   proteines_max: Optional[float] = None,
+                   glucides_min: Optional[float] = None,
+                   glucides_max: Optional[float] = None,
+                   lipides_min: Optional[float] = None,
+                   lipides_max: Optional[float] = None,
+                   fibres_min: Optional[float] = None,
+                   fibres_max: Optional[float] = None,
+                   imc_min: Optional[float] = None,
+                   imc_max: Optional[float] = None) -> List[Dict[str, Any]]:
+        """Récupère les alertes récentes avec filtrage avancé.
         
         Args:
             level: Filtrer par niveau (INFO, WARNING, CRITICAL)
             limit: Nombre max d'alertes à retourner
             client_id: Filtrer par client_id (optionnel)
+            plat_id: Filtrer par plat_id (optionnel)
+            calorie_min/max: Plage de calories (optionnel)
+            proteines_min/max: Plage de protéines (optionnel)
+            glucides_min/max: Plage de glucides (optionnel)
+            lipides_min/max: Plage de lipides (optionnel)
+            fibres_min/max: Plage de fibres (optionnel)
+            imc_min/max: Plage IMC du client (optionnel)
             
         Returns:
-            Liste des alertes (les plus récentes en dernier)
+            Liste des alertes (les plus récentes en dernier), JSON-safe.
+            Filtres combinés avec AND logic.
         """
         with self._lock:
             alerts = list(self._alerts)
         
+        # Filtre par niveau
         if level:
             alerts = [a for a in alerts if a.level == level]
         
+        # Filtre par client_id
         if client_id is not None:
             alerts = [a for a in alerts if a.client_id == client_id]
         
-        return [asdict(a) for a in alerts[-limit:]]
+        # Filtres nutritionnels (AND logic)
+        alerts = [a for a in alerts if self._matches_nutritional_filters(
+            a,
+            plat_id=plat_id,
+            calorie_min=calorie_min,
+            calorie_max=calorie_max,
+            proteines_min=proteines_min,
+            proteines_max=proteines_max,
+            glucides_min=glucides_min,
+            glucides_max=glucides_max,
+            lipides_min=lipides_min,
+            lipides_max=lipides_max,
+            fibres_min=fibres_min,
+            fibres_max=fibres_max,
+            imc_min=imc_min,
+            imc_max=imc_max,
+        )]
+        
+        # Convertir en dictionnaires avec contexte JSON-safe
+        result = []
+        for a in alerts[-limit:]:
+            alert_dict = asdict(a)
+            # S'assurer que le contexte est JSON-safe
+            alert_dict['context'] = self._make_json_safe(alert_dict.get('context', {}))
+            result.append(alert_dict)
+        
+        return result
 
     def register_alert_callback(self, fn: Callable[[Alert], None]) -> None:
         """Enregistre un callback appelé à chaque alerte (ex : notif, log)."""
@@ -525,13 +759,25 @@ class ScoreMonitor:
         """Récupère les alertes liées à un plat spécifique."""
         with self._lock:
             alerts = [a for a in self._alerts if a.plat_id == plat_id]
-        return [asdict(a) for a in alerts[-limit:]]
+        
+        result = []
+        for a in alerts[-limit:]:
+            alert_dict = asdict(a)
+            alert_dict['context'] = self._make_json_safe(alert_dict.get('context', {}))
+            result.append(alert_dict)
+        return result
     
     def get_alerts_by_type_message(self, keyword: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Récupère les alertes contenant un mot-clé spécifique."""
         with self._lock:
             alerts = [a for a in self._alerts if keyword.lower() in a.message.lower()]
-        return [asdict(a) for a in alerts[-limit:]]
+        
+        result = []
+        for a in alerts[-limit:]:
+            alert_dict = asdict(a)
+            alert_dict['context'] = self._make_json_safe(alert_dict.get('context', {}))
+            result.append(alert_dict)
+        return result
     
     def get_anomalies_summary(self) -> Dict[str, Any]:
         """Résumé des anomalies détectées."""
@@ -564,27 +810,29 @@ class ScoreMonitor:
         }
         
         for alert in alerts_list:
+            alert_dict = asdict(alert)
+            alert_dict['context'] = self._make_json_safe(alert_dict.get('context', {}))
             msg = alert.message.lower()
             if "hors plage" in msg:
-                categories["out_of_range"].append(asdict(alert))
+                categories["out_of_range"].append(alert_dict)
             elif "outlier" in msg and "z-score" in msg:
-                categories["outliers"].append(asdict(alert))
+                categories["outliers"].append(alert_dict)
             elif "variance excessive" in msg:
-                categories["high_variance"].append(asdict(alert))
+                categories["high_variance"].append(alert_dict)
             elif "taux d'anomalies" in msg:
-                categories["anomaly_rate"].append(asdict(alert))
+                categories["anomaly_rate"].append(alert_dict)
             elif "client" in msg and "anomalies" in msg:
-                categories["client_issues"].append(asdict(alert))
+                categories["client_issues"].append(alert_dict)
             elif "plat" in msg and "anomalies" in msg:
-                categories["plat_issues"].append(asdict(alert))
+                categories["plat_issues"].append(alert_dict)
             elif "variation importante" in msg:
-                categories["mean_shift"].append(asdict(alert))
+                categories["mean_shift"].append(alert_dict)
             elif "pattern suspect" in msg or "scores identiques" in msg:
-                categories["pattern_suspect"].append(asdict(alert))
+                categories["pattern_suspect"].append(alert_dict)
             elif "moyenne" in msg and ("trop" in msg):
-                categories["mean_extremes"].append(asdict(alert))
+                categories["mean_extremes"].append(alert_dict)
             else:
-                categories["other"].append(asdict(alert))
+                categories["other"].append(alert_dict)
         
         return {k: v for k, v in categories.items() if v}  # Retourner seulement les catégories non-vides
     

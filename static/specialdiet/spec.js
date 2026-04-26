@@ -13,7 +13,8 @@ let dietMeals = {
     "low-carb": [],
     "vegan": [],
     "gluten-free": [],
-    "plat-recommander": []
+    "plat-recommander": [],
+    "plat-recommandation-ia": []
 };
 
 /**
@@ -41,7 +42,10 @@ function transformerPlatEnMealDiet(plat) {
         description: plat.description,
         score: plat.score || 0,
         scoreNutritionnel: plat.score_nutritionnel || 0,
-        prix: plat.prix || 0
+        prix: plat.prix || 0,
+        badge: plat.badge || null,
+        interpretation: plat.interpretation || null,
+        alerts: plat.alerts || []
     };
 }
 
@@ -126,9 +130,99 @@ function chargerDietMeals() {
 }
 
 /**
+ * Appelle le webhook n8n asynchrone pour obtenir les recommandations IA
+ */
+function appelN8NRecommandationsAsync() {
+    // Marquer le début du chargement
+    isLoadingRecoIA = true;
+    if (currentDiet === "plat-recommandation-ia") {
+        displayDietMeals();
+    }
+    
+    // Récupérer le profil utilisateur
+    fetch('/api/profil-nutritionnel/obtenir/')
+        .then(response => {
+            if (response.status === 401) {
+                console.log('ℹ️ Utilisateur non authentifié pour le webhook n8n');
+                return null;
+            }
+            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+            return response.json();
+        })
+        .then(profil => {
+            if (!profil) return;
+            
+            const payload = {
+                profil: {
+                    age: profil.age || null,
+                    poids: profil.poids || null,
+                    taille: profil.taille || null,
+                    sexe: profil.sexe || null,
+                    objectif: profil.objectif_sante || null,
+                    allergies: profil.allergies || null,
+                    restrictions_alimentaires: profil.restrictions_alimentaires || null,
+                    niveau_activite: profil.niveau_activite || null
+                },
+                consentements: {
+                    donnees_sante_sensibles: profil.donnees_sante_sensibles || false,
+                    learning_collectif: profil.learning_collectif || false
+                }
+            };
+            
+            console.log('🤖 Appel asynchrone webhook n8n:', payload);
+            
+            // Appel POST asynchrone au webhook
+            fetch('http://192.168.1.184:5678/webhook/reco-top-plat-menu', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Webhook n8n appelé avec succès');
+                    return response.json();
+                } else {
+                    console.error('⚠️ Erreur webhook n8n:', response.status);
+                    return null;
+                }
+            })
+            .then(data => {
+                if (data) {
+                    console.log('📊 Réponse du webhook n8n:', data);
+                    
+                    // Adapter les données au format plat
+                    const platsArray = Array.isArray(data) ? data : (data.top_plats || []);
+                    console.log('Plats recommandés par n8n extraits:', platsArray);
+                    // Transformer les plats reçus du webhook
+                    const mealsFormatted = platsArray.map(plat => transformerPlatEnMealDiet(plat));
+                    console.log('Plats recommandés par n8n formatés:', mealsFormatted);
+                    // Ajouter à la catégorie plat-recommandation-ia
+                    dietMeals["plat-recommandation-ia"] = mealsFormatted;
+                    console.log('Plats recommandés par n8n intégrés dans dietMeals:', dietMeals["plat-recommandation-ia"]);
+                    
+                    console.log('✅ Recommandations IA n8n reçues et intégrées !', mealsFormatted);
+                }
+            })
+            .catch(error => console.error('❌ Erreur appel webhook n8n:', error))
+            .finally(() => {
+                // Marquer la fin du chargement
+                isLoadingRecoIA = false;
+                // Rafraîchir l'affichage si c'est la catégorie active
+                if (currentDiet === "plat-recommandation-ia") {
+                    displayDietMeals();
+                }
+            });
+        })
+        .catch(error => console.error('Erreur récupération profil:', error));
+}
+
+/**
  * Charge les plats recommandés basés sur le profil nutritionnel de l'utilisateur
  */
 function chargerPlatsRecommandes() {
+    // Appeler le webhook n8n asynchrone (ne pas attendre)
+    appelN8NRecommandationsAsync();
+    
     fetch('/api/profil-nutritionnel/recommander-plats/')
         .then(response => {
             // Si l'utilisateur n'est pas authentifié (401), c'est normal
@@ -171,6 +265,7 @@ function chargerPlatsRecommandes() {
 
 // ========== VARIABLES GLOBALES ==========
 let currentDiet = "high-protein";
+let isLoadingRecoIA = false; // Track si les recommandations IA sont en cours de chargement
 
 // ========== RÉFÉRENCES DOM ==========
 const dietGrid = document.getElementById('dietGrid');
@@ -183,7 +278,8 @@ const dietNames = {
     "low-carb": "Low Carb",
     "vegan": "Vegan",
     "gluten-free": "Sans Gluten",
-    "plat-recommander": "Votre profil nutritionnel"
+    "plat-recommander": "Recommendation IA",
+    "plat-recommandation-ia": "Recommendation IA"
 };
 
 // ========== FONCTION POUR AFFICHER LES PLATS ==========
@@ -198,12 +294,39 @@ function displayDietMeals() {
         selectedDietSpan.textContent = dietName;
     }
 
+    // Affichage du loader pour plat-recommandation-ia si en cours de chargement
+    if (currentDiet === "plat-recommandation-ia" && isLoadingRecoIA) {
+        dietGrid.innerHTML = `
+            <div class="loader-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+                <div class="spinner" style="
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #3498db;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    animation: spin 1s linear infinite;
+                "></div>
+                <div style="margin-left: 15px; font-size: 16px; color: #666;">
+                    <p>⏳ Chargement des recommandations IA...</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 5px;">Cela peut prendre quelques secondes</p>
+                </div>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        return;
+    }
+
     // Affichage des résultats
     if (meals.length === 0) {
         dietGrid.innerHTML = `<div class="no-results">🍽️ Aucun plat disponible pour cette catégorie</div>`;
         return;
     }
-
+    console.log(`Affichage des plats pour ${dietName}:`, meals);
     dietGrid.innerHTML = meals.map(meal => {
         // Déterminer la couleur du score
         let scoreClass = 'score-low';
@@ -223,11 +346,19 @@ function displayDietMeals() {
             scoreIcon = '😐';
         }
         
+        // Générer le HTML des alertes s'il y en a
+        const alertsHTML = meal.alerts && meal.alerts.length > 0 ? `
+            <div class="meal-alerts">
+                ${meal.alerts.map(alert => `<div class="alert-item">⚠️ ${alert}</div>`).join('')}
+            </div>
+        ` : '';
+        
         return `
         <div class="meal-card">
             <div class="meal-img">
                 <img src="${meal.image}" alt="${meal.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'">
                 <div class="badge-diet">${dietName}</div>
+                ${meal.badge ? `<div class="badge-ia" title="Recommandation IA">${meal.badge}</div>` : ''}
                 <div class="prot-circle">${meal.protein}g <span>PROT</span></div>
                 ${meal.score > 0 ? `<div class="score-badge ${scoreClass}">
                     <div class="score-value">${Math.round(meal.score)}</div>
@@ -241,6 +372,7 @@ function displayDietMeals() {
             </div>
             <div class="meal-body">
                 <h3>${meal.name}</h3>
+                ${meal.interpretation ? `<div class="meal-interpretation">💬 ${meal.interpretation}</div>` : ''}
                 <div class="nutri-table">
                     <div class="nutri-item">
                         <span>🔥 Calories</span>
@@ -263,9 +395,10 @@ function displayDietMeals() {
                         ${meal.fiber}g
                     </div>
                 </div>
+                ${alertsHTML}
                 <div class="meal-footer">
                     <button class="btn-add-to-cart" data-id="${meal.id}" data-name="${meal.name}">
-                        <i class="fas fa-shopping-cart"></i> Ajouter
+                        <Recommendation IAcart"></i> Ajouter
                     </button>
                 </div>
             </div>

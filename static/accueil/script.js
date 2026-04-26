@@ -556,7 +556,7 @@ function generateNutritionalRecommendations(platsList, menusList, profilAnalyse)
 // Fonction pour vérifier le statut du job async
 // maxAttempts = 10 (5 minutes / 30 secondes par tentative)
 // pollInterval = 30000ms (30 secondes)
-async function pollJobStatus(jobId, contentDiv, maxAttempts = 10, pollInterval = 30000) {
+async function pollJobStatus(jobId, contentDiv, maxAttempts = 10, pollInterval = 10000) {
     let attempts = 0;
     
     const poll = async () => {

@@ -13,38 +13,89 @@
          background: var(--bg); color: var(--text); margin: 0; padding: 24px; }
   h1 { margin: 0 0 6px; font-size: 28px; }
   p.sub { color: var(--muted); margin: 0 0 24px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .stats-header { display: flex; gap: 12px; }
+  .stat-badge { background: var(--card); padding: 8px 14px; border-radius: 8px; border: 1px solid #334155; }
+  .stat-badge .label { color: var(--muted); font-size: 12px; }
+  .stat-badge .value { font-size: 20px; font-weight: 700; color: var(--text); }
   .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
   .card { background: var(--card); border-radius: 14px; padding: 20px;
           box-shadow: 0 4px 12px rgba(0,0,0,.25); border: 1px solid #334155; }
   .card h2 { margin: 0 0 14px; font-size: 18px; display:flex; justify-content:space-between; }
   .badge { font-size: 11px; padding: 3px 10px; border-radius: 999px; font-weight:600; }
   .b-OK { background: var(--ok); color: white; }
-  .b-WARNING_LOW_MEAN, .b-WARNING_HIGH_MEAN, .b-WARNING { background: var(--warn); color: #1a1a1a; }
+  .b-WARNING { background: var(--warn); color: #1a1a1a; }
   .b-CRITICAL { background: var(--crit); color: white; }
-  .b-INSUFFICIENT_DATA, .b-UNKNOWN, .b-INFO { background: #475569; color: white; }
+  .b-INFO { background: #475569; color: white; }
   .metric { display: flex; justify-content: space-between; padding: 6px 0;
             border-bottom: 1px dashed #334155; font-size: 14px; }
   .metric:last-child { border-bottom: none; }
   .metric .v { font-weight: 600; color: #f1f5f9; }
-  .alerts { margin-top: 28px; }
-  .alert { padding: 10px 14px; border-radius: 8px; margin-bottom: 8px;
-           border-left: 4px solid; font-size: 13px; background: var(--card); }
-  .alert.CRITICAL { border-color: var(--crit); }
-  .alert.WARNING  { border-color: var(--warn); }
-  .alert.INFO     { border-color: var(--info); }
-  .alert .ts { color: var(--muted); font-size: 11px; margin-right: 8px; }
-  .actions { margin: 18px 0; }
+  .alerts-section { margin-top: 28px; }
+  .alerts-filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #334155; background: var(--card);
+                color: var(--text); cursor: pointer; font-size: 12px; }
+  .filter-btn.active { background: var(--info); border-color: var(--info); }
+  .alert { padding: 12px; border-radius: 8px; margin-bottom: 10px;
+           border-left: 4px solid; background: rgba(0,0,0,.2); }
+  .alert.CRITICAL { border-color: var(--crit); background: rgba(220,38,38,.1); }
+  .alert.WARNING  { border-color: var(--warn); background: rgba(245,158,11,.1); }
+  .alert.INFO     { border-color: var(--info); background: rgba(14,165,233,.1); }
+  .alert-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .alert-message { font-size: 13px; margin-bottom: 8px; font-weight: 500; }
+  .alert-context { font-size: 11px; color: var(--muted); display: grid; grid-template-columns: auto auto; gap: 12px; margin-top: 8px; }
+  .alert-context-item { display: flex; align-items: center; }
+  .alert-context-item .label { margin-right: 4px; color: #64748b; }
+  .actions { margin: 18px 0; display: flex; gap: 10px; }
   button { background: #334155; color: white; border: none; padding: 8px 16px;
            border-radius: 6px; cursor: pointer; font-size: 13px; }
   button:hover { background: #475569; }
   .empty { color: var(--muted); font-style: italic; padding: 12px 0; }
   .gauge { height: 6px; background: #334155; border-radius: 3px; overflow: hidden; margin-top: 8px; }
   .gauge > div { height: 100%; background: linear-gradient(90deg, var(--crit), var(--warn), var(--ok)); }
+  .profile-info { font-size: 11px; color: var(--muted); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .profile-info-item { padding: 4px; background: rgba(0,0,0,.3); border-radius: 4px; }
+  .profile-info-item .label { color: #94a3b8; }
+  .profile-info-item .value { color: var(--text); font-weight: 600; }
+  .timestamp { color: #64748b; font-size: 11px; }
+  .alert-count { background: var(--crit); color: white; border-radius: 999px; width: 24px; height: 24px;
+                 display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  /* Advanced filters styling */
+  .advanced-filters { background: var(--card); border-radius: 10px; padding: 16px; margin-bottom: 16px; border: 1px solid #334155; }
+  .filters-title { font-size: 13px; font-weight: 600; color: var(--text); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .filter-group { display: flex; flex-direction: column; }
+  .filter-group label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  .filter-group input { background: #0f172a; border: 1px solid #334155; color: var(--text); padding: 6px 8px; border-radius: 4px; font-size: 12px; }
+  .filter-group input:focus { outline: none; border-color: var(--info); }
+  .filter-row { display: flex; gap: 8px; align-items: flex-end; }
+  .filter-row .filter-group { flex: 1; }
+  .range-input-group { display: flex; gap: 4px; }
+  .range-input-group input { flex: 1; }
+  .range-separator { color: var(--muted); font-size: 11px; align-self: center; }
+  .filter-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .filter-actions button { font-size: 12px; padding: 6px 12px; }
+  .active-filters-badge { display: inline-block; background: var(--warn); color: #1a1a1a; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 600; margin-left: 8px; }
+
 </style>
 </head>
 <body>
-  <h1>📊 Monitoring des Scores Nutritionnels</h1>
-  <p class="sub">Surveillance en temps réel • Détection d'anomalies • Statistiques</p>
+  <div class="header">
+    <div>
+      <h1>📊 Monitoring des Scores Nutritionnels</h1>
+      <p class="sub">Surveillance en temps réel • Détection d'anomalies • Analyse statistique</p>
+    </div>
+    <div class="stats-header">
+      <div class="stat-badge">
+        <div class="label">Alertes</div>
+        <div class="value" id="total-alerts">0</div>
+      </div>
+      <div class="stat-badge">
+        <div class="label">Échantillons</div>
+        <div class="value" id="total-samples">0</div>
+      </div>
+    </div>
+  </div>
 
   <div class="actions">
     <button onclick="refresh()">🔄 Rafraîchir</button>
@@ -52,6 +103,8 @@
     <span id="last-update" style="color:var(--muted);margin-left:12px;font-size:12px;"></span>
   </div>
 
+  <!-- Statistiques -->
+  <h2 style="margin-top: 28px; margin-bottom: 14px;">📈 Statistiques par type de score</h2>
   <div class="grid" id="cards">
     {% for type, s in stats.items %}
     <div class="card">
@@ -63,14 +116,11 @@
         <p class="empty">Aucune donnée enregistrée pour le moment.</p>
       {% else %}
         <div class="metric"><span>Échantillons</span><span class="v">{{ s.samples }}</span></div>
-        <div class="metric"><span>Total cumulé</span><span class="v">{{ s.total_recorded }}</span></div>
-        <div class="metric"><span>Moyenne</span><span class="v">{{ s.mean }}</span></div>
-        <div class="metric"><span>Médiane</span><span class="v">{{ s.median }}</span></div>
-        <div class="metric"><span>Écart-type (σ)</span><span class="v">{{ s.stddev }}</span></div>
-        <div class="metric"><span>Variance</span><span class="v">{{ s.variance }}</span></div>
-        <div class="metric"><span>Min / Max</span><span class="v">{{ s.min }} / {{ s.max }}</span></div>
-        <div class="metric"><span>Anomalies</span><span class="v" style="color:var(--crit);">{{ s.anomalies }}</span></div>
-        <div class="metric"><span>Outliers</span><span class="v" style="color:var(--warn);">{{ s.outliers }}</span></div>
+        <div class="metric"><span>Moyenne</span><span class="v">{{ s.mean|floatformat:1 }}</span></div>
+        <div class="metric"><span>Écart-type (σ)</span><span class="v">{{ s.stddev|floatformat:1 }}</span></div>
+        <div class="metric"><span>Min / Max</span><span class="v">{{ s.min|floatformat:1 }} / {{ s.max|floatformat:1 }}</span></div>
+        <div class="metric"><span>Anomalies</span><span class="v" style="{% if s.anomalies > 0 %}color:var(--crit);{% endif %}">{{ s.anomalies }}</span></div>
+        <div class="metric"><span>Outliers</span><span class="v" style="{% if s.outliers > 0 %}color:var(--warn);{% endif %}">{{ s.outliers }}</span></div>
         <div class="gauge"><div style="width: {{ s.mean }}%;"></div></div>
       {% endif %}
     </div>
@@ -79,13 +129,230 @@
     {% endfor %}
   </div>
 
-  <div class="alerts">
-    <h2>🚨 Alertes récentes</h2>
+  <!-- Alertes -->
+  <div class="alerts-section">
+    <h2>🚨 Alertes détaillées</h2>
+    
+    <div class="alerts-filters">
+      <button class="filter-btn active" onclick="filterAlerts('ALL')">Toutes</button>
+      <button class="filter-btn" onclick="filterAlerts('CRITICAL')">🔴 Critiques</button>
+      <button class="filter-btn" onclick="filterAlerts('WARNING')">🟡 Avertissements</button>
+      <button class="filter-btn" onclick="filterAlerts('INFO')">ℹ️ Info</button>
+    </div>
+    
+    <!-- Advanced Nutritional Filters -->
+    <div class="advanced-filters">
+      <div class="filters-title">
+        🔍 Filtres avancés <span class="active-filters-badge" id="active-filters-badge" style="display:none;">0 actifs</span>
+      </div>
+      
+      <div class="filters-grid">
+        <!-- Client Filter -->
+        <div class="filter-group">
+          <label for="filter-client">Client</label>
+          <input type="text" id="filter-client" placeholder="Rechercher..." list="client-list">
+          <datalist id="client-list"></datalist>
+        </div>
+        
+        <!-- Plat Filter -->
+        <div class="filter-group">
+          <label for="filter-plat">Plat</label>
+          <input type="text" id="filter-plat" placeholder="Rechercher..." list="plat-list">
+          <datalist id="plat-list"></datalist>
+        </div>
+        
+        <!-- Calories Range -->
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filter-calorie-min">Calories (min)</label>
+            <input type="number" id="filter-calorie-min" placeholder="Min" min="0" step="10">
+          </div>
+          <div class="filter-group">
+            <label for="filter-calorie-max">Calories (max)</label>
+            <input type="number" id="filter-calorie-max" placeholder="Max" min="0" step="10">
+          </div>
+        </div>
+        
+        <!-- Protéines Range -->
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filter-proteines-min">Prot. (min)</label>
+            <input type="number" id="filter-proteines-min" placeholder="Min" min="0" step="1" max="100">
+          </div>
+          <div class="filter-group">
+            <label for="filter-proteines-max">Prot. (max)</label>
+            <input type="number" id="filter-proteines-max" placeholder="Max" min="0" step="1" max="100">
+          </div>
+        </div>
+        
+        <!-- Glucides Range -->
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filter-glucides-min">Gluc. (min)</label>
+            <input type="number" id="filter-glucides-min" placeholder="Min" min="0" step="1" max="100">
+          </div>
+          <div class="filter-group">
+            <label for="filter-glucides-max">Gluc. (max)</label>
+            <input type="number" id="filter-glucides-max" placeholder="Max" min="0" step="1" max="100">
+          </div>
+        </div>
+        
+        <!-- Lipides Range -->
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filter-lipides-min">Lip. (min)</label>
+            <input type="number" id="filter-lipides-min" placeholder="Min" min="0" step="1" max="100">
+          </div>
+          <div class="filter-group">
+            <label for="filter-lipides-max">Lip. (max)</label>
+            <input type="number" id="filter-lipides-max" placeholder="Max" min="0" step="1" max="100">
+          </div>
+        </div>
+        
+        <!-- Fibres Range -->
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filter-fibres-min">Fibres (min)</label>
+            <input type="number" id="filter-fibres-min" placeholder="Min" min="0" step="1" max="100">
+          </div>
+          <div class="filter-group">
+            <label for="filter-fibres-max">Fibres (max)</label>
+            <input type="number" id="filter-fibres-max" placeholder="Max" min="0" step="1" max="100">
+          </div>
+        </div>
+        
+        <!-- IMC Range -->
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filter-imc-min">IMC (min)</label>
+            <input type="number" id="filter-imc-min" placeholder="Min" min="10" step="0.5" max="50">
+          </div>
+          <div class="filter-group">
+            <label for="filter-imc-max">IMC (max)</label>
+            <input type="number" id="filter-imc-max" placeholder="Max" min="10" step="0.5" max="50">
+          </div>
+        </div>
+      </div>
+      
+      <div class="filter-actions">
+        <button onclick="applyNutritionalFilters()" style="background: var(--ok); color: white;">✓ Appliquer filtres</button>
+        <button onclick="resetNutritionalFilters()">↻ Réinitialiser</button>
+      </div>
+    </div>
+    
     <div id="alert-list">
       {% for a in alerts %}
-        <div class="alert {{ a.level }}">
-          <span class="ts">{{ a.timestamp }}</span>
-          <strong>[{{ a.level }}]</strong> [{{ a.score_type }}] {{ a.message }}
+        <div class="alert {{ a.level }}" data-level="{{ a.level }}">
+          <div class="alert-header">
+            <div>
+              <span class="timestamp">{{ a.timestamp }}</span>
+              <strong style="margin-left: 8px; color: {% if a.level == 'CRITICAL' %}var(--crit){% elif a.level == 'WARNING' %}var(--warn){% else %}var(--info){% endif %};">[{{ a.level }}]</strong>
+              <strong style="margin-left: 4px; color: #cbd5e1;">[{{ a.score_type }}]</strong>
+            </div>
+          </div>
+          <div class="alert-message">📍 {{ a.message }}</div>
+          
+          <!-- Détails enrichis du client et plat -->
+          {% if a.context %}
+            <div class="profile-info">
+              <!-- Informations Client -->
+              {% if a.context.client_nom %}
+                <div class="profile-info-item">
+                  <div class="label">👤 Client</div>
+                  <div class="value">{{ a.context.client_nom }}</div>
+                </div>
+              {% endif %}
+              
+              <!-- Plat -->
+              {% if a.context.plat_nom %}
+                <div class="profile-info-item">
+                  <div class="label">🍽️ Plat</div>
+                  <div class="value">{{ a.context.plat_nom }}</div>
+                </div>
+              {% endif %}
+              
+              <!-- Objectif nutritionnel -->
+              {% if a.context.profil_objectif %}
+                <div class="profile-info-item">
+                  <div class="label">🎯 Objectif</div>
+                  <div class="value">{{ a.context.profil_objectif }}</div>
+                </div>
+              {% endif %}
+              
+              <!-- IMC du client -->
+              {% if a.context.imc_num %}
+                <div class="profile-info-item">
+                  <div class="label">📊 IMC</div>
+                  <div class="value">{{ a.context.imc_num|floatformat:1 }} ({{ a.context.imc_cat }})</div>
+                </div>
+              {% endif %}
+              
+              <!-- Profil: Age, Sexe, Poids, Taille -->
+              {% if a.context.profil_age %}
+                <div class="profile-info-item">
+                  <div class="label">👥 Age</div>
+                  <div class="value">{{ a.context.profil_age }} ans</div>
+                </div>
+              {% endif %}
+              
+              {% if a.context.profil_sexe %}
+                <div class="profile-info-item">
+                  <div class="label">⚧️ Sexe</div>
+                  <div class="value">{{ a.context.profil_sexe }}</div>
+                </div>
+              {% endif %}
+              
+              {% if a.context.profil_poids_kg %}
+                <div class="profile-info-item">
+                  <div class="label">⚖️ Poids</div>
+                  <div class="value">{{ a.context.profil_poids_kg|floatformat:1 }} kg</div>
+                </div>
+              {% endif %}
+              
+              {% if a.context.profil_taille_cm %}
+                <div class="profile-info-item">
+                  <div class="label">📏 Taille</div>
+                  <div class="value">{{ a.context.profil_taille_cm|floatformat:0 }} cm</div>
+                </div>
+              {% endif %}
+              
+              <!-- Données Nutritionnelles Plat vs Besoins -->
+              {% if a.context.plat_calories %}
+                <div class="profile-info-item">
+                  <div class="label">🔥 Calories</div>
+                  <div class="value">{{ a.context.plat_calories|floatformat:0 }}{% if a.context.besoins_calories %} / {{ a.context.besoins_calories|floatformat:0 }} kcal{% endif %}</div>
+                </div>
+              {% endif %}
+              
+              {% if a.context.plat_proteines_g %}
+                <div class="profile-info-item">
+                  <div class="label">💪 Protéines</div>
+                  <div class="value">{{ a.context.plat_proteines_g|floatformat:1 }}{% if a.context.besoins_proteines %} / {{ a.context.besoins_proteines|floatformat:0 }}g{% else %}g{% endif %}</div>
+                </div>
+              {% endif %}
+              
+              {% if a.context.plat_glucides_g %}
+                <div class="profile-info-item">
+                  <div class="label">🍚 Glucides</div>
+                  <div class="value">{{ a.context.plat_glucides_g|floatformat:1 }}g</div>
+                </div>
+              {% endif %}
+              
+              {% if a.context.plat_lipides_g %}
+                <div class="profile-info-item">
+                  <div class="label">🧈 Lipides</div>
+                  <div class="value">{{ a.context.plat_lipides_g|floatformat:1 }}g</div>
+                </div>
+              {% endif %}
+              
+              {% if a.context.plat_fibres_g %}
+                <div class="profile-info-item">
+                  <div class="label">🌾 Fibres</div>
+                  <div class="value">{{ a.context.plat_fibres_g|floatformat:1 }}{% if a.context.besoins_fibres %} / {{ a.context.besoins_fibres|floatformat:0 }}g{% else %}g{% endif %}</div>
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
         </div>
       {% empty %}
         <p class="empty">Aucune alerte. Tout va bien ! ✅</p>
@@ -96,22 +363,278 @@
 <script>
 const API = "{% url 'monitoring_api' %}";
 const RESET = "{% url 'monitoring_reset' %}";
+const FILTERS_DATA = "{% url 'monitoring_filters_data' %}";
 const CSRF = "{{ csrf_token }}";
+
+// Store current nutritional filters for reapplication
+let nutritionalFilters = {};
+
+// Initialize filters on page load
+document.addEventListener('DOMContentLoaded', async () => {
+  await populateFilterDatalists();
+  updateActiveFiltersCount();
+});
+
+// Populate client and plat datalists from API
+async function populateFilterDatalists() {
+  try {
+    const res = await fetch(FILTERS_DATA);
+    const data = await res.json();
+    
+    // Populate clients
+    const clientList = document.getElementById('client-list');
+    clientList.innerHTML = '';
+    for (const [id, name] of Object.entries(data.clients || {})) {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = name;
+      clientList.appendChild(option);
+    }
+    
+    // Populate plats
+    const platList = document.getElementById('plat-list');
+    platList.innerHTML = '';
+    for (const [id, name] of Object.entries(data.plats || {})) {
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = name;
+      platList.appendChild(option);
+    }
+    
+    // Populate suggested ranges
+    const ranges = data.nutritional_ranges || {};
+    if (ranges.calories) {
+      document.getElementById('filter-calorie-min').min = ranges.calories.min;
+      document.getElementById('filter-calorie-max').min = ranges.calories.min;
+      document.getElementById('filter-calorie-min').max = ranges.calories.max;
+      document.getElementById('filter-calorie-max').max = ranges.calories.max;
+    }
+    if (ranges.proteines) {
+      document.getElementById('filter-proteines-min').min = ranges.proteines.min;
+      document.getElementById('filter-proteines-max').min = ranges.proteines.min;
+      document.getElementById('filter-proteines-min').max = ranges.proteines.max;
+      document.getElementById('filter-proteines-max').max = ranges.proteines.max;
+    }
+    if (ranges.glucides) {
+      document.getElementById('filter-glucides-min').min = ranges.glucides.min;
+      document.getElementById('filter-glucides-max').min = ranges.glucides.min;
+      document.getElementById('filter-glucides-min').max = ranges.glucides.max;
+      document.getElementById('filter-glucides-max').max = ranges.glucides.max;
+    }
+    if (ranges.lipides) {
+      document.getElementById('filter-lipides-min').min = ranges.lipides.min;
+      document.getElementById('filter-lipides-max').min = ranges.lipides.min;
+      document.getElementById('filter-lipides-min').max = ranges.lipides.max;
+      document.getElementById('filter-lipides-max').max = ranges.lipides.max;
+    }
+    if (ranges.fibres) {
+      document.getElementById('filter-fibres-min').min = ranges.fibres.min;
+      document.getElementById('filter-fibres-max').min = ranges.fibres.min;
+      document.getElementById('filter-fibres-min').max = ranges.fibres.max;
+      document.getElementById('filter-fibres-max').max = ranges.fibres.max;
+    }
+  } catch (e) {
+    console.error('Error loading filter data:', e);
+  }
+}
+
+// Apply nutritional filters
+function applyNutritionalFilters() {
+  // Collect filter values
+  const filters = {
+    client_id: document.getElementById('filter-client').value || null,
+    plat_id: document.getElementById('filter-plat').value || null,
+    calorie_min: document.getElementById('filter-calorie-min').value || null,
+    calorie_max: document.getElementById('filter-calorie-max').value || null,
+    proteines_min: document.getElementById('filter-proteines-min').value || null,
+    proteines_max: document.getElementById('filter-proteines-max').value || null,
+    glucides_min: document.getElementById('filter-glucides-min').value || null,
+    glucides_max: document.getElementById('filter-glucides-max').value || null,
+    lipides_min: document.getElementById('filter-lipides-min').value || null,
+    lipides_max: document.getElementById('filter-lipides-max').value || null,
+    fibres_min: document.getElementById('filter-fibres-min').value || null,
+    fibres_max: document.getElementById('filter-fibres-max').value || null,
+    imc_min: document.getElementById('filter-imc-min').value || null,
+    imc_max: document.getElementById('filter-imc-max').value || null,
+  };
+  
+  // Remove null values
+  Object.keys(filters).forEach(key => filters[key] === null && delete filters[key]);
+  
+  // Store filters for potential reuse
+  nutritionalFilters = filters;
+  
+  // Build query string
+  const queryParams = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value) queryParams.append(key, value);
+  });
+  queryParams.append('limit', 50);
+  
+  // Refresh with filters
+  refreshWithFilters(queryParams.toString());
+  updateActiveFiltersCount();
+}
+
+// Refresh alerts with custom filters
+async function refreshWithFilters(queryString) {
+  try {
+    const url = API + (queryString ? '?' + queryString : '');
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    // Render alerts
+    const alertList = document.getElementById('alert-list');
+    if (!data.alerts || data.alerts.length === 0) {
+      alertList.innerHTML = '<p class="empty">Aucune alerte ne correspond aux filtres.</p>';
+      return;
+    }
+    
+    // Build HTML for filtered alerts
+    let html = '';
+    for (const alert of data.alerts) {
+      html += buildAlertHTML(alert);
+    }
+    alertList.innerHTML = html;
+    updateStats();
+  } catch (e) {
+    console.error('Error applying filters:', e);
+    alert('Erreur lors de l\'application des filtres');
+  }
+}
+
+// Helper function to build alert HTML
+function buildAlertHTML(a) {
+  const levelColors = {
+    'CRITICAL': 'var(--crit)',
+    'WARNING': 'var(--warn)',
+    'INFO': 'var(--info)'
+  };
+  
+  let profileHTML = '';
+  if (a.context) {
+    const ctx = a.context;
+    if (ctx.client_nom) {
+      profileHTML += `<div class="profile-info-item"><div class="label">👤 Client</div><div class="value">${ctx.client_nom}</div></div>`;
+    }
+    if (ctx.plat_nom) {
+      profileHTML += `<div class="profile-info-item"><div class="label">🍽️ Plat</div><div class="value">${ctx.plat_nom}</div></div>`;
+    }
+    if (ctx.profil_objectif) {
+      profileHTML += `<div class="profile-info-item"><div class="label">🎯 Objectif</div><div class="value">${ctx.profil_objectif}</div></div>`;
+    }
+    if (ctx.imc_num) {
+      profileHTML += `<div class="profile-info-item"><div class="label">📊 IMC</div><div class="value">${parseFloat(ctx.imc_num).toFixed(1)} (${ctx.imc_cat})</div></div>`;
+    }
+    if (ctx.profil_age) {
+      profileHTML += `<div class="profile-info-item"><div class="label">👥 Age</div><div class="value">${ctx.profil_age} ans</div></div>`;
+    }
+    if (ctx.profil_sexe) {
+      profileHTML += `<div class="profile-info-item"><div class="label">⚧️ Sexe</div><div class="value">${ctx.profil_sexe}</div></div>`;
+    }
+    if (ctx.profil_poids_kg) {
+      profileHTML += `<div class="profile-info-item"><div class="label">⚖️ Poids</div><div class="value">${parseFloat(ctx.profil_poids_kg).toFixed(1)} kg</div></div>`;
+    }
+    if (ctx.profil_taille_cm) {
+      profileHTML += `<div class="profile-info-item"><div class="label">📏 Taille</div><div class="value">${parseInt(ctx.profil_taille_cm)} cm</div></div>`;
+    }
+    if (ctx.plat_calories) {
+      const caloriesText = ctx.besoins_calories ? `${parseFloat(ctx.plat_calories).toFixed(0)} / ${parseFloat(ctx.besoins_calories).toFixed(0)} kcal` : `${parseFloat(ctx.plat_calories).toFixed(0)}`;
+      profileHTML += `<div class="profile-info-item"><div class="label">🔥 Calories</div><div class="value">${caloriesText}</div></div>`;
+    }
+    if (ctx.plat_proteines_g) {
+      const proteinesText = ctx.besoins_proteines ? `${parseFloat(ctx.plat_proteines_g).toFixed(1)} / ${parseFloat(ctx.besoins_proteines).toFixed(0)}g` : `${parseFloat(ctx.plat_proteines_g).toFixed(1)}g`;
+      profileHTML += `<div class="profile-info-item"><div class="label">💪 Protéines</div><div class="value">${proteinesText}</div></div>`;
+    }
+    if (ctx.plat_glucides_g) {
+      profileHTML += `<div class="profile-info-item"><div class="label">🍚 Glucides</div><div class="value">${parseFloat(ctx.plat_glucides_g).toFixed(1)}g</div></div>`;
+    }
+    if (ctx.plat_lipides_g) {
+      profileHTML += `<div class="profile-info-item"><div class="label">🧈 Lipides</div><div class="value">${parseFloat(ctx.plat_lipides_g).toFixed(1)}g</div></div>`;
+    }
+    if (ctx.plat_fibres_g) {
+      const fibresText = ctx.besoins_fibres ? `${parseFloat(ctx.plat_fibres_g).toFixed(1)} / ${parseFloat(ctx.besoins_fibres).toFixed(0)}g` : `${parseFloat(ctx.plat_fibres_g).toFixed(1)}g`;
+      profileHTML += `<div class="profile-info-item"><div class="label">🌾 Fibres</div><div class="value">${fibresText}</div></div>`;
+    }
+  }
+  
+  const color = levelColors[a.level] || 'var(--info)';
+  return `
+    <div class="alert ${a.level}" data-level="${a.level}">
+      <div class="alert-header">
+        <div>
+          <span class="timestamp">${a.timestamp}</span>
+          <strong style="margin-left: 8px; color: ${color};">[${a.level}]</strong>
+          <strong style="margin-left: 4px; color: #cbd5e1;">[${a.score_type}]</strong>
+        </div>
+      </div>
+      <div class="alert-message">📍 ${a.message}</div>
+      ${profileHTML ? '<div class="profile-info">' + profileHTML + '</div>' : ''}
+    </div>
+  `;
+}
+
+// Reset nutritional filters
+function resetNutritionalFilters() {
+  document.getElementById('filter-client').value = '';
+  document.getElementById('filter-plat').value = '';
+  document.getElementById('filter-calorie-min').value = '';
+  document.getElementById('filter-calorie-max').value = '';
+  document.getElementById('filter-proteines-min').value = '';
+  document.getElementById('filter-proteines-max').value = '';
+  document.getElementById('filter-glucides-min').value = '';
+  document.getElementById('filter-glucides-max').value = '';
+  document.getElementById('filter-lipides-min').value = '';
+  document.getElementById('filter-lipides-max').value = '';
+  document.getElementById('filter-fibres-min').value = '';
+  document.getElementById('filter-fibres-max').value = '';
+  document.getElementById('filter-imc-min').value = '';
+  document.getElementById('filter-imc-max').value = '';
+  
+  nutritionalFilters = {};
+  updateActiveFiltersCount();
+  refreshWithFilters(''); // Refresh with no filters to show all alerts
+}
+
+// Update active filters count badge
+function updateActiveFiltersCount() {
+  const count = Object.keys(nutritionalFilters).length;
+  const badge = document.getElementById('active-filters-badge');
+  if (count > 0) {
+    badge.textContent = count + ' actif' + (count > 1 ? 's' : '');
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function updateStats() {
+  const alertCount = document.querySelectorAll('[data-level]').length;
+  document.getElementById('total-alerts').textContent = alertCount;
+  
+  let totalSamples = 0;
+  document.querySelectorAll('.metric').forEach(m => {
+    if (m.textContent.includes('Échantillons')) {
+      const val = parseInt(m.querySelector('.v').textContent);
+      totalSamples += val;
+    }
+  });
+  document.getElementById('total-samples').textContent = totalSamples;
+}
 
 async function refresh() {
   try {
     const r = await fetch(API);
     const d = await r.json();
     document.getElementById('last-update').textContent =
-      'MAJ: ' + new Date().toLocaleTimeString();
+      '✓ MAJ: ' + new Date().toLocaleTimeString();
     console.log('Stats:', d);
-    // Rechargement complet si structure change
-    location.reload();
+    setTimeout(() => location.reload(), 500);
   } catch (e) { console.error(e); }
 }
 
 async function resetAll() {
-  if (!confirm('Réinitialiser tous les compteurs ?')) return;
+  if (!confirm('Réinitialiser tous les compteurs ? Cette action est irréversible.')) return;
   await fetch(RESET, {
     method: 'POST',
     headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -119,7 +642,27 @@ async function resetAll() {
   location.reload();
 }
 
+function filterAlerts(level) {
+  const alerts = document.querySelectorAll('[data-level]');
+  alerts.forEach(a => {
+    a.style.display = level === 'ALL' || a.dataset.level === level ? 'block' : 'none';
+  });
+  
+  // Mettre à jour les boutons actifs
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+}
+
+updateStats();
+
 // Auto-refresh toutes les 30s
+setInterval(() => {
+  const r = new Date().toLocaleTimeString();
+  document.getElementById('last-update').textContent = '⏳ ' + r;
+}, 1000);
+
 setInterval(refresh, 30000);
 </script>
 </body>

@@ -132,6 +132,8 @@ class ProfilNutritionnel(models.Model):
     objectif = models.CharField(max_length=20, choices=OBJECTIFS)
     restrictions_alimentaires = models.TextField(blank=True)
     niveau_activite = models.CharField(max_length=20, choices=NIVEAU_ACTIVITE, default='modere')
+    donnees_sante_sensibles = models.BooleanField(default=False, help_text="Autorisation de traiter les données de santé sensibles")
+    learning_collectif = models.BooleanField(default=False, help_text="Autorisation de participer à l'apprentissage collectif")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -1013,6 +1015,19 @@ class Plat(models.Model):
                                  context={
                 **ctx,
                 'imc_cat': categorie_imc,
+                'imc_num': float(profil.calculer_imc()),
+                'profil_age': int(profil.age),
+                'profil_sexe': profil.sexe,
+                'profil_poids_kg': float(profil.poids),
+                'profil_taille_cm': float(profil.taille),
+                'plat_calories': float(plat.calorie),
+                'plat_proteines_g': float(plat.proteine),
+                'plat_glucides_g': float(plat.glucides),
+                'plat_lipides_g': float(plat.lipides),
+                'plat_fibres_g': float(plat.fibres),
+                'besoins_calories': float(besoins['calories']),
+                'besoins_proteines': float(besoins['proteines']),
+                'besoins_fibres': float(besoins['fibres']),
                 'breakdown': details,
             })
 

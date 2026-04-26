@@ -167,5 +167,5 @@ N8N_WEBHOOK_TIMEOUT = int(os.getenv('N8N_WEBHOOK_TIMEOUT', '120'))
 # Par défaut: http://localhost:5678/webhook/reco-nutrition
 N8N_WEBHOOK_URL = os.getenv(
     'N8N_WEBHOOK_URL', 
-    'http://192.168.1.7:5678/webhook/reco-nutrition'
+    'http://192.168.1.184:5678/webhook/reco-nutrition'
 )
