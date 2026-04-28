@@ -30,7 +30,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "myapp",        # ← OBLIGATOIRE
-    "healthy",
+    "myapp.users",
+    "myapp.commande",
+    "myapp.profilNutritionnel",
+    "myapp.plat",
+    "myapp.menu",
+    "myapp.systemeIA",
     'rest_framework',
 ]
 
@@ -114,7 +119,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "menu"
+LOGIN_REDIRECT_URL = "accueil"
 LOGOUT_REDIRECT_URL = "login"
 
 # ========== CONFIGURATION EMAIL ==========
@@ -134,7 +139,7 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@freshgreens.com')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "myapp.Utilisateur"
+AUTH_USER_MODEL = "users.Utilisateur"
 
 LOGGING = {
     "version": 1,

@@ -1,9 +1,11 @@
 from django.contrib import admin
-from myapp.models import (
-    Utilisateur, Client, Administrateur, ProfilNutritionnel, Plat,
-    Menu, Commande, LigneCommande, SystemeIA
-)
+from myapp.users.models import Utilisateur, Client, Administrateur
+from myapp.profilNutritionnel.models import ProfilNutritionnel
+from myapp.commande.models import Commande, LigneCommande
 
+from myapp.plat.models import Plat
+from myapp.menu.models import Menu
+from myapp.systemeIA.models import SystemeIA
 @admin.register(Utilisateur)
 class UtilisateurAdmin(admin.ModelAdmin):
     list_display = ['email', 'nom', 'prenom', 'date_inscription']

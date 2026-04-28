@@ -135,7 +135,7 @@ function transformerMenuEnMeal(menu) {
  * Charge les menus depuis l'API et les affiche
  */
 function chargerPlats() {
-    fetch('/api/menus/')
+    fetch('/menu/api/menus/')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Erreur HTTP: ${response.status}`);

@@ -2,7 +2,7 @@
 
 ## 1. Payload envoyé par Django à N8N
 
-Quand un utilisateur appelle l'endpoint `/api/profil-nutritionnel/recommander-n8n/`, Django envoie ce payload à N8N:
+Quand un utilisateur appelle l'endpoint `/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/`, Django envoie ce payload à N8N:
 
 ```json
 {

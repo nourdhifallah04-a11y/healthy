@@ -19,17 +19,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'django_extensions',
     # Third-party apps
     'rest_framework',
     
     # Local apps
-    'apps.core',
-    'apps.users',
-    'apps.nutrition',
-    'apps.scoring',
-    'apps.orders',
-    'apps.ai',
+    'myapp',
+    'myapp.users',
+    'myapp.plat',
+    'myapp.menu',
+    'myapp.commande',
+    'myapp.profilNutritionnel',
+    'myapp.systemeIA',
 ]
 
 MIDDLEWARE = [
@@ -40,7 +41,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'apps.core.middleware.ErrorHandlingMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

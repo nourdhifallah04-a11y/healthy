@@ -1,7 +1,7 @@
 # Fix du Endpoint N8N - Diagnostic 400 Bad Request
 
 ## 🔴 Problème Original
-- **Erreur**: `POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ 400 (Bad Request)`
+- **Erreur**: `POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/ 400 (Bad Request)`
 - **Cause**: Plusieurs problèmes identifiés et corrigés
 
 ## ✅ Corrections Appliquées
@@ -129,7 +129,7 @@ python manage.py shell -c "from myapp.views import RecommenderN8nWebhookView; pr
 
 ### Test 2: Tester via curl (avec token)
 ```bash
-curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
+curl -X POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/ \
   -H "Authorization: Token YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'

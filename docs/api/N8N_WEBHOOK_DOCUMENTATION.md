@@ -4,7 +4,7 @@
 
 Cet endpoint permet d'appeler un workflow N8N pour obtenir des recommandations nutritionnelles personnalisées basées sur le profil d'un utilisateur.
 
-**URL de l'endpoint:** `POST /api/profil-nutritionnel/recommander-n8n/`
+**URL de l'endpoint:** `POST /profilNutritionnel/api/profil-nutritionnel/recommander-n8n/`
 
 **Webhook N8N:** `http://localhost:5678/webhook/reco-nutrition`
 
@@ -17,7 +17,7 @@ L'endpoint nécessite une authentification (token JWT ou session Django). L'util
 ### Exemple minimal (utilise le profil de l'utilisateur courant)
 
 ```bash
-curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
+curl -X POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -26,7 +26,7 @@ curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
 ### Exemple avec profil_id spécifique
 
 ```bash
-curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
+curl -X POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"profil_id": 1}'
@@ -39,7 +39,7 @@ import requests
 import json
 
 # Configuration
-ENDPOINT_URL = "http://localhost:8000/api/profil-nutritionnel/recommander-n8n/"
+ENDPOINT_URL = "http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/"
 TOKEN = "votre_token_jwt"
 
 # Headers avec authentification
@@ -221,7 +221,7 @@ LOGGING = {
 const recommendN8n = async () => {
   const token = localStorage.getItem('authToken');
   
-  const response = await fetch('/api/profil-nutritionnel/recommander-n8n/', {
+  const response = await fetch('/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -253,7 +253,7 @@ TOKEN=$(curl -X POST http://localhost:8000/api-token-auth/ \
   | jq -r '.token')
 
 # 2. Appeler l'endpoint
-curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
+curl -X POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/ \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}' | jq
@@ -274,7 +274,7 @@ user = User.objects.first()
 client.force_authenticate(user=user)
 
 # Appeler l'endpoint
-response = client.post('/api/profil-nutritionnel/recommander-n8n/', {})
+response = client.post('/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/', {})
 print(json.dumps(response.json(), indent=2))
 ```
 
@@ -292,7 +292,7 @@ print(json.dumps(response.json(), indent=2))
 
 ### Le profil n'est pas trouvé
 - Assurez-vous que l'utilisateur a créé un profil nutritionnel
-- Testez avec `/api/profil-nutritionnel/obtenir/` d'abord
+- Testez avec `/profilNutritionnel/api/profil-nutritionnel/obtenir/` d'abord
 
 ## Logs et monitoring
 

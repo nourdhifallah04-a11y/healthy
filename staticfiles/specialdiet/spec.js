@@ -7,36 +7,265 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ========== DONNÉES DES PLATS PAR CATÉGORIE DIET ==========
-const dietMeals = {
-    "high-protein": [
-        { name: "Poulet grillé aux herbes", calories: 380, protein: 42, carbs: 15, image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500", description: "Poulet fermier grillé, herbes de Provence" },
-        { name: "Saumon à la vapeur", calories: 420, protein: 38, carbs: 8, image: "https://i.pinimg.com/1200x/b9/90/77/b99077d3680bdce5367fcb5e5139b858.jpg", description: "Saumon frais, asperges, citron" },
-        { name: "Bœuf aux légumes", calories: 480, protein: 45, carbs: 20, image: "https://i.pinimg.com/1200x/32/07/d3/3207d311e5c745f61518597e33d86d1b.jpg", description: "Emincé de bœuf, légumes croquants" },
-        { name: "Omelette protéinée", calories: 320, protein: 30, carbs: 10, image: "https://i.pinimg.com/736x/69/34/ba/6934ba3ec7f9de248de860f6e4830b38.jpg", description: "3 œufs, fromage, épinards" },
-        { name: "Thon albacore", calories: 350, protein: 40, carbs: 5, image: "https://i.pinimg.com/1200x/0f/08/8f/0f088fb40e5965304501cd76556ed459.jpg", description: "Thon mi-cuit, sésame, sauce soja" }
-    ],
-    "low-carb": [
-        { name: "Salade César poulet", calories: 320, protein: 35, carbs: 12, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500", description: "Poulet, parmesan, sauce légère" },
-        { name: "Poisson aux légumes verts", calories: 280, protein: 32, carbs: 10, image: "https://i.pinimg.com/1200x/00/af/0d/00af0de81b6508251c77fe24c9f5fbec.jpg", description: "Daurade, brocoli, courgettes" },
-        { name: "Bowl méditerranéen", calories: 350, protein: 28, carbs: 18, image: "https://i.pinimg.com/1200x/44/62/67/446267fca26bb55c174375e9a4d19371.jpg", description: "Concombre, tomates, feta, olives" },
-        { name: "Œufs brouillés avocat", calories: 290, protein: 22, carbs: 9, image: "https://i.pinimg.com/736x/8f/69/7e/8f697ef82a1f3f791f2de4fa583b404e.jpg", description: "Œufs frais, avocat, pain complet" }
-    ],
-    "vegan": [
-        { name: "Bowl Quinoa & Légumes", calories: 420, protein: 15, carbs: 55, image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=500", description: "Quinoa, légumes rôtis, tahini" },
-        { name: "Curry de pois chiches", calories: 380, protein: 14, carbs: 48, image: "https://i.pinimg.com/736x/a8/b2/9a/a8b29abc90e533e4031abb73168cce31.jpg", description: "Pois chiches, lait de coco, épices" },
-        { name: "Salade d'été", calories: 250, protein: 8, carbs: 30, image: "https://i.pinimg.com/1200x/e9/19/ef/e919effd2e1970f9f81db84f785c0ade.jpg", description: "Tomates, concombres, avocat, citron" },
-        { name: "Buddha Bowl", calories: 450, protein: 18, carbs: 52, image: "https://i.pinimg.com/1200x/44/62/67/446267fca26bb55c174375e9a4d19371.jpg", description: "Riz complet, edamame, patate douce" }
-    ],
-    "gluten-free": [
-        { name: "Soupe de lentilles", calories: 280, protein: 15, carbs: 35, image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500", description: "Lentilles corail, légumes doux" },
-        { name: "Filet de poulet rôti", calories: 350, protein: 38, carbs: 8, image: "https://i.pinimg.com/736x/37/92/c6/3792c648a719ed62cd6e5a953f0d7b9f.jpg", description: "Poulet fermier, romarin, ail" },
-        { name: "Saumon au four", calories: 420, protein: 40, carbs: 5, image: "https://i.pinimg.com/1200x/b9/90/77/b99077d3680bdce5367fcb5e5139b858.jpg", description: "Saumon, citron, aneth" },
-        { name: "Gratin de chou-fleur", calories: 310, protein: 12, carbs: 18, image: "https://i.pinimg.com/736x/8f/69/7e/8f697ef82a1f3f791f2de4fa583b404e.jpg", description: "Chou-fleur, crème végétale" }
-    ]
+// Données par défaut (fallback)
+let dietMeals = {
+    "high-protein": [],
+    "low-carb": [],
+    "vegan": [],
+    "gluten-free": [],
+    "plat-recommander": [],
+    "plat-recommandation-ia": []
 };
+
+/**
+ * Transforme un objet Plat depuis l'API en objet meal pour l'affichage
+ * @param {Object} plat - Objet plat reçu de l'API
+ * @returns {Object} Objet meal formaté
+ */
+function transformerPlatEnMealDiet(plat) {
+    // Extraire l'ID - essayer les différentes propriétés possibles
+    const mealId = plat.id_plat || plat.id || null;
+    
+    if (!mealId) {
+        console.warn('⚠️ Warning: Plat without ID detected', plat);
+    }
+    
+    return {
+        id: mealId,
+        name: plat.nom,
+        calories: plat.calorie || 0,
+        protein: plat.proteine || 0,
+        carbs: plat.glucides || 0,
+        fat: plat.lipides || 0,
+        fiber: plat.fibres || 0,
+        image: plat.image ? plat.image : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
+        description: plat.description,
+        score: plat.score || 0,
+        scoreNutritionnel: plat.score_nutritionnel || 0,
+        prix: plat.prix || 0,
+        badge: plat.badge || null,
+        interpretation: plat.interpretation || null,
+        alerts: plat.alerts || []
+    };
+}
+
+/**
+ * Catégorise les plats par type de régime
+ * @param {Array} plats - Liste des plats
+ * @returns {Object} Plats organisés par catégorie diet
+ */
+function categoriserPlatsByDiet(plats) {
+    const categorized = {
+        "high-protein": [],
+        "low-carb": [],
+        "vegan": [],
+        "gluten-free": []
+    };
+
+    plats.forEach(meal => {
+        // High-protein: protéine >= 35g
+        if (meal.protein >= 35) {
+            categorized["high-protein"].push(meal);
+        }
+        
+        // Low-carb: glucides <= 20g
+        if (meal.carbs <= 20) {
+            categorized["low-carb"].push(meal);
+        }
+        
+        // Gluten-free: catégorisé par défaut (tous les plats)
+        categorized["gluten-free"].push(meal);
+        
+        // Vegan: peut être déterminé par un champ dans l'API ou par description
+        if (meal.description && (meal.description.toLowerCase().includes('vegan') || 
+            meal.description.toLowerCase().includes('végétal') ||
+            meal.description.toLowerCase().includes('sans produit animal'))) {
+            categorized["vegan"].push(meal);
+        }
+    });
+
+    return categorized;
+}
+
+/**
+ * Charge les plats depuis l'API et les organise par régime
+ */
+function chargerDietMeals() {
+    // Charger les plats par catégorie
+    fetch('/api/plats/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Données brutes reçues de l\'API (plats):', data);
+            
+            // Adapter les données de l'API au format attendu
+            const platsArray = Array.isArray(data) ? data : (data.results || []);
+            console.log('Plats extraits:', platsArray);
+            // Filtrer les plats actifs uniquement et transformer
+            const mealsFormatted = platsArray
+                .filter(plat => plat.est_disponible === true)
+                .map(plat => transformerPlatEnMealDiet(plat));
+            console.log('Plats formatés:', mealsFormatted);
+            // Catégoriser les plats par type de régime
+            dietMeals = categoriserPlatsByDiet(mealsFormatted);
+            
+            // Rafraîchir l'affichage de dietGrid
+            displayDietMeals();
+            
+            // Charger aussi les plats recommandés basés sur le profil
+            chargerPlatsRecommandes();
+            console.log('✅ Régimes spéciaux chargés avec succès depuis l\'API !', dietMeals);
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des régimes spéciaux:', error);
+            // Fallback: afficher un message d'erreur
+            if (dietGrid) {
+                dietGrid.innerHTML = `<div class="no-results">⚠️ Erreur lors du chargement des plats</div>`;
+            }
+        });
+}
+
+/**
+ * Appelle le webhook n8n asynchrone pour obtenir les recommandations IA
+ */
+function appelN8NRecommandationsAsync() {
+    // Marquer le début du chargement
+    isLoadingRecoIA = true;
+    if (currentDiet === "plat-recommandation-ia") {
+        displayDietMeals();
+    }
+    
+    // Récupérer le profil utilisateur
+    fetch('/profilNutritionnel/api/profil-nutritionnel/obtenir/')
+        .then(response => {
+            if (response.status === 401) {
+                console.log('ℹ️ Utilisateur non authentifié pour le webhook n8n');
+                return null;
+            }
+            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+            return response.json();
+        })
+        .then(profil => {
+            if (!profil) return;
+            
+            const payload = {
+                profil: {
+                    age: profil.age || null,
+                    poids: profil.poids || null,
+                    taille: profil.taille || null,
+                    sexe: profil.sexe || null,
+                    objectif: profil.objectif_sante || null,
+                    allergies: profil.allergies || null,
+                    restrictions_alimentaires: profil.restrictions_alimentaires || null,
+                    niveau_activite: profil.niveau_activite || null
+                },
+                consentements: {
+                    donnees_sante_sensibles: profil.donnees_sante_sensibles || false,
+                    learning_collectif: profil.learning_collectif || false
+                }
+            };
+            
+            console.log('🤖 Appel asynchrone webhook n8n:', payload);
+            
+            // Appel POST asynchrone au webhook
+            fetch('http://192.168.1.184:5678/webhook/reco-top-plat-menu', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Webhook n8n appelé avec succès');
+                    return response.json();
+                } else {
+                    console.error('⚠️ Erreur webhook n8n:', response.status);
+                    return null;
+                }
+            })
+            .then(data => {
+                if (data) {
+                    console.log('📊 Réponse du webhook n8n:', data);
+                    
+                    // Adapter les données au format plat
+                    const platsArray = Array.isArray(data) ? data : (data.top_plats || []);
+                    console.log('Plats recommandés par n8n extraits:', platsArray);
+                    // Transformer les plats reçus du webhook
+                    const mealsFormatted = platsArray.map(plat => transformerPlatEnMealDiet(plat));
+                    console.log('Plats recommandés par n8n formatés:', mealsFormatted);
+                    // Ajouter à la catégorie plat-recommandation-ia
+                    dietMeals["plat-recommandation-ia"] = mealsFormatted;
+                    console.log('Plats recommandés par n8n intégrés dans dietMeals:', dietMeals["plat-recommandation-ia"]);
+                    
+                    console.log('✅ Recommandations IA n8n reçues et intégrées !', mealsFormatted);
+                }
+            })
+            .catch(error => console.error('❌ Erreur appel webhook n8n:', error))
+            .finally(() => {
+                // Marquer la fin du chargement
+                isLoadingRecoIA = false;
+                // Rafraîchir l'affichage si c'est la catégorie active
+                if (currentDiet === "plat-recommandation-ia") {
+                    displayDietMeals();
+                }
+            });
+        })
+        .catch(error => console.error('Erreur récupération profil:', error));
+}
+
+/**
+ * Charge les plats recommandés basés sur le profil nutritionnel de l'utilisateur
+ */
+function chargerPlatsRecommandes() {
+    // Appeler le webhook n8n asynchrone (ne pas attendre)
+    appelN8NRecommandationsAsync();
+    
+    fetch('/profilNutritionnel/api/profil-nutritionnel/recommander-plats/')
+        .then(response => {
+            // Si l'utilisateur n'est pas authentifié (401), c'est normal
+            if (response.status === 401) {
+                console.log('ℹ️ Utilisateur non authentifié pour les recommandations');
+                dietMeals["plat-recommander"] = [];
+                displayDietMeals();
+                return;
+            }
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+            
+            console.log('Plats recommandés reçus:', data);
+            
+            // Adapter les données au format plat
+            const platsArray = Array.isArray(data) ? data : (data.results || []);
+            
+            // Transformer les plats
+            const mealsFormatted = platsArray.map(plat => transformerPlatEnMealDiet(plat));
+            
+            // Ajouter au dictionnaire des régimes
+            dietMeals["plat-recommander"] = mealsFormatted;
+            
+            // Afficher si c'est la catégorie active
+            if (currentDiet === "plat-recommander") {
+                displayDietMeals();
+            }
+            console.log('✅ Plats recommandés chargés avec succès !', mealsFormatted);
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des plats recommandés:', error);
+            dietMeals["plat-recommander"] = [];
+        });
+}
 
 // ========== VARIABLES GLOBALES ==========
 let currentDiet = "high-protein";
+let isLoadingRecoIA = false; // Track si les recommandations IA sont en cours de chargement
 
 // ========== RÉFÉRENCES DOM ==========
 const dietGrid = document.getElementById('dietGrid');
@@ -48,7 +277,9 @@ const dietNames = {
     "high-protein": "High Protein",
     "low-carb": "Low Carb",
     "vegan": "Vegan",
-    "gluten-free": "Sans Gluten"
+    "gluten-free": "Sans Gluten",
+    "plat-recommander": "Recommendation IA",
+    "plat-recommandation-ia": "Recommendation IA"
 };
 
 // ========== FONCTION POUR AFFICHER LES PLATS ==========
@@ -63,21 +294,85 @@ function displayDietMeals() {
         selectedDietSpan.textContent = dietName;
     }
 
+    // Affichage du loader pour plat-recommandation-ia si en cours de chargement
+    if (currentDiet === "plat-recommandation-ia" && isLoadingRecoIA) {
+        dietGrid.innerHTML = `
+            <div class="loader-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px;">
+                <div class="spinner" style="
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #3498db;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    animation: spin 1s linear infinite;
+                "></div>
+                <div style="margin-left: 15px; font-size: 16px; color: #666;">
+                    <p>⏳ Chargement des recommandations IA...</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 5px;">Cela peut prendre quelques secondes</p>
+                </div>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        return;
+    }
+
     // Affichage des résultats
     if (meals.length === 0) {
         dietGrid.innerHTML = `<div class="no-results">🍽️ Aucun plat disponible pour cette catégorie</div>`;
         return;
     }
-
-    dietGrid.innerHTML = meals.map(meal => `
+    console.log(`Affichage des plats pour ${dietName}:`, meals);
+    dietGrid.innerHTML = meals.map(meal => {
+        // Déterminer la couleur du score
+        let scoreClass = 'score-low';
+        let scoreIcon = '😢';
+        
+        if (meal.score >= 80) {
+            scoreClass = 'score-excellent';
+            scoreIcon = '⭐';
+        } else if (meal.score >= 60) {
+            scoreClass = 'score-good';
+            scoreIcon = '👍';
+        } else if (meal.score >= 40) {
+            scoreClass = 'score-ok';
+            scoreIcon = '😐';
+        } else if (meal.score > 0) {
+            scoreClass = 'score-low';
+            scoreIcon = '😐';
+        }
+        
+        // Générer le HTML des alertes s'il y en a
+        const alertsHTML = meal.alerts && meal.alerts.length > 0 ? `
+            <div class="meal-alerts">
+                ${meal.alerts.map(alert => `<div class="alert-item">⚠️ ${alert}</div>`).join('')}
+            </div>
+        ` : '';
+        
+        return `
         <div class="meal-card">
             <div class="meal-img">
                 <img src="${meal.image}" alt="${meal.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'">
                 <div class="badge-diet">${dietName}</div>
+                ${meal.badge ? `<div class="badge-ia" title="Recommandation IA">${meal.badge}</div>` : ''}
                 <div class="prot-circle">${meal.protein}g <span>PROT</span></div>
+                ${meal.score > 0 ? `<div class="score-badge ${scoreClass}">
+                    <div class="score-value">${Math.round(meal.score)}</div>
+                    <div class="score-label">Score</div>
+                    <div class="score-icon">${scoreIcon}</div>
+                </div>` : ''}
+                ${meal.scoreNutritionnel > 0 ? `<div class="nutrition-score-badge">
+                    <div class="nutrition-score-value">${meal.scoreNutritionnel}</div>
+                    <div class="nutrition-score-label">Nutrition</div>
+                </div>` : ''}
             </div>
             <div class="meal-body">
                 <h3>${meal.name}</h3>
+                ${meal.interpretation ? `<div class="meal-interpretation">💬 ${meal.interpretation}</div>` : ''}
                 <div class="nutri-table">
                     <div class="nutri-item">
                         <span>🔥 Calories</span>
@@ -91,10 +386,42 @@ function displayDietMeals() {
                         <span>🍚 Glucides</span>
                         ${meal.carbs}g
                     </div>
+                    <div class="nutri-item">
+                        <span>🌾 Lipides</span>
+                        ${meal.fat}g
+                    </div>
+                    <div class="nutri-item">
+                        <span>🌿 Fibres</span>
+                        ${meal.fiber}g
+                    </div>
+                </div>
+                ${alertsHTML}
+                <div class="meal-footer">
+                    <button class="btn-add-to-cart" data-id="${meal.id}" data-name="${meal.name}">
+                        <Recommendation IAcart"></i> Ajouter
+                    </button>
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
+
+    // Ajouter les événements aux boutons Ajouter au Panier
+    document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const mealId = btn.dataset.id;
+            const mealName = btn.dataset.name;
+            
+            // Vérifier que l'ID est valide
+            if (!mealId || mealId === 'undefined') {
+                console.error('❌ Error: Invalid meal ID', mealId);
+                alert('❌ Erreur: L\'identifiant du plat est invalide. Veuillez recharger la page.');
+                return;
+            }
+            
+            openAddToCartModal(mealId, mealName, 0); // Prix sera récupéré de l'API
+        });
+    });
 }
 
 // ========== GESTION DES CATÉGORIES DIET ==========
@@ -144,6 +471,169 @@ navItems.forEach(item => {
 
 // ========== CHARGEMENT INITIAL ==========
 document.addEventListener('DOMContentLoaded', () => {
+    chargerDietMeals();
+    // Afficher high-protein par défaut
+    currentDiet = "high-protein";
     displayDietMeals();
     console.log('🌿 Special Diet Fresh & Greens chargé avec succès !');
 });
+
+// ========== GESTION MODAL AJOUTER AU PANIER ==========
+let selectedMealId = null;
+
+function openAddToCartModal(mealId, mealName, mealPrice) {
+    // Validation de l'ID
+    if (!mealId || mealId === 'undefined') {
+        console.error('❌ Error in openAddToCartModal: Invalid mealId', mealId);
+        alert('❌ Erreur: L\'identifiant du plat est invalide.');
+        return;
+    }
+    
+    selectedMealId = mealId;
+    const modal = document.getElementById('addToCartModal');
+    const itemInfo = document.getElementById('itemInfo');
+    const quantity = document.getElementById('quantity');
+    
+    let priceText = mealName;
+    if (mealPrice && mealPrice > 0) {
+        priceText += ` - €${parseFloat(mealPrice).toFixed(2)}`;
+    }
+    itemInfo.textContent = priceText;
+    quantity.value = 1;
+    modal.style.display = 'block';
+}
+
+function closeAddToCartModal() {
+    const modal = document.getElementById('addToCartModal');
+    modal.style.display = 'none';
+}
+
+// Fermer modal si on clique en dehors
+window.addEventListener('click', (e) => {
+    const modal = document.getElementById('addToCartModal');
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Fermer modal avec le bouton X
+const closeBtn = document.querySelector('.modal .close');
+if (closeBtn) {
+    closeBtn.addEventListener('click', closeAddToCartModal);
+}
+
+// Soumettre le formulaire
+const addToCartForm = document.getElementById('addToCartForm');
+if (addToCartForm) {
+    addToCartForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!selectedMealId) {
+            console.error('No plat selected');
+            return;
+        }
+        
+        const quantity = parseInt(document.getElementById('quantity').value);
+        
+        try {
+            console.log('Envoi POST avec plat_id:', selectedMealId, 'quantite:', quantity);
+            
+            // Appel API pour ajouter au panier
+            const response = await fetch('/api/ligne-commande/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    plat_id: selectedMealId,
+                    quantite: quantity
+                })
+            });
+            
+            console.log('Response status:', response.status);
+            
+            // Vérifier d'abord le statut avant de parser JSON
+            if (response.status === 401 || response.status === 403) {
+                const errorMsg = '❌ Vous devez être connecté pour ajouter au panier. Veuillez vous connecter.';
+                if (typeof PanierManager !== 'undefined') {
+                    PanierManager.showError(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+                setTimeout(() => {
+                    window.location.href = '/login/';
+                }, 2000);
+                return;
+            }
+            
+            // Parser la réponse JSON
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (response.status === 404) {
+                const errorMsg = '❌ ' + (data.error || 'Le plat n\'a pas été trouvé (ID: ' + selectedMealId + ')');
+                if (typeof PanierManager !== 'undefined') {
+                    PanierManager.showError(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+                return;
+            }
+            
+            if (response.status === 400) {
+                const errorMsg = '❌ ' + (data.error || 'Erreur de validation');
+                if (typeof PanierManager !== 'undefined') {
+                    PanierManager.showError(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+                return;
+            }
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de l\'ajout au panier');
+            }
+            
+            // Succès: 201 Created
+            console.log('✅ Ligne commande créée avec succès:', data);
+            if (typeof PanierManager !== 'undefined') {
+                PanierManager.showSuccess('✓ Plat ajouté au panier !');
+            } else {
+                alert('✓ Plat ajouté au panier !');
+            }
+            closeAddToCartModal();
+            // Actualiser le compteur du panier dans la navbar
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+        } catch (error) {
+            console.error('Erreur lors du POST:', error);
+            const errorMsg = '❌ ' + error.message;
+            if (typeof PanierManager !== 'undefined') {
+                PanierManager.showError(errorMsg);
+            } else {
+                alert(errorMsg);
+            }
+        }
+    });
+}
+
+// Fonction pour récupérer le cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+

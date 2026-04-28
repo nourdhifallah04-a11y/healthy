@@ -89,7 +89,7 @@ async function getRecommendationsFromN8n(profilId = null) {
         console.log('Appel de l\'endpoint recommandations en mode ASYNC...');
 
         // Appeler l'endpoint
-        const response = await fetch('/api/profil-nutritionnel/recommander-n8n/', {
+        const response = await fetch('/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -564,7 +564,7 @@ async function pollJobStatus(jobId, contentDiv, maxAttempts = 10, pollInterval =
         
         try {
             const response = await fetch(
-                `/api/profil-nutritionnel/recommander-n8n/job-status/?job_id=${jobId}`,
+                `/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/job-status/?job_id=${jobId}`,
                 {
                     method: 'GET',
                     headers: {
@@ -680,7 +680,7 @@ async function displayRecommendations(data, container) {
             // Récupérer les listes complètes de plats et menus
             const [platsRes, menusRes] = await Promise.all([
                 fetch('/api/plats/', { credentials: 'same-origin' }),
-                fetch('/api/menus/', { credentials: 'same-origin' })
+                fetch('/menu/api/menus/', { credentials: 'same-origin' })
             ]);
             
             // Parser les réponses

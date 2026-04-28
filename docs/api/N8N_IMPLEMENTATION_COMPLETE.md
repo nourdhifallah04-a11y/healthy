@@ -49,7 +49,7 @@ python test_n8n_webhook.py --test-n8n
 
 ## 📋 Endpoint créé
 
-**POST** `/api/profil-nutritionnel/recommander-n8n/`
+**POST** `/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/`
 
 ### Paramètres
 - `profil_id` (optionnel): ID du profil (sinon utilise le profil de l'utilisateur courant)
@@ -99,7 +99,7 @@ python test_n8n_webhook.py --token YOUR_TOKEN --profil-id 1
 
 ### Test 4: Curl
 ```bash
-curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
+curl -X POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -166,7 +166,7 @@ Modifiez la valeur au besoin.
 ### Use Case 1: Recommandations personnalisées
 ```bash
 # Utilisateur veut des recommandations basées sur son profil
-POST /api/profil-nutritionnel/recommander-n8n/
+POST /profilNutritionnel/api/profil-nutritionnel/recommander-n8n/
 # Le système appelle N8N qui analyse le profil
 # N8N retourne les 5 meilleurs plats et 3 meilleurs menus
 ```
@@ -180,7 +180,7 @@ POST /api/profil-nutritionnel/recommander-n8n/
 ### Use Case 3: Intégration avec interface web
 ```javascript
 // Frontend appelle l'endpoint
-fetch('/api/profil-nutritionnel/recommander-n8n/')
+fetch('/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/')
   .then(r => r.json())
   .then(data => afficherRecommandations(data.recommendations))
 ```

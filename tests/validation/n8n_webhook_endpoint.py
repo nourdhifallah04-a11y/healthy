@@ -4,7 +4,7 @@ class RecommenderN8nWebhookView(generics.GenericAPIView):
     """
     Vue pour appeler le webhook n8n et obtenir les recommandations nutritionnelles.
     
-    POST /api/profil-nutritionnel/recommander-n8n/
+    POST /profilNutritionnel/api/profil-nutritionnel/recommander-n8n/
     Body: {
         "profil_id": 1  (optionnel, utilisera le profil de l'utilisateur courant sinon)
     }

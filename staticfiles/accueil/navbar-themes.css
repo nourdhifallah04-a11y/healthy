@@ -1,0 +1,401 @@
+/**
+ * Navbar Theme Colors & Customization
+ * Fichier personnalisable pour adapter le design
+ */
+
+/* ===== COULEUR THEME PRIMAIRE ===== */
+:root {
+    /* Palette Beige */
+    --beige-pale: #FDF7ED;
+    --beige-doux: #F5EDDA;
+    --beige-moyen: #E8DCC6;
+
+    /* Palette Vert */
+    --vert-sauge: #9BBF8F;
+    --vert-feuille: #5A7D5C;
+    --vert-profond: #2E4A2F;
+
+    /* Accents */
+    --accent-miel: #D9B48B;
+    --ombre: rgba(46, 74, 47, 0.08);
+
+    /* Additional Colors */
+    --blanc: #FFFFFF;
+    --gris-clair: #F8F9FA;
+    --gris-moyen: #6C7A6A;
+    --rouge: #DC3545;
+    --vert-hover: #7B9B7E;
+}
+
+/* ===== THEME ALTERNATIVES ===== */
+
+/* Theme Light (Default) */
+.navbar-theme-light {
+    --bg-primary: #FFFBF5;
+    --bg-secondary: #F5EDDA;
+    --text-primary: #2E4A2F;
+    --text-secondary: #5A7D5C;
+    --border-color: #E8DCC6;
+}
+
+/* Theme Dark */
+.navbar-theme-dark {
+    --bg-primary: #1a2a1b;
+    --bg-secondary: #2d4a2f;
+    --text-primary: #E8DCC6;
+    --text-secondary: #9BBF8F;
+    --border-color: #3d5a3f;
+}
+
+/* Theme Autumn */
+.navbar-theme-autumn {
+    --accent-miel: #CD7F32;
+    --vert-sauge: #B8860B;
+    --vert-feuille: #8B4513;
+    --vert-profond: #654321;
+}
+
+/* ===== NAVBAR COLOR VARIANTS ===== */
+
+/* Navbar with Accent Background */
+.navbar-accent {
+    background: linear-gradient(135deg, var(--vert-sauge), var(--vert-feuille)) !important;
+    color: white !important;
+}
+
+.navbar-accent .navbar-brand {
+    color: white !important;
+}
+
+.navbar-accent .nav-link-enhanced {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.navbar-accent .nav-link-enhanced:hover {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Navbar Transparent */
+.navbar-transparent {
+    background: rgba(253, 247, 237, 0.7) !important;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(232, 220, 198, 0.3);
+}
+
+/* Navbar Solid */
+.navbar-solid {
+    background: var(--beige-pale) !important;
+    border-bottom: 2px solid var(--accent-miel);
+}
+
+/* ===== DROPDOWN COLOR VARIANTS ===== */
+
+.dropdown-menu-dark {
+    background: linear-gradient(135deg, #1a2a1b, #2d4a2f) !important;
+    border-color: #3d5a3f !important;
+}
+
+.dropdown-menu-dark .dropdown-item {
+    color: #9BBF8F !important;
+}
+
+.dropdown-menu-dark .dropdown-item:hover {
+    background-color: rgba(155, 191, 143, 0.2) !important;
+    color: white !important;
+}
+
+/* ===== ANIMATION SPEED VARIANTS ===== */
+
+/* Fast Animations */
+.navbar-fast * {
+    transition-duration: 0.15s !important;
+}
+
+/* Slow Animations */
+.navbar-slow * {
+    transition-duration: 0.5s !important;
+}
+
+/* No Animations */
+.navbar-no-animation * {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* ===== SIZE VARIANTS ===== */
+
+/* Small Navbar */
+.navbar-sm {
+    padding: 0.5rem 0 !important;
+}
+
+.navbar-sm .navbar-brand {
+    font-size: 1.2rem;
+}
+
+.navbar-sm .nav-link-enhanced {
+    font-size: 0.9rem;
+    padding: 0.35rem 0.5rem !important;
+}
+
+/* Large Navbar */
+.navbar-lg {
+    padding: 1.25rem 0 !important;
+}
+
+.navbar-lg .navbar-brand {
+    font-size: 1.8rem;
+}
+
+.navbar-lg .nav-link-enhanced {
+    font-size: 1.1rem;
+    padding: 0.75rem 1rem !important;
+}
+
+/* ===== ELEVATION VARIANTS ===== */
+
+/* No Shadow */
+.navbar-flat {
+    box-shadow: none !important;
+}
+
+/* Subtle Shadow */
+.navbar-subtle {
+    box-shadow: 0 2px 8px rgba(46, 74, 47, 0.04) !important;
+}
+
+/* Strong Shadow */
+.navbar-strong {
+    box-shadow: 0 8px 24px rgba(46, 74, 47, 0.2) !important;
+}
+
+/* ===== ICON SIZE VARIANTS ===== */
+
+.navbar-icons-sm i {
+    font-size: 0.9rem !important;
+}
+
+.navbar-icons-lg i {
+    font-size: 1.3rem !important;
+}
+
+/* ===== SPACING VARIANTS ===== */
+
+/* Compact */
+.navbar-compact .nav-link-enhanced {
+    padding: 0.25rem 0.5rem !important;
+    margin: 0 !important;
+    gap: 0.3rem !important;
+}
+
+/* Spacious */
+.navbar-spacious .nav-link-enhanced {
+    padding: 1rem 1.5rem !important;
+    margin: 0.5rem 0 !important;
+    gap: 0.75rem !important;
+}
+
+/* ===== CORNER RADIUS VARIANTS ===== */
+
+/* Sharp */
+.navbar-sharp .nav-link-enhanced,
+.navbar-sharp .dropdown-menu,
+.navbar-sharp .navbar-toggler {
+    border-radius: 0 !important;
+}
+
+/* Very Rounded */
+.navbar-rounded .nav-link-enhanced,
+.navbar-rounded .dropdown-menu,
+.navbar-rounded .navbar-toggler {
+    border-radius: 16px !important;
+}
+
+/* ===== BRAND VARIANTS ===== */
+
+/* Logo Only (Hide Text) */
+.navbar-brand-icon-only .navbar-brand span {
+    display: none;
+}
+
+/* Logo Large */
+.navbar-brand-large .navbar-brand {
+    font-size: 2rem;
+    gap: 1rem;
+}
+
+.navbar-brand-large .navbar-brand i {
+    font-size: 2.5rem;
+}
+
+/* ===== GRADIENT VARIANTS ===== */
+
+/* Subtle Gradient */
+.navbar-gradient-subtle {
+    background: linear-gradient(135deg, rgba(253, 247, 237, 0.98), rgba(253, 247, 237, 0.95)) !important;
+}
+
+/* Bold Gradient */
+.navbar-gradient-bold {
+    background: linear-gradient(135deg, var(--vert-profond), var(--vert-feuille)) !important;
+    color: white !important;
+}
+
+.navbar-gradient-bold .navbar-brand,
+.navbar-gradient-bold .nav-link-enhanced {
+    color: white !important;
+}
+
+/* Rainbow Gradient */
+.navbar-gradient-rainbow {
+    background: linear-gradient(90deg, #FF6B6B, #FFD93D, #6BCB77, #4D96FF, #9D4EDD) !important;
+    color: white !important;
+}
+
+/* ===== BORDER VARIANTS ===== */
+
+/* Bottom Border Only */
+.navbar-border-bottom {
+    border-bottom: 3px solid var(--accent-miel) !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+}
+
+/* Full Border */
+.navbar-border-full {
+    border: 2px solid var(--beige-moyen) !important;
+    border-radius: 12px;
+    margin: 0.5rem;
+}
+
+/* Top Border */
+.navbar-border-top {
+    border-top: 3px solid var(--accent-miel) !important;
+}
+
+/* ===== TEXT ALIGNMENT VARIANTS ===== */
+
+/* Center Aligned */
+.navbar-text-center .navbar-collapse {
+    text-align: center;
+}
+
+/* Right Aligned (Preserve) */
+.navbar-text-right .nav-links {
+    margin-left: auto;
+}
+
+/* ===== HOVER EFFECT VARIANTS ===== */
+
+/* Underline Hover */
+.nav-link-underline {
+    border-bottom: 3px solid transparent;
+    transition: border-bottom-color 0.3s ease;
+}
+
+.nav-link-underline:hover {
+    border-bottom-color: var(--accent-miel) !important;
+}
+
+/* Background Fill Hover (from left) */
+.nav-link-fill {
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(155, 191, 143, 0.2);
+    transition: left 0.3s ease;
+    z-index: -1;
+}
+
+.nav-link-fill:hover::after {
+    left: 0;
+}
+
+/* Scale Hover */
+.nav-link-scale {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-link-scale:hover {
+    transform: scale(1.1) !important;
+}
+
+/* ===== RESPONSIVE TWEAKS ===== */
+
+@media (max-width: 991px) {
+    .navbar-lg .navbar-brand {
+        font-size: 1.3rem;
+    }
+
+    .navbar-sm {
+        padding: 0.35rem 0 !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand-large .navbar-brand {
+        font-size: 1.4rem;
+    }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+.navbar-shadow-lg {
+    box-shadow: 0 12px 40px rgba(46, 74, 47, 0.25) !important;
+}
+
+.navbar-glow {
+    animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 16px rgba(155, 191, 143, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 32px rgba(155, 191, 143, 0.6);
+    }
+}
+
+/* ===== DOCUMENTATION EXAMPLE ===== */
+
+/*
+ * Usage Examples:
+ * 
+ * 1. Light Theme (Default):
+ *    <nav class="navbar nav-enhanced">
+ * 
+ * 2. Dark Theme:
+ *    <nav class="navbar nav-enhanced navbar-theme-dark">
+ * 
+ * 3. Accent Background:
+ *    <nav class="navbar nav-enhanced navbar-accent">
+ * 
+ * 4. Small Size + Fast Animations:
+ *    <nav class="navbar nav-enhanced navbar-sm navbar-fast">
+ * 
+ * 5. Large + Strong Shadow:
+ *    <nav class="navbar nav-enhanced navbar-lg navbar-strong">
+ * 
+ * 6. Transparent + Very Rounded:
+ *    <nav class="navbar nav-enhanced navbar-transparent navbar-rounded">
+ * 
+ * 7. Dark + No Animations:
+ *    <nav class="navbar nav-enhanced navbar-theme-dark navbar-no-animation">
+ * 
+ * 8. Gradient Bold + Compact:
+ *    <nav class="navbar nav-enhanced navbar-gradient-bold navbar-compact">
+ * 
+ * 9. Multiple Variants Combined:
+ *    <nav class="navbar nav-enhanced navbar-lg navbar-gradient-bold navbar-rounded navbar-shadow-lg">
+ */

@@ -6,7 +6,7 @@ import os
 import sys
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myapp.settings')
 django.setup()
 
 from apps.nutrition.models import Food

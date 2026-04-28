@@ -140,7 +140,7 @@ function appelN8NRecommandationsAsync() {
     }
     
     // Récupérer le profil utilisateur
-    fetch('/api/profil-nutritionnel/obtenir/')
+    fetch('/profilNutritionnel/api/profil-nutritionnel/obtenir/')
         .then(response => {
             if (response.status === 401) {
                 console.log('ℹ️ Utilisateur non authentifié pour le webhook n8n');
@@ -223,7 +223,7 @@ function chargerPlatsRecommandes() {
     // Appeler le webhook n8n asynchrone (ne pas attendre)
     appelN8NRecommandationsAsync();
     
-    fetch('/api/profil-nutritionnel/recommander-plats/')
+    fetch('/plat/api/profil-nutritionnel/recommander-plats/')
         .then(response => {
             // Si l'utilisateur n'est pas authentifié (401), c'est normal
             if (response.status === 401) {

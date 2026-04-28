@@ -102,7 +102,7 @@ Lignes de code ajoutées:  ~200 (views.py)
 Lignes de doc créées:     ~1200+
 Imports ajoutés:          requests, logging
 Classes créées:           1 (RecommenderN8nWebhookView)
-Routes créées:            1 (/api/profil-nutritionnel/recommander-n8n/)
+Routes créées:            1 (/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/)
 Dépendances ajoutées:     3
 Tests fournis:            1 script complet
 ```

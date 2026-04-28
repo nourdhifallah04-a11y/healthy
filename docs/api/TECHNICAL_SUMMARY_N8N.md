@@ -7,10 +7,10 @@ Un endpoint Django a été créé pour appeler un webhook n8n et obtenir des rec
 ## 📍 Endpoint
 
 ```http
-POST /api/profil-nutritionnel/recommander-n8n/
+POST /profilNutritionnel/api/profil-nutritionnel/recommander-n8n/
 ```
 
-**URL complète:** `http://localhost:8000/api/profil-nutritionnel/recommander-n8n/`
+**URL complète:** `http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/`
 
 **Authentification:** Token JWT requis  
 **Body:** `{ "profil_id": <optionnel> }`
@@ -77,7 +77,7 @@ POST http://localhost:5678/webhook/reco-nutrition
 
 ### Curl
 ```bash
-curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
+curl -X POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/ \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"profil_id": 1}'
@@ -87,7 +87,7 @@ curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
 ```python
 import requests
 response = requests.post(
-    'http://localhost:8000/api/profil-nutritionnel/recommander-n8n/',
+    'http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/',
     headers={'Authorization': f'Bearer {token}'},
     json={}
 )
@@ -96,7 +96,7 @@ print(response.json())
 
 ### JavaScript/Fetch
 ```javascript
-fetch('/api/profil-nutritionnel/recommander-n8n/', {
+fetch('/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/', {
     method: 'POST',
     headers: {
         'Authorization': `Bearer ${token}`,
@@ -136,7 +136,7 @@ L'endpoint prépare automatiquement:
 ## 🎯 Flux d'exécution
 
 ```
-1. Client envoie POST à /api/profil-nutritionnel/recommander-n8n/
+1. Client envoie POST à /profilNutritionnel/api/profil-nutritionnel/recommander-n8n/
          ↓
 2. Django réceptionne la requête (authentification JWT)
          ↓

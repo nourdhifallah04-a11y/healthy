@@ -197,7 +197,7 @@ async function sendProfilToServer(profilData) {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
                          getCookie('csrftoken');
         
-        const response = await fetch('/api/profil-nutritionnel/creer/', {
+        const response = await fetch('/profilNutritionnel/api/profil-nutritionnel/creer/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -257,7 +257,7 @@ async function deleteProfileFromServer() {
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
                          getCookie('csrftoken');
         
-        const response = await fetch('/api/profil-nutritionnel/supprimer/', {
+        const response = await fetch('/profilNutritionnel/api/profil-nutritionnel/supprimer/', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -319,7 +319,7 @@ function loadSavedProfile() {
 // ========== CHARGER LE PROFIL DEPUIS LE SERVEUR ==========
 async function loadProfileFromServer() {
     try {
-        const response = await fetch('/api/profil-nutritionnel/obtenir/', {
+        const response = await fetch('/profilNutritionnel/api/profil-nutritionnel/obtenir/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

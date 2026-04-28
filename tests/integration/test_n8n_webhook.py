@@ -21,7 +21,7 @@ class N8nWebhookTester:
         self.base_url = base_url
         self.n8n_url = n8n_url
         self.token = token
-        self.endpoint = f"{base_url}/api/profil-nutritionnel/recommander-n8n/"
+        self.endpoint = f"{base_url}/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/"
         self.session = requests.Session()
         
         if token:

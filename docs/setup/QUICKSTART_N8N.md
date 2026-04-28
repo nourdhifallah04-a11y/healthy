@@ -15,7 +15,7 @@ python manage.py runserver
 
 L'endpoint est maintenant disponible à:
 ```
-POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/
+POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/
 ```
 
 ## 🧪 Test rapide (1 minute)
@@ -35,7 +35,7 @@ curl -X POST http://localhost:8000/api/token-auth/ \
   -d '{"email": "votre@email.com", "password": "votre_password"}'
 
 # Puis tester l'endpoint (remplacez TOKEN par le token reçu)
-curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
+curl -X POST http://localhost:8000/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/ \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
@@ -54,7 +54,7 @@ curl -X POST http://localhost:8000/api/profil-nutritionnel/recommander-n8n/ \
 ## 🔗 Endpoint créé
 
 ```
-POST /api/profil-nutritionnel/recommander-n8n/
+POST /profilNutritionnel/api/profil-nutritionnel/recommander-n8n/
 ```
 
 **Requis:** Token JWT  
@@ -71,7 +71,7 @@ POST /api/profil-nutritionnel/recommander-n8n/
 
 ## 🎯 Flux complet
 
-1. **Client** → POST `/api/profil-nutritionnel/recommander-n8n/`
+1. **Client** → POST `/profilNutritionnel/api/profil-nutritionnel/recommander-n8n/`
 2. **Django** → Récupère le profil nutritionnel
 3. **Django** → Prépare le payload avec plats et menus
 4. **Django** → Appelle le webhook N8N
@@ -167,7 +167,7 @@ curl http://localhost:5678/webhook/reco-nutrition
 
 ### Erreur 3: "Profil nutritionnel non trouvé"
 → L'utilisateur doit créer un profil nutritionnel d'abord  
-→ Testez avec `/api/profil-nutritionnel/obtenir/`
+→ Testez avec `/profilNutritionnel/api/profil-nutritionnel/obtenir/`
 
 ### Erreur 4: "401 Unauthorized"
 → Token JWT invalide ou expiré  
