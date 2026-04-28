@@ -82,6 +82,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # Custom User Model
 AUTH_USER_MODEL = 'users.Utilisateur'
 
+# Authentication settings
+LOGIN_REDIRECT_URL = 'accueil'  # Redirect after login
+LOGOUT_REDIRECT_URL = 'accueil'  # Redirect after logout
+LOGIN_URL = 'login'  # Redirect unauthenticated users
+
 # Internationalization
 LANGUAGE_CODE = 'fr-fr'
 TIME_ZONE = 'Europe/Paris'

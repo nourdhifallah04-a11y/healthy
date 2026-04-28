@@ -174,11 +174,14 @@
 
                         <!-- Logout -->
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="{% url 'logout' %}"
-                               style="transition: 0.2s;">
-                                <i class="bi bi-box-arrow-right fs-5"></i>
-                                <span>Se déconnecter</span>
-                            </a>
+                            <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger w-100 border-0 bg-transparent" 
+                                        style="transition: 0.2s; cursor: pointer; text-align: left;">
+                                    <i class="bi bi-box-arrow-right fs-5"></i>
+                                    <span>Se déconnecter</span>
+                                </button>
+                            </form>
                         </li>
                     </ul>
                 </li>
