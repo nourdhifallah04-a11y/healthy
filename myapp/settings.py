@@ -159,6 +159,11 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": False,
         },
+        "monitoring": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
     },
 }
 

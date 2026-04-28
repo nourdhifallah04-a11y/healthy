@@ -722,7 +722,7 @@ class Plat(models.Model):
         """
         # Import tardif pour Ã©viter cycles & ne pas charger en cas d'absence
         try:
-            from .score_monitoring import score_monitor
+            from myapp.monitoring.score_monitoring import score_monitor
         except Exception:
             score_monitor = None
 

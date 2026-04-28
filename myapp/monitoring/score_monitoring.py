@@ -108,7 +108,6 @@ class Alert:
     plat_id: Optional[int] = None         # ID du plat (si applicable)
     menu_id: Optional[int] = None         # ID du menu (si applicable)
 
-
 # ============================================================================
 #  MONITOR SINGLETON
 # ============================================================================
@@ -185,6 +184,7 @@ class ScoreMonitor:
         Returns:
             Contexte enrichi avec plat (nutritional data) et client (IMC) fields
         """
+        print(f"DEBUG: Enrichissement du contexte avec données nutritionnelles pour client_id={client_id}, plat_id={plat_id}")
         enriched = dict(context)  # Copie du contexte existant
         
         # Enrichir avec données du plat si plat_id fourni
@@ -247,6 +247,7 @@ class ScoreMonitor:
                client_id: Optional[int] = None,
                plat_id: Optional[int] = None,
                menu_id: Optional[int] = None) -> None:
+        print(f"DEBUG: Enregistrement du score: type={score_type}, value={value}, client_id={client_id}, plat_id={plat_id}, menu_id={menu_id}")
 
         """Enregistre un score calculé et déclenche les détections d'anomalie.
         
@@ -265,6 +266,7 @@ class ScoreMonitor:
         
         if not isinstance(value, (int, float)) or math.isnan(value):
             ids_str = self._format_ids(client_id, plat_id, menu_id)
+            print(f"DEBUG: Score non numérique reçu: {value!r}{ids_str}")
             self._emit_alert(Alert(
                 level=ALERT_CRITICAL,
                 score_type=score_type,
@@ -300,6 +302,7 @@ class ScoreMonitor:
             if value < self._thresholds["min_score"] or value > self._thresholds["max_score"]:
                 counters["anomalies"] += 1
                 ids_str = self._format_ids(client_id, plat_id, menu_id)
+                print(f"DEBUG: Score hors plage détecté: {value:.1f}{ids_str}")
                 self._emit_alert(Alert(
                     level=ALERT_CRITICAL,
                     score_type=score_type,
@@ -321,6 +324,7 @@ class ScoreMonitor:
                     if zscore > self._thresholds["outlier_zscore"]:
                         counters["outliers"] += 1
                         ids_str = self._format_ids(client_id, plat_id, menu_id)
+                        print(f"DEBUG: Valeur aberrante détectée: {value:.1f} (z-score={zscore:.1f}){ids_str}")
                         self._emit_alert(Alert(
                             level=ALERT_WARNING,
                             score_type=score_type,
@@ -336,11 +340,13 @@ class ScoreMonitor:
             # ========== NOUVELLES DÉTECTIONS ==========
             
             # Détection 1: Variance excessive (écart-type trop élevé)
+            print(f"DEBUG: Vérification variance pour {score_type} avec {len(buf)} échantillons")
             if len(buf) >= self._thresholds["min_samples_for_stats"]:
                 values = [r.value for r in buf]
                 stdev = statistics.pstdev(values)
                 if stdev > self._thresholds["max_stddev"]:
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
+                    print(f"DEBUG: Variance excessive détectée: σ={stdev:.1f}{ids_str}")
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
@@ -357,6 +363,7 @@ class ScoreMonitor:
                 anomaly_rate = counters.get("anomalies", 0) / counters["total"]
                 if anomaly_rate > self._thresholds["anomaly_rate_critical"]:
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
+                    print(f"DEBUG: Taux d'anomalies élevé: {anomaly_rate*100:.1f}%{ids_str}")
                     self._emit_alert(Alert(
                         level=ALERT_CRITICAL,
                         score_type=score_type,
@@ -370,6 +377,7 @@ class ScoreMonitor:
                     ))
                 elif anomaly_rate > self._thresholds["anomaly_rate_warn"]:
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
+                    print(f"DEBUG: Taux d'anomalies élevé: {anomaly_rate*100:.1f}%{ids_str}")
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
@@ -387,6 +395,7 @@ class ScoreMonitor:
                 self._anomalies_by_client[client_id] = self._anomalies_by_client.get(client_id, 0) + 1
                 if self._anomalies_by_client[client_id] >= self._thresholds["anomaly_per_client_warn"]:
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
+                    print(f"DEBUG: Anomalies récurrentes par client: {self._anomalies_by_client[client_id]}{ids_str}")
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
@@ -404,6 +413,7 @@ class ScoreMonitor:
                 self._anomalies_by_plat[plat_id] = self._anomalies_by_plat.get(plat_id, 0) + 1
                 if self._anomalies_by_plat[plat_id] >= self._thresholds["anomaly_per_plat_warn"]:
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
+                    print(f"DEBUG: Anomalies récurrentes par plat: {self._anomalies_by_plat[plat_id]}{ids_str}")
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
@@ -425,7 +435,7 @@ class ScoreMonitor:
                     pct_change = (mean_shift / prev_score * 100) if prev_score != 0 else 0
                     interpretation = "Amélioration" if value > prev_score else "Dégradation"
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
-                    
+                    print(f"DEBUG: Variation importante du score détectée: {direction} de {mean_shift:.1f} pts ({pct_change:+.1f}%){ids_str}")
                     self._emit_alert(Alert(
                         level=ALERT_INFO,
                         score_type=score_type,
@@ -444,6 +454,7 @@ class ScoreMonitor:
                 recent_values = [r.value for r in list(buf)[-self._thresholds["identical_scores_threshold"]:]]
                 if len(set(recent_values)) == 1:  # Tous les scores sont identiques
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
+                    print(f"DEBUG: Pattern suspect détecté: {len(recent_values)} scores identiques {recent_values[0]:.1f}{ids_str}")    
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
@@ -462,6 +473,7 @@ class ScoreMonitor:
                 mean = statistics.fmean(values)
                 if mean < self._thresholds["min_mean_warn"]:
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
+                    print(f"DEBUG: Moyenne très basse détectée: {mean:.1f}{ids_str}")
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
@@ -475,6 +487,7 @@ class ScoreMonitor:
                     ))
                 elif mean > self._thresholds["max_mean_warn"]:
                     ids_str = self._format_ids(client_id, plat_id, menu_id)
+                    print(f"DEBUG: Moyenne très haute détectée: {mean:.1f}{ids_str}")
                     self._emit_alert(Alert(
                         level=ALERT_WARNING,
                         score_type=score_type,
@@ -666,7 +679,7 @@ class ScoreMonitor:
         """
         with self._lock:
             alerts = list(self._alerts)
-        
+        print(f"DEBUG: Total alerts in buffer: {len(alerts)}")
         # Filtre par niveau
         if level:
             alerts = [a for a in alerts if a.level == level]
@@ -708,6 +721,7 @@ class ScoreMonitor:
         self._alert_callbacks.append(fn)
 
     def _emit_alert(self, alert: Alert) -> None:
+        print(f"DEBUG: Emitting alert: {alert.level} | {alert.score_type} | {alert.message}")
         self._alerts.append(alert)
         for cb in self._alert_callbacks:
             try:

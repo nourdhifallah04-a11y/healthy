@@ -97,13 +97,16 @@ def score_dashboard_filters_data(request):
         - plats: Liste des plats uniques avec leurs alertes
         - nutritional_ranges: Plages min/max pour tous les nutriments
     """
-    
+    print(f"\n{'='*60}")
+    print(f"score dashboard filters data")
+    print(f"{'='*60}")
     # Récupérer toutes les alertes pour extraire les données disponibles
     alerts = score_monitor.get_alerts(limit=500)
     
     # Extraire clients uniques
     unique_clients = {}
     for alert in alerts:
+        print(f"alert: {alert}")
         client_id = alert.get('client_id')
         if client_id and client_id not in unique_clients:
             try:
