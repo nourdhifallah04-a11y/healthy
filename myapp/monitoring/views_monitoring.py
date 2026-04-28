@@ -6,7 +6,10 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_http_methods
 
-from ..score_monitoring import score_monitor
+from myapp.plat.models import Plat
+from myapp.users.models import Utilisateur
+
+from .score_monitoring import score_monitor
 
 
 @staff_member_required
@@ -94,7 +97,6 @@ def score_dashboard_filters_data(request):
         - plats: Liste des plats uniques avec leurs alertes
         - nutritional_ranges: Plages min/max pour tous les nutriments
     """
-    from .models import Client, Plat, Utilisateur
     
     # Récupérer toutes les alertes pour extraire les données disponibles
     alerts = score_monitor.get_alerts(limit=500)
@@ -157,6 +159,7 @@ def score_dashboard_filters_data(request):
         "plats": unique_plats,
         "nutritional_ranges": nutritional_ranges,
     })
+
 def score_dashboard_reset(request):
     """Réinitialise les compteurs (POST uniquement)."""
     score_type = request.POST.get("type")

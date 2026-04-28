@@ -1,36 +1,21 @@
 from myapp.commande.models import Commande, LigneCommande
-from myapp.profilNutritionnel.models import ProfilNutritionnel
-from rest_framework import viewsets, status, generics
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models import Q
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
-from django.utils.html import mark_safe
-from django.conf import settings
-import json
-import requests
 import logging
-import threading
-import uuid
-from datetime import datetime
 from myapp.users.models import Client
 from myapp.plat.models import Plat
 from myapp.menu.models import Menu
-from myapp.systemeIA.models import SystemeIA
 
 
 logger = logging.getLogger(__name__)
 
 
-from myapp.users.serializers import ClientSerializer
-from myapp.profilNutritionnel.serializers import ProfilNutritionnelSerializer
-from myapp.plat.serializers import PlatSerializer, UnifiedMenuItemSerializer
-from myapp.menu.serializers import MenuSerializer
 from myapp.commande.serializers import CommandeSerializer, LigneCommandeSerializer
-from myapp.systemeIA.serializers import SystemeIASerializer
 
 
 

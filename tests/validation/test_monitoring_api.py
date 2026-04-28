@@ -13,7 +13,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myapp.settings')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 django.setup()
 
-from myapp.score_monitoring import score_monitor, Alert, ALERT_WARNING, ALERT_CRITICAL
+from myapp.monitoring.score_monitoring import score_monitor, Alert, ALERT_WARNING, ALERT_CRITICAL
 
 
 def test_get_alerts_api():

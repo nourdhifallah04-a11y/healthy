@@ -190,7 +190,7 @@ class ScoreMonitor:
         # Enrichir avec données du plat si plat_id fourni
         if plat_id is not None:
             try:
-                from myapp.models import Plat
+                from myapp.plat.models import Plat
                 plat = Plat.objects.get(id_plat=plat_id)
                 enriched['plat'] = {
                     'id': plat.id_plat,
@@ -208,7 +208,7 @@ class ScoreMonitor:
         # Enrichir avec IMC du client si client_id fourni
         if client_id is not None:
             try:
-                from myapp.models import Client, Utilisateur
+                from myapp.users.models import Client, Utilisateur
                 user = Utilisateur.objects.get(id=client_id)
                 client = user.client
                 
@@ -220,7 +220,7 @@ class ScoreMonitor:
                     
                     # Récupérer poids/taille depuis ProfilNutritionnel
                     try:
-                        from myapp.models import ProfilNutritionnel
+                        from myapp.profilNutritionnel.models import ProfilNutritionnel
                         profile = ProfilNutritionnel.objects.filter(client=client).last()
                         if profile:
                             # Calculer IMC: poids (kg) / (taille (m))^2

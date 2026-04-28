@@ -8,7 +8,7 @@ Usage:
     python test_monitoring_improved.py
 """
 
-from myapp.score_monitoring import score_monitor
+from myapp.monitoring.score_monitoring import score_monitor
 
 print("=" * 80)
 print("TEST: Amélioration des logs d'alertes avec IDs")

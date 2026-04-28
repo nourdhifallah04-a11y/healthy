@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 django.setup()
 
 from myapp.models import Utilisateur, Client, ProfilNutritionnel, Plat, Menu
-from myapp.score_monitoring import score_monitor
+from myapp.monitoring.score_monitoring import score_monitor
 
 
 def test_profil_nutritionnel_score():

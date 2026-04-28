@@ -23,7 +23,7 @@ from unittest.mock import MagicMock
 from django.test import TestCase
 
 from myapp.models import Plat
-from myapp.score_monitoring import score_monitor
+from myapp.monitoring.score_monitoring import score_monitor
 
 
 def _make_plat(**kw):

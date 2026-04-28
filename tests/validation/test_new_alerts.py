@@ -2,7 +2,7 @@
 Test complet des 7 nouvelles alertes du monitoring
 """
 
-from myapp.score_monitoring import score_monitor
+from myapp.monitoring.score_monitoring import score_monitor
 
 print("=" * 80)
 print("TEST: Nouvelles alertes du monitoring")
