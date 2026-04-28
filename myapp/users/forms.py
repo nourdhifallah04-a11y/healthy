@@ -114,7 +114,9 @@ class RegistrationForm(forms.Form):
                 nom=self.cleaned_data['nom'],
                 prenom=self.cleaned_data['prenom'],
                 telephone=self.cleaned_data['telephone'],
-                adresse=self.cleaned_data['adresse']
+                adresse=self.cleaned_data['adresse'],
+                is_active=False,
+                est_actif=False,
             )
             
             # Créer le Client associé

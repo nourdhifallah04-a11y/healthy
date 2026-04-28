@@ -1,0 +1,12 @@
+Bonjour {{ utilisateur.prenom }},
+
+Merci pour votre inscription.
+
+Pour activer votre compte, veuillez cliquer sur le lien ci-dessous :
+
+{{ activation_url }}
+
+Si vous n'avez pas demandé cette inscription, ignorez ce message.
+
+Cordialement,
+L'équipe Healthy IA

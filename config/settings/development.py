@@ -15,7 +15,16 @@ DATABASES = {
 }
 
 # Email backend pour tests
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Configuration pour envoyer des vrais emails en développement
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # ou votre fournisseur SMTP
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''  # Remplacez par votre email
+EMAIL_HOST_PASSWORD = ''  # Mot de passe d'application Gmail
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Cache pour développement
 CACHES = {

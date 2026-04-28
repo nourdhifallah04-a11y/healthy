@@ -167,6 +167,15 @@ LOGGING = {
     },
 }
 
+# Configuration pour envoyer des vrais emails en développement
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # ou votre fournisseur SMTP
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''  # Remplacez par votre email
+EMAIL_HOST_PASSWORD = ''  # Mot de passe d'application Gmail
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 # ========== CONFIGURATION N8N WEBHOOK ==========
 # Timeout pour les appels au webhook n8n (en secondes)
 # Augmentez cette valeur si vos workflows n8n prennent du temps

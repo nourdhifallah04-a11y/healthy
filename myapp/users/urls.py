@@ -7,7 +7,8 @@ router.register(r'clients', views.ClientViewSet)
 
 
 urlpatterns = [
-path('register/', views.register, name='register'),
+    path('register/', views.register, name='register'),
+    path('activate/<uidb64>/<token>/', views.activate_account, name='activate_account'),
     # Auth
     path(
         "login/",

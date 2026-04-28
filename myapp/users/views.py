@@ -3,6 +3,12 @@ from django.contrib.auth import login
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
+from django.core.mail import send_mail, BadHeaderError
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
 import logging
 from django.contrib.auth.forms import AuthenticationForm
 from myapp.commande.models import Commande
@@ -27,6 +33,64 @@ N8N_WEBHOOK_URL = getattr(settings, 'N8N_WEBHOOK_URL', 'http://192.168.1.184:567
 # Dictionnaire pour stocker les résultats des jobs async
 # Clé: job_id, Valeur: {'status': 'pending|completed|failed', 'result': {...}, 'error': {...}, 'timestamp': datetime}
 async_jobs_cache = {}
+
+def _send_activation_email(request, utilisateur):
+    """Envoie un e-mail d'activation au nouvel utilisateur."""
+    try:
+        uidb64 = urlsafe_base64_encode(force_bytes(utilisateur.pk))
+        token = default_token_generator.make_token(utilisateur)
+        activation_url = request.build_absolute_uri(
+            reverse('activate_account', kwargs={'uidb64': uidb64, 'token': token})
+        )
+        subject = 'Activez votre compte Healthy IA'
+        context = {
+            'utilisateur': utilisateur,
+            'activation_url': activation_url,
+        }
+        message = render_to_string('registration/activation_email.txt', context)
+        html_message = render_to_string('registration/activation_email.html', context)
+
+        result = send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [utilisateur.email],
+            html_message=html_message,
+        )
+        
+        if result == 0:
+            logger.warning(f"Email d'activation non envoyé pour {utilisateur.email}. Backend: {settings.EMAIL_BACKEND}")
+            if settings.DEBUG:
+                logger.info("En développement (DEBUG=True), consultez la console pour voir le contenu de l'email")
+        else:
+            logger.info(f"Email d'activation envoyé avec succès à {utilisateur.email}")
+            
+    except BadHeaderError as e:
+        logger.error(f"BadHeaderError lors de l'envoi du mail: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Erreur lors de l'envoi de l'email d'activation: {e}", exc_info=True)
+        raise
+
+
+def activate_account(request, uidb64, token):
+    """Active le compte à partir du lien d'activation."""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        utilisateur = Utilisateur.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, Utilisateur.DoesNotExist):
+        utilisateur = None
+
+    if utilisateur is not None and default_token_generator.check_token(utilisateur, token):
+        utilisateur.is_active = True
+        utilisateur.est_actif = True
+        utilisateur.save()
+        messages.success(request, 'Votre compte a bien été activé. Vous pouvez maintenant vous connecter.')
+        return redirect('login')
+
+    messages.error(request, 'Le lien d\'activation est invalide ou a expiré.')
+    return redirect('login')
+
 
 def accueil(request):
     """Affiche la page d'accueil"""
@@ -55,21 +119,20 @@ def register(request):
         form = RegistrationForm(request.POST)
         if form.is_valid():
             try:
-                # Créer l'Utilisateur et le Client
                 utilisateur, client = form.save()
-                
-                # Authentifier et connecter l'utilisateur
-                login(request, utilisateur)
-                
+                _send_activation_email(request, utilisateur)
                 messages.success(
-                    request, 
-                    f"Bienvenue {utilisateur.prenom} {utilisateur.nom}! Votre compte a été créé avec succès."
+                    request,
+                    f"Merci {utilisateur.prenom} {utilisateur.nom}. Un e-mail d'activation a été envoyé à {utilisateur.email}."
                 )
-                return redirect('accueil')  # Rediriger vers la page d'accueil
+                return redirect('login')
             except ValueError as e:
                 messages.error(request, f"Erreur de validation: {str(e)}")
+            except BadHeaderError:
+                messages.error(request, "Erreur lors de l'envoi du message. Veuillez réessayer plus tard.")
             except Exception as e:
-                messages.error(request, "Une erreur est survenue lors de l'inscription.")
+                logger.exception("Erreur lors de l'inscription ou de l'envoi de l'email d'activation")
+                messages.error(request, "Une erreur est survenue lors de l'inscription. Veuillez réessayer plus tard.")
     else:
         form = RegistrationForm()
     
@@ -140,22 +203,20 @@ def connex(request):
             
             if register_form.is_valid():
                 try:
-                    # Créer l'Utilisateur et le Client
                     utilisateur, client = register_form.save()
-                    
-                    # Authentifier et connecter l'utilisateur
-                    login(request, utilisateur)
-                    
+                    _send_activation_email(request, utilisateur)
                     messages.success(
                         request,
-                        f"Bienvenue {utilisateur.prenom} {utilisateur.nom}! Votre compte a été créé avec succès."
+                        f"Merci {utilisateur.prenom} {utilisateur.nom}. Un e-mail d'activation a été envoyé à {utilisateur.email}."
                     )
-                    return redirect('accueil')
+                    return redirect('login')
                 except ValueError as e:
                     messages.error(request, f"Erreur de validation: {str(e)}")
+                except BadHeaderError:
+                    messages.error(request, "Erreur lors de l'envoi du message. Veuillez réessayer plus tard.")
                 except Exception as e:
-                    messages.error(request, "Une erreur est survenue lors de l'inscription.")
-                    # Retourner le formulaire avec l'erreur
+                    logger.exception("Erreur lors de l'inscription ou de l'envoi de l'email d'activation")
+                    messages.error(request, "Une erreur est survenue lors de l'inscription. Veuillez réessayer plus tard.")
             # Si le formulaire n'est pas valide, les erreurs s'afficheront dans le template
             login_form = AuthenticationForm()
         else:
