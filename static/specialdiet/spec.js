@@ -92,7 +92,7 @@ function categoriserPlatsByDiet(plats) {
  */
 function chargerDietMeals() {
     // Charger les plats par catégorie
-    fetch('/api/plats/')
+    fetch('/plat/api/plats/')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Erreur HTTP: ${response.status}`);
@@ -539,7 +539,7 @@ if (addToCartForm) {
             console.log('Envoi POST avec plat_id:', selectedMealId, 'quantite:', quantity);
             
             // Appel API pour ajouter au panier
-            const response = await fetch('/api/ligne-commande/', {
+            const response = await fetch('/commande/api/ligne-commandes/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

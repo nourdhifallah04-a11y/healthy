@@ -353,7 +353,7 @@ async function handleCheckoutSubmit(event) {
             
             setTimeout(() => {
                 // Rediriger vers la page checkout existante
-                window.location.href = '/checkout/';
+                window.location.href = '/commande/checkout/';
             }, 1500);
         }
     } catch (error) {
@@ -364,7 +364,7 @@ async function handleCheckoutSubmit(event) {
         showSuccess('Commande en cours de traitement... Redirection vers le paiement...');
         
         setTimeout(() => {
-            window.location.href = '/checkout/';
+            window.location.href = '/commande/checkout/';
         }, 1500);
     }
 }

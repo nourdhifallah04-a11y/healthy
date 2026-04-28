@@ -8,10 +8,7 @@ from myapp import views
 from myapp import views_monitoring
 
 router = DefaultRouter()
-router.register(r'clients', views.ClientViewSet)
-router.register(r'plats', views.PlatViewSet)
 router.register(r'menus-and-plats', views.UnifiedMenuItemViewSet, basename='unified-menu-item')
-router.register(r'commandes', views.CommandeViewSet)
 router.register(r'ia', views.SystemeIAViewSet)
 
 urlpatterns = [
@@ -28,18 +25,13 @@ urlpatterns = [
     path("menu/", include("myapp.menu.urls")),
     path("commande/", include("myapp.commande.urls")),
     path("profilNutritionnel/", include("myapp.profilNutritionnel.urls")),
-
+    
     path("browse/", views.unified_browse, name="unified_browse"),
     #path('', include(router.urls)),
     #path('', include(router.urls)),
     path("contact/", views.contact, name="contact"),
 
-    # Commande URLs
-    path("panier/", views.panier, name="panier"),
-    path("checkout/", views.checkout, name="checkout"),
-    path("commande/confirmation/<int:commande_id>/", views.commande_confirmation, name="commande_confirmation"),
-    path("mes-commandes/", views.mes_commandes, name="mes_commandes"),
-    path("commande/<int:commande_id>/", views.commande_detail, name="commande_detail"),
+
 
 
     # Dashboard de monitoring des scores (staff uniquement)

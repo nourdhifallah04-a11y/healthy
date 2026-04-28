@@ -1,14 +1,21 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import login
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 import logging
 from django.contrib.auth.forms import AuthenticationForm
+from myapp.commande.models import Commande
+from myapp.commande.serializers import CommandeSerializer
 from myapp.profilNutritionnel.models import ProfilNutritionnel
+from myapp.profilNutritionnel.serializers import ProfilNutritionnelSerializer
 from myapp.users.forms import AdminLoginForm, RegistrationForm
 from myapp.users.models import Client, Utilisateur, Administrateur
-
+from myapp.users.serializers import ClientSerializer
+from rest_framework import viewsets, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 
@@ -169,3 +176,58 @@ def connex(request):
     }
     return render(request, 'accueil/connex.html', context)
 
+class ClientViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet pour gérer les clients.
+    Permet de lister, créer, récupérer, mettre à jour et supprimer les clients.
+    """
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Les utilisateurs voient uniquement leurs données, sauf s'ils sont admin"""
+        user = self.request.user
+        if user.is_superuser:
+            return Client.objects.all()
+        return Client.objects.filter(utilisateur=user)
+    
+    @action(detail=True, methods=['get'])
+    def profil_nutritionnel(self, request, pk=None):
+        """Récupère le profil nutritionnel d'un client"""
+        client = self.get_object()
+        try:
+            profil = ProfilNutritionnel.objects.get(client=client)
+            serializer = ProfilNutritionnelSerializer(profil)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ProfilNutritionnel.DoesNotExist:
+            return Response(
+                {'error': 'Profil nutritionnel non trouvé'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    @action(detail=True, methods=['post'])
+    def creer_profil(self, request, pk=None):
+        """Crée ou met à jour le profil nutritionnel d'un client"""
+        client = self.get_object()
+        try:
+            profil = ProfilNutritionnel.objects.get(client=client)
+            serializer = ProfilNutritionnelSerializer(profil, data=request.data, partial=True)
+            is_create = False
+        except ProfilNutritionnel.DoesNotExist:
+            serializer = ProfilNutritionnelSerializer(data=request.data)
+            is_create = True
+        
+        if serializer.is_valid():
+            serializer.save(client=client)
+            status_code = status.HTTP_201_CREATED if is_create else status.HTTP_200_OK
+            return Response(serializer.data, status=status_code)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['get'])
+    def historique_commandes(self, request, pk=None):
+        """Récupère l'historique des commandes d'un client"""
+        client = self.get_object()
+        commandes = Commande.objects.filter(client=client).order_by('-date')
+        serializer = CommandeSerializer(commandes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

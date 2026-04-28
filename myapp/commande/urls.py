@@ -1,11 +1,12 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
+from myapp.commande import views
 from rest_framework.routers import DefaultRouter
-from myapp import views
 
 router = DefaultRouter()
-
+router.register(r'commandes', views.CommandeViewSet)
+router.register(r'ligne-commandes', views.LigneCommandeViewSet)
 
 urlpatterns = [
  
@@ -15,7 +16,7 @@ urlpatterns = [
     path("commande/confirmation/<int:commande_id>/", views.commande_confirmation, name="commande_confirmation"),
     path("mes-commandes/", views.mes_commandes, name="mes_commandes"),
     path("commande/<int:commande_id>/", views.commande_detail, name="commande_detail"),
-    path('', include(router.urls))
+    path("api/", include(router.urls))
 ]
 
 
