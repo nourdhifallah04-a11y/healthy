@@ -6,6 +6,7 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'plats', views.PlatViewSet)
+router.register(r'menus-and-plats', views.UnifiedMenuItemViewSet, basename='unified-menu-item')
 
 
 urlpatterns = [

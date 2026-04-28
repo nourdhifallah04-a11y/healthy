@@ -386,7 +386,7 @@ if (addToCartForm) {
                 };
             
             // Appel API pour ajouter au panier
-            const response = await fetch('/api/ligne-commande/', {
+            const response = await fetch('/commande/api/ligne-commandes/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

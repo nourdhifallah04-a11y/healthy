@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_http_methods
 
-from .score_monitoring import score_monitor
+from ..score_monitoring import score_monitor
 
 
 @staff_member_required

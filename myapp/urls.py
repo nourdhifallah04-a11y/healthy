@@ -5,11 +5,9 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from myapp import views
-from myapp import views_monitoring
+from myapp.monitoring import views_monitoring
 
 router = DefaultRouter()
-router.register(r'menus-and-plats', views.UnifiedMenuItemViewSet, basename='unified-menu-item')
-router.register(r'ia', views.SystemeIAViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -25,7 +23,8 @@ urlpatterns = [
     path("menu/", include("myapp.menu.urls")),
     path("commande/", include("myapp.commande.urls")),
     path("profilNutritionnel/", include("myapp.profilNutritionnel.urls")),
-    
+    path("systemeIA/", include("myapp.systemeIA.urls")),
+    path("monitoring/", include("myapp.monitoring.urls")),
     path("browse/", views.unified_browse, name="unified_browse"),
     #path('', include(router.urls)),
     #path('', include(router.urls)),
@@ -34,11 +33,6 @@ urlpatterns = [
 
 
 
-    # Dashboard de monitoring des scores (staff uniquement)
-    path("monitoring/scores/", views_monitoring.score_dashboard, name="monitoring_dashboard"),
-    path("monitoring/scores/api/", views_monitoring.score_dashboard_api, name="monitoring_api"),
-    path("monitoring/scores/filters-data/", views_monitoring.score_dashboard_filters_data, name="monitoring_filters_data"),
-    path("monitoring/scores/reset/", views_monitoring.score_dashboard_reset, name="monitoring_reset"),
 
     path("api/", include(router.urls)),
 ]

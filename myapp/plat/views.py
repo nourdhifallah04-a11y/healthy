@@ -3,7 +3,7 @@ from myapp.profilNutritionnel.models import ProfilNutritionnel
 from rest_framework import viewsets, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db.models import Q
 from django.shortcuts import render
 from django.utils.html import mark_safe
@@ -882,5 +882,71 @@ class RecommenderIAProfilNutritionnelWebhookView(generics.GenericAPIView):
         
         return Response(items, status=status.HTTP_200_OK)
 
+
+
+
+# ============================================
+# UNIFIED MENUS AND PLATS VIEWSET
+# ============================================
+
+class UnifiedMenuItemViewSet(viewsets.ViewSet):
+    """
+    ViewSet unifié pour combiner Menus et Plats avec catégorisation par régime.
+    Permet de récupérer tous les articles (Menus + Plats) avec filtrage par catégorie de régime.
+    """
+    permission_classes = [AllowAny]
+    
+    def list(self, request):
+        """
+        Liste tous les Menus et Plats avec filtrage optionnel par catégorie de régime.
+        Paramètres de requête:
+        - diet_category: 'high-protein', 'low-carb', 'vegan', 'gluten-free', ou 'autre'
+        - item_type: 'menu' ou 'plat' pour filtrer par type
+        """
+        diet_category = request.query_params.get('diet_category', None)
+        item_type = request.query_params.get('item_type', None)
+        
+        items = []
+        
+        # Récupérer les menus actifs
+        if item_type is None or item_type == 'menu':
+            menus = Menu.objects.filter(est_actif=True)
+            
+            if diet_category:
+                menus = menus.filter(diet_category=diet_category)
+            
+            for menu in menus:
+                serializer = UnifiedMenuItemSerializer(menu)
+                items.append(serializer.data)
+        
+        # Récupérer les plats disponibles
+        if item_type is None or item_type == 'plat':
+            plats = Plat.objects.filter(est_disponible=True)
+            
+            # Filtrer par catégorie de régime basée sur les propriétés du plat
+            if diet_category:
+                filtered_plats = []
+                for plat in plats:
+                    if diet_category in plat.get_diet_categories():
+                        filtered_plats.append(plat)
+                plats = filtered_plats
+            
+            for plat in plats:
+                serializer = UnifiedMenuItemSerializer(plat)
+                items.append(serializer.data)
+        
+        return Response(items, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'])
+    def diet_categories(self, request):
+        """Retourne les catégories de régime disponibles"""
+        categories = [
+            {'id': 'high-protein', 'name': 'High Protein'},
+            {'id': 'low-carb', 'name': 'Low Carb'},
+            {'id': 'vegan', 'name': 'Vegan'},
+            {'id': 'gluten-free', 'name': 'Sans Gluten'},
+            {'id': 'autre', 'name': 'Autre'},
+        ]
+        return Response(categories, status=status.HTTP_200_OK)
 
 
