@@ -1,0 +1,535 @@
+/* ============================================
+   HISTORIQUE DES COMMANDES - STYLES
+   ============================================ */
+
+:root {
+    --vert-profond: #2e4a2f;
+    --vert-feuille: #5a7d5c;
+    --vert-sauge: #7db866;
+    --beige-clair: #f9f7f4;
+    --beige-moyen: #e8dfd5;
+    --beige-fonce: #d4c4b0;
+    --danger: #dc3545;
+    --success: #28a745;
+    --warning: #ffc107;
+    --info: #17a2b8;
+}
+
+/* Page Card */
+.page-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--beige-moyen);
+}
+
+.header-icon {
+    font-size: 3rem;
+    color: var(--vert-sauge);
+    min-width: 60px;
+    text-align: center;
+}
+
+.header-title {
+    flex: 1;
+}
+
+.header-title h1 {
+    margin: 0;
+    color: var(--vert-profond);
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.header-title p {
+    margin: 0.5rem 0 0 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* ============================================
+   STATISTIQUES
+   ============================================ */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, #f9f7f4, #fafbf7);
+    border: 1px solid var(--beige-moyen);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--vert-profond);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* ============================================
+   FILTRES
+   ============================================ */
+
+.filters-section {
+    background: linear-gradient(135deg, #f9f7f4, #fafbf7);
+    border: 1px solid var(--beige-moyen);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.filters-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--vert-profond);
+}
+
+.filter-select,
+.filter-input {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--beige-moyen);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+    outline: none;
+    border-color: var(--vert-sauge);
+    box-shadow: 0 0 0 3px rgba(125, 184, 102, 0.1);
+}
+
+.btn-filter {
+    background: linear-gradient(135deg, var(--vert-feuille), var(--vert-sauge));
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(125, 184, 102, 0.3);
+}
+
+.btn-reset {
+    background: var(--beige-moyen);
+    color: var(--vert-profond);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-reset:hover {
+    background: var(--beige-fonce);
+    color: var(--vert-profond);
+}
+
+/* ============================================
+   TABLEAU
+   ============================================ */
+
+.table-responsive {
+    overflow-x: auto;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--beige-moyen);
+}
+
+.commandes-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.commandes-table thead {
+    background: linear-gradient(135deg, var(--vert-profond), var(--vert-feuille));
+    color: white;
+}
+
+.commandes-table th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.commandes-table tbody tr {
+    border-bottom: 1px solid var(--beige-moyen);
+    transition: background-color 0.2s ease;
+}
+
+.commandes-table tbody tr:hover {
+    background-color: rgba(125, 184, 102, 0.05);
+}
+
+.commandes-table td {
+    padding: 1rem;
+    font-size: 0.9rem;
+}
+
+/* ID Column */
+.id-col {
+    font-weight: 600;
+}
+
+.id-badge {
+    background: linear-gradient(135deg, var(--vert-feuille), var(--vert-sauge));
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Client Column */
+.client-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.client-name {
+    font-weight: 500;
+    color: var(--vert-profond);
+}
+
+/* Date Column */
+.date-col {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.date-badge {
+    background: rgba(125, 184, 102, 0.1);
+    color: var(--vert-profond);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Statut Column */
+.statut-col {
+    text-align: center;
+}
+
+.statut-badge {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statut-panier {
+    background: rgba(100, 100, 100, 0.1);
+    color: #333;
+}
+
+.statut-en_attente {
+    background: rgba(255, 193, 7, 0.1);
+    color: #f57f17;
+}
+
+.statut-confirmee {
+    background: rgba(76, 175, 80, 0.1);
+    color: #388e3c;
+}
+
+.statut-en_preparation {
+    background: rgba(33, 150, 243, 0.1);
+    color: #1565c0;
+}
+
+.statut-livree {
+    background: rgba(46, 157, 120, 0.1);
+    color: #00695c;
+}
+
+.statut-annulee {
+    background: rgba(220, 53, 69, 0.1);
+    color: #c41c3b;
+}
+
+/* Articles Column */
+.articles-col {
+    text-align: center;
+    color: #666;
+}
+
+.articles-count {
+    background: rgba(125, 184, 102, 0.1);
+    color: var(--vert-feuille);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Total Column */
+.total-col {
+    font-weight: 600;
+    text-align: right;
+}
+
+.total-amount {
+    color: var(--vert-sauge);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+/* Actions Column */
+.actions-col {
+    text-align: center;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.btn-view {
+    background: linear-gradient(135deg, var(--vert-feuille), var(--vert-sauge));
+    color: white;
+}
+
+.btn-view:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(125, 184, 102, 0.3);
+}
+
+/* Empty State */
+.empty-row td {
+    padding: 2rem !important;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--beige-fonce);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state p {
+    color: #999;
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+
+.pagination-section {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.page-item {
+    display: flex;
+}
+
+.page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0.5rem;
+    border: 1px solid var(--beige-moyen);
+    border-radius: 6px;
+    color: var(--vert-feuille);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.page-link:hover {
+    background: linear-gradient(135deg, var(--vert-feuille), var(--vert-sauge));
+    color: white;
+    border-color: var(--vert-sauge);
+}
+
+.page-item.active .page-link {
+    background: linear-gradient(135deg, var(--vert-feuille), var(--vert-sauge));
+    color: white;
+    border-color: var(--vert-sauge);
+    cursor: default;
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-form {
+        grid-template-columns: 1fr;
+    }
+
+    .commandes-table {
+        font-size: 0.8rem;
+    }
+
+    .commandes-table th,
+    .commandes-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .btn-action {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .id-badge,
+    .date-badge,
+    .articles-count {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+    }
+
+    .statut-badge {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-card {
+        padding: 1rem;
+    }
+
+    .page-header {
+        gap: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .header-title h1 {
+        font-size: 1.5rem;
+    }
+
+    .commandes-table {
+        font-size: 0.7rem;
+    }
+
+    .commandes-table th,
+    .commandes-table td {
+        padding: 0.5rem 0.25rem;
+    }
+}

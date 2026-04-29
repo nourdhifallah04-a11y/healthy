@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Détails Commande #{{ commande.id_commande }} - Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'commande/admin_commande_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-detail-wrapper">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-nav">
+        <div class="container">
+            <a href="{% url 'accueil' %}"><i class="fas fa-home"></i> Accueil</a>
+            <span>/</span>
+            <a href="{% url 'historique_commandes' %}">Historique commandes</a>
+            <span>/</span>
+            <span>Commande #{{ commande.id_commande }}</span>
+        </div>
+    </div>
+
+    <div class="container admin-detail-container">
+        <!-- Header avec infos principales -->
+        <div class="admin-header">
+            <div class="header-left">
+                <div class="icon-box">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="header-text">
+                    <h1>Commande #{{ commande.id_commande }}</h1>
+                    <p class="date-info">
+                        <i class="fas fa-calendar-alt"></i> {{ commande.date|date:"d M Y à H:i" }}
+                    </p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" onclick="window.print()" title="Imprimer">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="btn-icon" onclick="exportToJSON()" title="Exporter">
+                    <i class="fas fa-download"></i>
+                </button>
+                <a href="{% url 'historique_commandes' %}" class="btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="admin-content">
+            <!-- Colonne 1: Articles et détails -->
+            <div class="main-section">
+                <!-- Articles -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-shopping-bag"></i> Articles commandés</h2>
+                        <span class="badge">{{ lignes.count }} article(s)</span>
+                    </div>
+
+                    <div class="items-container">
+                        {% for ligne in lignes %}
+                        <div class="item-detail-card">
+                            <div class="item-header-row">
+                                <div class="item-main">
+                                    <h3 class="item-title">
+                                        {% if ligne.menu %}
+                                            <i class="fas fa-list"></i> {{ ligne.menu.nom }}
+                                        {% elif ligne.plat %}
+                                            <i class="fas fa-leaf"></i> {{ ligne.plat.nom }}
+                                        {% else %}
+                                            Article inconnu
+                                        {% endif %}
+                                    </h3>
+                                    <span class="type-badge">{% if ligne.menu %}Menu{% else %}Plat{% endif %}</span>
+                                </div>
+                                <div class="item-pricing">
+                                    <div class="price-box">
+                                        <span class="price-label">Prix unitaire</span>
+                                        <span class="price-value">{{ ligne.prix_unitaire|floatformat:2 }}€</span>
+                                    </div>
+                                    <div class="qty-box">
+                                        <span class="qty-label">Qté</span>
+                                        <span class="qty-value">{{ ligne.quantite }}</span>
+                                    </div>
+                                    <div class="total-box highlight">
+                                        <span class="total-label">Sous-total</span>
+                                        <span class="total-value">{{ ligne.sous_total|floatformat:2 }}€</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Détails nutritionnels -->
+                            {% if ligne.menu %}
+                            <div class="item-composition">
+                                <div class="composition-header">Composition du menu:</div>
+                                <div class="plats-table">
+                                    {% for plat in ligne.menu.plats.all %}
+                                    <div class="plat-row">
+                                        <div class="plat-info">
+                                            <span class="plat-name">{{ plat.nom }}</span>
+                                            <span class="plat-desc">{{ plat.description|truncatewords:10 }}</span>
+                                        </div>
+                                        <div class="plat-nutrition">
+                                            <span class="nut-item">{{ plat.calorie|floatformat:0 }} kcal</span>
+                                            <span class="nut-item">P: {{ plat.proteine|floatformat:1 }}g</span>
+                                            <span class="nut-item">G: {{ plat.glucides|floatformat:1 }}g</span>
+                                            <span class="nut-item">L: {{ plat.lipides|floatformat:1 }}g</span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% elif ligne.plat %}
+                            <div class="item-nutrition">
+                                <div class="nut-grid">
+                                    <div class="nut-box">
+                                        <span class="nut-label">Calories</span>
+                                        <span class="nut-value">{{ ligne.plat.calorie|floatformat:0 }}</span>
+                                        <span class="nut-unit">kcal</span>
+                                    </div>
+                                    <div class="nut-box">
+                                        <span class="nut-label">Protéines</span>
+                                        <span class="nut-value">{{ ligne.plat.proteine|floatformat:1 }}</span>
+                                        <span class="nut-unit">g</span>
+                                    </div>
+                                    <div class="nut-box">
+                                        <span class="nut-label">Glucides</span>
+                                        <span class="nut-value">{{ ligne.plat.glucides|floatformat:1 }}</span>
+                                        <span class="nut-unit">g</span>
+                                    </div>
+                                    <div class="nut-box">
+                                        <span class="nut-label">Lipides</span>
+                                        <span class="nut-value">{{ ligne.plat.lipides|floatformat:1 }}</span>
+                                        <span class="nut-unit">g</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>Aucun article</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Résumé financier -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-euro-sign"></i> Résumé financier</h2>
+                    </div>
+                    <div class="summary-table">
+                        <div class="summary-row">
+                            <span class="label">Sous-total:</span>
+                            <span class="value">{{ commande.total|floatformat:2 }}€</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="label">Livraison:</span>
+                            <span class="value">0.00€</span>
+                        </div>
+                        <div class="summary-row divider"></div>
+                        <div class="summary-row total">
+                            <span class="label">TOTAL:</span>
+                            <span class="value">{{ commande.total|floatformat:2 }}€</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne 2: Sidebar avec infos et actions -->
+            <aside class="sidebar-section">
+                <!-- Modification du statut -->
+                <div class="admin-card sticky">
+                    <div class="card-header">
+                        <h2><i class="fas fa-tasks"></i> Statut</h2>
+                    </div>
+                    <form method="post" class="status-form">
+                        {% csrf_token %}
+                        <div class="status-current">
+                            <span class="current-label">Statut actuel:</span>
+                            <span class="statut-badge statut-{{ commande.statut }}">
+                                {{ commande.get_statut_display }}
+                            </span>
+                        </div>
+
+                        <div class="status-selector">
+                            <label for="statut-select">Changer le statut:</label>
+                            <select id="statut-select" name="statut" class="form-select">
+                                <option value="">-- Sélectionner un statut --</option>
+                                {% for code, label in statuts_disponibles %}
+                                <option value="{{ code }}" {% if code == commande.statut %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-block">
+                            <i class="fas fa-check"></i> Mettre à jour
+                        </button>
+                    </form>
+
+                    <!-- Timeline progression -->
+                    <div class="progress-timeline">
+                        <div class="timeline-step {% if commande.statut != 'panier' %}active{% endif %}">
+                            <div class="timeline-dot"></div>
+                            <span>Créée</span>
+                        </div>
+                        <div class="timeline-step {% if commande.statut in 'en_attente,confirmee,en_preparation,livree' %}active{% endif %}">
+                            <div class="timeline-dot"></div>
+                            <span>Confirmée</span>
+                        </div>
+                        <div class="timeline-step {% if commande.statut in 'en_preparation,livree' %}active{% endif %}">
+                            <div class="timeline-dot"></div>
+                            <span>Préparation</span>
+                        </div>
+                        <div class="timeline-step {% if commande.statut == 'livree' %}active{% endif %}">
+                            <div class="timeline-dot"></div>
+                            <span>Livrée</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Infos client -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user"></i> Informations client</h2>
+                    </div>
+                    <div class="info-rows">
+                        <div class="info-row">
+                            <span class="info-label">Nom:</span>
+                            <span class="info-value">{{ commande.client.utilisateur.prenom }} {{ commande.client.utilisateur.nom }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email:</span>
+                            <span class="info-value">
+                                <a href="mailto:{{ commande.client.utilisateur.email }}">
+                                    {{ commande.client.utilisateur.email }}
+                                </a>
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Téléphone:</span>
+                            <span class="info-value">
+                                {% if commande.client.utilisateur.telephone %}
+                                <a href="tel:{{ commande.client.utilisateur.telephone }}">
+                                    {{ commande.client.utilisateur.telephone }}
+                                </a>
+                                {% else %}
+                                <span class="text-muted">--</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Inscription:</span>
+                            <span class="info-value">{{ commande.client.utilisateur.date_inscription|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="client-stats">
+                        <div class="stat">
+                            <span class="stat-label">Commandes totales:</span>
+                            <span class="stat-value">{{ autres_commandes|add:1 }}</span>
+                        </div>
+                    </div>
+
+                    <a href="#" class="btn-secondary btn-block">
+                        <i class="fas fa-envelope"></i> Envoyer un email
+                    </a>
+                </div>
+
+                <!-- Adresse de livraison -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-map-marker-alt"></i> Livraison</h2>
+                    </div>
+                    <div class="delivery-box">
+                        {% if commande.adresse_livraison %}
+                            <p>{{ commande.adresse_livraison }}</p>
+                        {% else %}
+                            <p class="text-muted">Aucune adresse spécifiée</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                {% if commande.notes %}
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-sticky-note"></i> Notes</h2>
+                    </div>
+                    <div class="notes-box">
+                        {{ commande.notes }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Valeurs nutritionnelles totales -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-heart"></i> Nutrition totale</h2>
+                    </div>
+                    <div class="nutrition-summary">
+                        <div class="nut-item">
+                            <span class="nut-label">Calories</span>
+                            <span class="nut-big">{{ nutrition_totale.calories|floatformat:0 }}</span>
+                            <span class="nut-unit">kcal</span>
+                        </div>
+                        <div class="nut-item">
+                            <span class="nut-label">Protéines</span>
+                            <span class="nut-big">{{ nutrition_totale.proteines|floatformat:1 }}</span>
+                            <span class="nut-unit">g</span>
+                        </div>
+                        <div class="nut-item">
+                            <span class="nut-label">Glucides</span>
+                            <span class="nut-big">{{ nutrition_totale.glucides|floatformat:1 }}</span>
+                            <span class="nut-unit">g</span>
+                        </div>
+                        <div class="nut-item">
+                            <span class="nut-label">Lipides</span>
+                            <span class="nut-big">{{ nutrition_totale.lipides|floatformat:1 }}</span>
+                            <span class="nut-unit">g</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions admin -->
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-tools"></i> Actions</h2>
+                    </div>
+                    <div class="actions-grid">
+                        <button class="btn-action btn-info" onclick="duplicateCommande()">
+                            <i class="fas fa-copy"></i> Dupliquer
+                        </button>
+                        <button class="btn-action btn-warning" onclick="editCommande()">
+                            <i class="fas fa-edit"></i> Éditer
+                        </button>
+                        {% if commande.statut != 'annulee' %}
+                        <button class="btn-action btn-danger" onclick="cancelCommande()">
+                            <i class="fas fa-trash"></i> Annuler
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'commande/admin_commande_detail.js' %}"></script>
+{% endblock %}

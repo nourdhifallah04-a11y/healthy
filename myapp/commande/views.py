@@ -6,6 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 import logging
 from myapp.users.models import Client
 from myapp.plat.models import Plat
@@ -357,4 +359,111 @@ def commande_detail(request, commande_id):
         'user': request.user,
     }
     return render(request, 'commande/commande_detail.html', context)
+
+
+@login_required
+def historique_commandes(request):
+    """
+    Affiche l'historique complet des commandes (Admin uniquement)
+    """
+    # Vérifier que l'utilisateur est administrateur
+    if not request.user.administrateur:
+        messages.error(request, "Vous n'avez pas accès à cette page")
+        return redirect('accueil')
+    
+    # Récupérer les paramètres de filtrage
+    statut_filtre = request.GET.get('statut', '')
+    client_filtre = request.GET.get('client', '')
+    page_num = request.GET.get('page', 1)
+    
+    # Requête de base
+    commandes = Commande.objects.select_related('client__utilisateur').order_by('-date')
+    
+    # Appliquer les filtres
+    if statut_filtre:
+        commandes = commandes.filter(statut=statut_filtre)
+    
+    if client_filtre:
+        commandes = commandes.filter(
+            client__utilisateur__nom__icontains=client_filtre
+        ) | commandes.filter(
+            client__utilisateur__prenom__icontains=client_filtre
+        )
+    
+    # Pagination
+    paginator = Paginator(commandes, 20)
+    page = paginator.get_page(page_num)
+    
+    # Obtenir les statuts disponibles pour le filtre
+    statuts = Commande.STATUTS
+    
+    # Calculer les statistiques
+    total_commandes = Commande.objects.count()
+    total_revenus = sum(cmd.total for cmd in Commande.objects.all())
+    commandes_confirmees = Commande.objects.filter(statut='confirmee').count()
+    commandes_livrees = Commande.objects.filter(statut='livree').count()
+    
+    context = {
+        'page': page,
+        'paginator': paginator,
+        'statuts': statuts,
+        'statut_filtre': statut_filtre,
+        'client_filtre': client_filtre,
+        'total_commandes': total_commandes,
+        'total_revenus': total_revenus,
+        'commandes_confirmees': commandes_confirmees,
+        'commandes_livrees': commandes_livrees,
+    }
+    return render(request, 'commande/historique_commandes.html', context)
+
+
+@login_required
+def admin_commande_detail(request, commande_id):
+    """
+    Affiche les détails d'une commande avec options de gestion (Admin uniquement)
+    """
+    # Vérifier que l'utilisateur est administrateur
+    if not request.user.administrateur:
+        messages.error(request, "Vous n'avez pas accès à cette page")
+        return redirect('accueil')
+    
+    try:
+        commande = Commande.objects.select_related('client__utilisateur').get(
+            id_commande=commande_id
+        )
+    except Commande.DoesNotExist:
+        messages.error(request, "Commande non trouvée")
+        return redirect('historique_commandes')
+    
+    # Traiter les mises à jour de statut
+    if request.method == 'POST':
+        nouveau_statut = request.POST.get('statut')
+        if nouveau_statut and nouveau_statut in dict(Commande.STATUTS):
+            commande.statut = nouveau_statut
+            commande.save()
+            messages.success(request, f"Statut changé en {commande.get_statut_display()}")
+            return redirect('admin_commande_detail', commande_id=commande_id)
+    
+    # Récupérer toutes les lignes de commande avec leurs détails nutritionnels
+    lignes = commande.lignecommande_set.all()
+    
+    # Calculer les valeurs nutritionnelles totales
+    nutrition_totale = commande.calculer_nutrition_totale()
+    
+    # Statuts disponibles
+    statuts_disponibles = Commande.STATUTS
+    
+    # Compter les autres commandes du client
+    autres_commandes = commande.client.commandes.exclude(
+        id_commande=commande_id
+    ).count()
+    
+    context = {
+        'commande': commande,
+        'lignes': lignes,
+        'nutrition_totale': nutrition_totale,
+        'statuts_disponibles': statuts_disponibles,
+        'autres_commandes': autres_commandes,
+    }
+    return render(request, 'commande/admin_commande_detail.html', context)
 

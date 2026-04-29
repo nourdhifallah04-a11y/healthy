@@ -16,9 +16,12 @@ urlpatterns = [
     path("commande/confirmation/<int:commande_id>/", views.commande_confirmation, name="commande_confirmation"),
     path("mes-commandes/", views.mes_commandes, name="mes_commandes"),
     path("commande/<int:commande_id>/", views.commande_detail, name="commande_detail"),
+    path("historique/", views.historique_commandes, name="historique_commandes"),
+    path("admin/commande/<int:commande_id>/", views.admin_commande_detail, name="admin_commande_detail"),
     path("api/", include(router.urls))
 ]
 
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

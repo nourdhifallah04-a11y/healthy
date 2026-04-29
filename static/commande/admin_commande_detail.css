@@ -1,0 +1,845 @@
+/* ============================================
+   ADMIN COMMANDE DETAIL - STYLES
+   ============================================ */
+
+:root {
+    --vert-profond: #2e4a2f;
+    --vert-feuille: #5a7d5c;
+    --vert-sauge: #7db866;
+    --beige-clair: #f9f7f4;
+    --beige-moyen: #e8dfd5;
+    --beige-fonce: #d4c4b0;
+    --danger: #dc3545;
+    --success: #28a745;
+    --warning: #ffc107;
+    --info: #17a2b8;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.admin-detail-wrapper {
+    background: linear-gradient(135deg, #f9f7f4, #fafbf7);
+    min-height: 100vh;
+    padding-bottom: 3rem;
+}
+
+/* Breadcrumb */
+.breadcrumb-nav {
+    background: white;
+    border-bottom: 1px solid var(--beige-moyen);
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+}
+
+.breadcrumb-nav a {
+    color: var(--vert-feuille);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.breadcrumb-nav a:hover {
+    color: var(--vert-sauge);
+}
+
+.breadcrumb-nav span {
+    color: #999;
+    margin: 0 0.5rem;
+}
+
+/* Container */
+.admin-detail-container {
+    max-width: 1400px;
+}
+
+/* Header */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex: 1;
+}
+
+.icon-box {
+    font-size: 2.5rem;
+    color: var(--vert-sauge);
+    background: rgba(125, 184, 102, 0.1);
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-text h1 {
+    margin: 0;
+    color: var(--vert-profond);
+    font-size: 1.8rem;
+}
+
+.header-text .date-info {
+    margin: 0.5rem 0 0 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid var(--beige-moyen);
+    background: white;
+    color: var(--vert-feuille);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.btn-icon:hover {
+    background: var(--beige-clair);
+    border-color: var(--vert-sauge);
+    color: var(--vert-sauge);
+}
+
+/* Content Layout */
+.admin-content {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Admin Card */
+.admin-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.admin-card.sticky {
+    position: sticky;
+    top: 20px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--beige-moyen);
+}
+
+.card-header h2 {
+    margin: 0;
+    color: var(--vert-profond);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-header h2 i {
+    color: var(--vert-sauge);
+}
+
+.badge {
+    background: linear-gradient(135deg, var(--vert-feuille), var(--vert-sauge));
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Items Container */
+.items-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.item-detail-card {
+    background: linear-gradient(135deg, #f9f7f4, #fafbf7);
+    border: 1px solid var(--beige-moyen);
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.item-detail-card:hover {
+    border-color: var(--vert-sauge);
+    box-shadow: 0 4px 12px rgba(125, 184, 102, 0.15);
+}
+
+.item-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.item-main {
+    flex: 1;
+}
+
+.item-title {
+    margin: 0 0 0.5rem 0;
+    color: var(--vert-profond);
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.type-badge {
+    display: inline-block;
+    background: rgba(125, 184, 102, 0.2);
+    color: var(--vert-feuille);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.item-pricing {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.price-box,
+.qty-box,
+.total-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 80px;
+}
+
+.price-label,
+.qty-label,
+.total-label {
+    font-size: 0.8rem;
+    color: #999;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
+.price-value,
+.qty-value,
+.total-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--vert-profond);
+}
+
+.total-box.highlight {
+    background: rgba(125, 184, 102, 0.1);
+    padding: 0.75rem;
+    border-radius: 6px;
+}
+
+.total-box.highlight .total-value {
+    color: var(--vert-sauge);
+    font-size: 1.3rem;
+}
+
+/* Item Composition */
+.item-composition,
+.item-nutrition {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--beige-moyen);
+}
+
+.composition-header {
+    font-weight: 600;
+    color: var(--vert-profond);
+    margin-bottom: 1rem;
+}
+
+.plats-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.plat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid var(--beige-moyen);
+}
+
+.plat-info {
+    flex: 1;
+}
+
+.plat-name {
+    display: block;
+    font-weight: 500;
+    color: var(--vert-feuille);
+}
+
+.plat-desc {
+    display: block;
+    font-size: 0.85rem;
+    color: #999;
+    margin-top: 0.3rem;
+}
+
+.plat-nutrition {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.nut-item {
+    display: inline-block;
+    background: rgba(125, 184, 102, 0.1);
+    color: var(--vert-feuille);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Nutrition Grid */
+.item-nutrition .nut-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.nut-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    background: white;
+    border: 1px solid var(--beige-moyen);
+    border-radius: 8px;
+}
+
+.nut-label {
+    font-size: 0.85rem;
+    color: #999;
+    margin-bottom: 0.5rem;
+}
+
+.nut-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--vert-sauge);
+}
+
+.nut-unit {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+/* Summary Table */
+.summary-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--beige-moyen);
+}
+
+.summary-row.divider {
+    border-bottom: 2px solid var(--beige-moyen);
+    height: 0;
+    padding: 0;
+}
+
+.summary-row.total {
+    border: none;
+    border-top: 2px solid var(--beige-moyen);
+    padding-top: 1rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--vert-profond);
+}
+
+.label {
+    color: #666;
+    font-weight: 500;
+}
+
+.value {
+    color: var(--vert-profond);
+    font-weight: 600;
+}
+
+.summary-row.total .value {
+    color: var(--vert-sauge);
+    font-size: 1.3rem;
+}
+
+/* Statut Badge */
+.statut-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statut-panier {
+    background: rgba(100, 100, 100, 0.1);
+    color: #333;
+}
+
+.statut-en_attente {
+    background: rgba(255, 193, 7, 0.1);
+    color: #f57f17;
+}
+
+.statut-confirmee {
+    background: rgba(76, 175, 80, 0.1);
+    color: #388e3c;
+}
+
+.statut-en_preparation {
+    background: rgba(33, 150, 243, 0.1);
+    color: #1565c0;
+}
+
+.statut-livree {
+    background: rgba(46, 157, 120, 0.1);
+    color: #00695c;
+}
+
+.statut-annulee {
+    background: rgba(220, 53, 69, 0.1);
+    color: #c41c3b;
+}
+
+/* Sidebar */
+.sidebar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Status Form */
+.status-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.status-current {
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(125, 184, 102, 0.1), rgba(46, 157, 120, 0.1));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.current-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.status-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.status-selector label {
+    color: var(--vert-profond);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-select {
+    padding: 0.75rem;
+    border: 1px solid var(--beige-moyen);
+    border-radius: 6px;
+    color: var(--vert-profond);
+    background: white;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--vert-sauge);
+    box-shadow: 0 0 0 3px rgba(125, 184, 102, 0.1);
+}
+
+/* Buttons */
+.btn-primary,
+.btn-secondary,
+.btn-warning,
+.btn-danger,
+.btn-info {
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--vert-feuille), var(--vert-sauge));
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(125, 184, 102, 0.3);
+}
+
+.btn-secondary {
+    background: var(--beige-moyen);
+    color: var(--vert-profond);
+}
+
+.btn-secondary:hover {
+    background: var(--beige-fonce);
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-info {
+    background: var(--info);
+    color: white;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* Actions Grid */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+}
+
+.btn-action {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    justify-content: center;
+}
+
+/* Info Rows */
+.info-rows,
+.client-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.8rem;
+    background: linear-gradient(135deg, #f9f7f4, #fafbf7);
+    border-radius: 6px;
+}
+
+.info-label {
+    color: #666;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.info-value {
+    color: var(--vert-profond);
+    font-weight: 600;
+    text-align: right;
+    flex: 1;
+    margin-left: 1rem;
+}
+
+.info-value a {
+    color: var(--vert-sauge);
+    text-decoration: none;
+}
+
+.info-value a:hover {
+    text-decoration: underline;
+}
+
+.text-muted {
+    color: #999;
+}
+
+/* Client Stats */
+.client-stats {
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(125, 184, 102, 0.05), rgba(46, 157, 120, 0.05));
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.stat {
+    display: flex;
+    justify-content: space-between;
+}
+
+.stat-label {
+    color: #666;
+    font-weight: 500;
+}
+
+.stat-value {
+    color: var(--vert-sauge);
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+/* Delivery Box */
+.delivery-box,
+.notes-box {
+    padding: 1rem;
+    background: linear-gradient(135deg, #f9f7f4, #fafbf7);
+    border-radius: 6px;
+    color: var(--vert-profond);
+    line-height: 1.6;
+}
+
+.notes-box {
+    font-style: italic;
+    border-left: 4px solid var(--vert-sauge);
+}
+
+/* Nutrition Summary */
+.nutrition-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.nutrition-summary .nut-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.2rem;
+    background: linear-gradient(135deg, #f9f7f4, #fafbf7);
+    border: 1px solid var(--beige-moyen);
+    border-radius: 8px;
+}
+
+.nut-big {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--vert-sauge);
+    margin: 0.5rem 0;
+}
+
+/* Timeline */
+.progress-timeline {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--beige-moyen);
+}
+
+.timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--beige-moyen);
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--beige-moyen);
+    transition: all 0.3s;
+}
+
+.timeline-step.active .timeline-dot {
+    background: var(--vert-sauge);
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--vert-sauge);
+}
+
+.timeline-step span {
+    font-size: 0.75rem;
+    color: #999;
+    text-align: center;
+}
+
+.timeline-step.active span {
+    color: var(--vert-sauge);
+    font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--beige-fonce);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .admin-content {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-card.sticky {
+        position: static;
+    }
+
+    .item-pricing {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .item-nutrition .nut-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .nutrition-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .header-left {
+        justify-content: center;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .item-detail-card {
+        padding: 1rem;
+    }
+
+    .item-header-row {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .item-pricing {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .plat-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .plat-nutrition {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .info-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-value {
+        text-align: left;
+        margin-left: 0;
+    }
+
+    .progress-timeline {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+@media print {
+    .admin-header,
+    .btn-icon,
+    .status-form,
+    .actions-grid {
+        display: none;
+    }
+
+    .admin-detail-wrapper {
+        background: white;
+    }
+}

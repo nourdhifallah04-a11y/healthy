@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens - Historique des Commandes{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'commande/historique_commandes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="page-card">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="header-icon">
+                <i class="fas fa-history"></i>
+            </div>
+            <div class="header-title">
+                <h1>Historique des Commandes</h1>
+                <p>Consultez et gérez toutes les commandes de vos clients</p>
+            </div>
+        </div>
+
+        <!-- Statistiques -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #5a7d5c, #90c44a);">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">{{ total_commandes }}</div>
+                    <div class="stat-label">Commandes totales</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #90c44a, #ffc107);">
+                    <i class="fas fa-euro-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">{{ total_revenus|floatformat:2 }} €</div>
+                    <div class="stat-label">Revenu total</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #90c44a, #2e9d78);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">{{ commandes_confirmees }}</div>
+                    <div class="stat-label">Confirmées</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #2e9d78, #16a34a);">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">{{ commandes_livrees }}</div>
+                    <div class="stat-label">Livrées</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtres -->
+        <div class="filters-section">
+            <form method="get" class="filters-form">
+                <div class="filter-group">
+                    <label for="statut-filter" class="filter-label">
+                        <i class="fas fa-filter"></i> Statut
+                    </label>
+                    <select id="statut-filter" name="statut" class="filter-select">
+                        <option value="">Tous les statuts</option>
+                        {% for statut_code, statut_label in statuts %}
+                            <option value="{{ statut_code }}" {% if statut_filtre == statut_code %}selected{% endif %}>
+                                {{ statut_label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="client-filter" class="filter-label">
+                        <i class="fas fa-user"></i> Client
+                    </label>
+                    <input 
+                        type="text" 
+                        id="client-filter" 
+                        name="client" 
+                        class="filter-input" 
+                        placeholder="Nom ou prénom du client"
+                        value="{{ client_filtre }}"
+                    >
+                </div>
+
+                <div class="filter-group">
+                    <button type="submit" class="btn-filter">
+                        <i class="fas fa-search"></i> Rechercher
+                    </button>
+                    {% if statut_filtre or client_filtre %}
+                    <a href="{% url 'historique_commandes' %}" class="btn-reset">
+                        <i class="fas fa-times"></i> Réinitialiser
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Tableau des commandes -->
+        <div class="table-responsive">
+            <table class="commandes-table">
+                <thead>
+                    <tr>
+                        <th>ID Commande</th>
+                        <th>Client</th>
+                        <th>Email</th>
+                        <th>Date</th>
+                        <th>Statut</th>
+                        <th>Articles</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if page.object_list %}
+                        {% for commande in page.object_list %}
+                        <tr>
+                            <td class="id-col">
+                                <span class="id-badge">#{{ commande.id_commande }}</span>
+                            </td>
+                            <td class="client-col">
+                                <div class="client-info">
+                                    <div class="client-name">
+                                        {{ commande.client.utilisateur.prenom }} {{ commande.client.utilisateur.nom }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="email-col">
+                                {{ commande.client.utilisateur.email }}
+                            </td>
+                            <td class="date-col">
+                                <span class="date-badge">{{ commande.date|date:"d/m/Y H:i" }}</span>
+                            </td>
+                            <td class="statut-col">
+                                <span class="statut-badge statut-{{ commande.statut }}">
+                                    {{ commande.get_statut_display }}
+                                </span>
+                            </td>
+                            <td class="articles-col">
+                                <span class="articles-count">
+                                    {{ commande.lignecommande_set.count }} article(s)
+                                </span>
+                            </td>
+                            <td class="total-col">
+                                <span class="total-amount">{{ commande.total|floatformat:2 }} €</span>
+                            </td>
+                            <td class="actions-col">
+                                <a href="{% url 'admin_commande_detail' commande.id_commande %}" class="btn-action btn-view" 
+                                   title="Voir les détails">
+                                    <i class="fas fa-eye"></i> Détails
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr class="empty-row">
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>Aucune commande ne correspond à vos critères</p>
+                                <a href="{% url 'historique_commandes' %}" class="btn-reset">
+                                    <i class="fas fa-times"></i> Réinitialiser les filtres
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page.has_other_pages %}
+        <div class="pagination-section">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if page.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if statut_filtre %}&statut={{ statut_filtre }}{% endif %}{% if client_filtre %}&client={{ client_filtre }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i> Première
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page.previous_page_number }}{% if statut_filtre %}&statut={{ statut_filtre }}{% endif %}{% if client_filtre %}&client={{ client_filtre }}{% endif %}">
+                            Précédente
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page.paginator.page_range %}
+                        {% if page.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page.number|add:'-3' and num < page.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if statut_filtre %}&statut={{ statut_filtre }}{% endif %}{% if client_filtre %}&client={{ client_filtre }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page.next_page_number }}{% if statut_filtre %}&statut={{ statut_filtre }}{% endif %}{% if client_filtre %}&client={{ client_filtre }}{% endif %}">
+                            Suivante
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page.paginator.num_pages }}{% if statut_filtre %}&statut={{ statut_filtre }}{% endif %}{% if client_filtre %}&client={{ client_filtre }}{% endif %}">
+                            Dernière <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'commande/historique_commandes.js' %}"></script>
+{% endblock %}
