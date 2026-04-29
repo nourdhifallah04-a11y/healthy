@@ -12,6 +12,11 @@ let currentSearchQuery = '';
 let selectedItemId = null;
 let selectedItemType = null;
 
+// ========== PAGINATION STATE ==========
+const ITEMS_PER_PAGE = 8;
+const ITEMS_LOAD_MORE = 4;
+let itemsDisplayed = 8;
+
 // ========== DOM REFERENCES ==========
 const itemsGrid = document.getElementById('itemsGrid');
 const noResults = document.getElementById('noResults');
@@ -43,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== API CALLS ==========
 function loadAllItems() {
-    fetch('/api/menus-and-plats/')
+    fetch('/plat/api/menus-and-plats/')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -89,6 +94,7 @@ function applyFilters() {
     }
 
     filteredItems = filtered;
+    itemsDisplayed = 0; // Reset pagination when filters change
     displayItems();
 }
 
@@ -100,7 +106,28 @@ function displayItems() {
     }
 
     noResults.style.display = 'none';
-    itemsGrid.innerHTML = filteredItems.map(item => createItemCard(item)).join('');
+    
+    // Determine how many items to show initially
+    const initialCount = itemsDisplayed === 0 ? ITEMS_PER_PAGE : itemsDisplayed;
+    const itemsToDisplay = filteredItems.slice(0, initialCount);
+    const remainingItems = filteredItems.length - initialCount;
+    
+    // Create item cards HTML
+    const itemsHTML = itemsToDisplay.map(item => createItemCard(item)).join('');
+    
+    // Create load more button if there are remaining items
+    let loadMoreHTML = '';
+    if (remainingItems > 0) {
+        loadMoreHTML = `
+            <div class="load-more-container">
+                <button class="btn-load-more" id="loadMoreBtn">
+                    <i class="fas fa-plus"></i> +${remainingItems} autres plats
+                </button>
+            </div>
+        `;
+    }
+    
+    itemsGrid.innerHTML = itemsHTML + loadMoreHTML;
 
     // Add event listeners to "Add to Cart" buttons
     document.querySelectorAll('.btn-add-cart').forEach(btn => {
@@ -112,6 +139,17 @@ function displayItems() {
             openAddToCartModal(itemId, itemType, itemName);
         });
     });
+    
+    // Add event listener to load more button
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreItems);
+    }
+}
+
+function loadMoreItems() {
+    itemsDisplayed += ITEMS_LOAD_MORE;
+    displayItems();
 }
 
 function createItemCard(item) {

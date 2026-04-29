@@ -170,6 +170,11 @@ function chargerPlats() {
 let currentFilter = "all";
 let currentSearch = "";
 
+// ========== PAGINATION STATE ==========
+const INITIAL_DISPLAY = 8;
+const ITEMS_PER_LOAD = 4;
+let itemsDisplayed = 8;
+
 // ========== RÉFÉRENCES DOM ==========
 const menuGrid = document.getElementById('menuGrid');
 const searchInput = document.getElementById('searchInput');
@@ -204,7 +209,20 @@ function displayMeals() {
         return;
     }
     console.log('Menus à afficher après filtrage:', filteredMeals);
-    menuGrid.innerHTML = filteredMeals.map(meal => `
+    
+    // Déterminer combien d'éléments afficher initialement
+    const displayCount = itemsDisplayed === 0 ? INITIAL_DISPLAY : itemsDisplayed;
+    const mealsToDisplay = filteredMeals.slice(0, displayCount);
+    const remainingMeals = filteredMeals.length - displayCount;
+    
+    // Créer le HTML des cartes de menu
+    let gridHTML = mealsToDisplay.map(meal => {
+        // Limiter à 4 plats max pour l'affichage
+        const maxPlats = 4;
+        const platsAfficher = meal.plats ? meal.plats.slice(0, maxPlats) : [];
+        const platsRestants = meal.plats ? meal.plats.length - maxPlats : 0;
+
+        return `
         <div class="item-card">
             <div class="item-image">
                 <img src="${meal.image}" alt="${meal.name}" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500'">
@@ -216,31 +234,42 @@ function displayMeals() {
                 <h3>${meal.name}</h3>
                 <p class="description">${meal.description || 'Menu savoureux et équilibré'}</p>
                 
-                ${meal.type === 'menu' && meal.plats && meal.plats.length > 0 ? `
-                    <div class="menu-plats">
-                        <p class="plats-label">📋 Plats:</p>
-                        <ul class="plats-items">
-                            ${meal.plats.map(plat => `<li>${plat.nom}</li>`).join('')}
+                ${meal.type === 'menu' && platsAfficher.length > 0 ? `
+                    <div class="menu-plats" data-menu-id="${meal.id}">
+                        <p class="plats-label">🍽️ Plats</p>
+                        <ul class="plats-items plats-initial">
+                            ${platsAfficher.map(plat => `<li>${plat.nom}</li>`).join('')}
                         </ul>
+                        ${platsRestants > 0 ? `
+                            <ul class="plats-items plats-hidden" style="display: none;">
+                                ${meal.plats.slice(maxPlats).map(plat => `<li>${plat.nom}</li>`).join('')}
+                            </ul>
+                            <button class="btn-plats-more" data-menu-id="${meal.id}" style="cursor: pointer; background: none; border: none; color: #667eea; text-decoration: underline; padding: 8px 0; font-size: 14px; font-weight: 500;">
+                                +${platsRestants} autres plats
+                            </button>
+                        ` : ''}
                     </div>
                 ` : ''}
                 
                 <div class="nutrition-info">
-                    <div class="nutrition-item">
-                        <span class="label">🔥 Calories</span>
-                        <span class="value">${Math.round(meal.calories)} kcal</span>
-                    </div>
-                    <div class="nutrition-item">
-                        <span class="label">💪 Protéines</span>
-                        <span class="value">${meal.protein.toFixed(1)}g</span>
-                    </div>
-                    <div class="nutrition-item">
-                        <span class="label">🌾 Glucides</span>
-                        <span class="value">${meal.carbs.toFixed(1)}g</span>
-                    </div>
-                    <div class="nutrition-item">
-                        <span class="label">🧈 Lipides</span>
-                        <span class="value">${meal.fat.toFixed(1)}g</span>
+                    <h4 class="nutrition-title">🔥 Valeurs nutritionnelles</h4>
+                    <div class="nutrition-items-grid">
+                        <div class="nutrition-item">
+                            <span class="label">Calories</span>
+                            <span class="value">${Math.round(meal.calories)} kcal</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <span class="label">Protéines</span>
+                            <span class="value">${meal.protein.toFixed(1)}g</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <span class="label">Glucides</span>
+                            <span class="value">${meal.carbs.toFixed(1)}g</span>
+                        </div>
+                        <div class="nutrition-item">
+                            <span class="label">Lipides</span>
+                            <span class="value">${meal.fat.toFixed(1)}g</span>
+                        </div>
                     </div>
                 </div>
 
@@ -252,7 +281,21 @@ function displayMeals() {
                 </div>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
+    
+    // Ajouter le bouton "Charger plus" si nécessaire
+    if (remainingMeals > 0) {
+        gridHTML += `
+            <div class="load-more-container" style="grid-column: 1 / -1; text-align: center; padding: 20px;">
+                <button class="btn-load-more" id="loadMoreBtn" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold;">
+                    <i class="fas fa-plus"></i> +${remainingMeals} autres plats
+                </button>
+            </div>
+        `;
+    }
+    
+    menuGrid.innerHTML = gridHTML;
 
     // Ajouter les événements aux boutons Ajouter au Panier
     document.querySelectorAll('.btn-add-cart').forEach(btn => {
@@ -265,6 +308,38 @@ function displayMeals() {
             openAddToCartModal(itemId, itemType, itemName, itemPrice);
         });
     });
+    
+    // Ajouter l'événement au bouton "Charger plus"
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', loadMoreItems);
+    }
+    
+    // Ajouter l'événement aux boutons "plats-more" pour afficher tous les plats
+    document.querySelectorAll('.btn-plats-more').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const menuId = btn.dataset.menuId;
+            const menuContainer = btn.closest('.menu-plats');
+            const initialPlats = menuContainer.querySelector('.plats-initial');
+            const hiddenPlats = menuContainer.querySelector('.plats-hidden');
+            
+            if (hiddenPlats) {
+                // Afficher tous les plats
+                hiddenPlats.style.display = 'block';
+                // Masquer le bouton
+                btn.style.display = 'none';
+            }
+        });
+    });
+}
+
+/**
+ * Charge plus d'éléments lors du clic sur le bouton "Charger plus"
+ */
+function loadMoreItems() {
+    itemsDisplayed += ITEMS_PER_LOAD;
+    displayMeals();
 }
 
 // ========== GESTION DES FILTRES ==========
@@ -277,6 +352,7 @@ if (filterBtns.length > 0) {
 
             // Mettre à jour le filtre
             currentFilter = btn.dataset.filter;
+            itemsDisplayed = 0; // Réinitialiser la pagination
             displayMeals();
         });
     });
@@ -286,6 +362,7 @@ if (filterBtns.length > 0) {
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
         currentSearch = e.target.value;
+        itemsDisplayed = 0; // Réinitialiser la pagination
         displayMeals();
     });
 }
