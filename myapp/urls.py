@@ -10,7 +10,7 @@ from myapp.monitoring import views_monitoring
 router = DefaultRouter()
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("admin/", admin.site.urls, name="admin_django"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("password-reset/", auth_views.PasswordResetView.as_view(template_name="registration/password_reset.html"), name="password_reset"),
     path("password-reset/done/", auth_views.PasswordResetDoneView.as_view(template_name="registration/password_reset_done.html"), name="password_reset_done"),

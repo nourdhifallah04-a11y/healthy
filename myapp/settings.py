@@ -172,8 +172,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # ou votre fournisseur SMTP
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = ''  # Remplacez par votre email
-EMAIL_HOST_PASSWORD = ''  # Mot de passe d'application Gmail
+EMAIL_HOST_USER = 'noreply.healthy.ia@gmail.com'  # Remplacez par votre email
+EMAIL_HOST_PASSWORD = 'kbdr afsz qtsl nbss'  # Mot de passe d'application Gmail
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # ========== CONFIGURATION N8N WEBHOOK ==========

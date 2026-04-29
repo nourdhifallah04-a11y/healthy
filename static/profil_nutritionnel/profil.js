@@ -319,20 +319,37 @@ function loadSavedProfile() {
 // ========== CHARGER LE PROFIL DEPUIS LE SERVEUR ==========
 async function loadProfileFromServer() {
     try {
+        console.log('🔄 Chargement du profil nutritionnel depuis le serveur...');
         const response = await fetch('/profilNutritionnel/api/profil-nutritionnel/obtenir/', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
-            credentials: 'include'
+            credentials: 'include',
+            redirect: 'manual'
         });
         
+        if (response.status === 404 || response.status === 301) {
+            const redirectUrl = response.headers.get('Location');
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+                return;
+            }
+        }
+
         if (response.ok) {
-            const data = await response.json();
-            fillFormWithProfileData(data);
-            showToast('✅ Votre profil nutritionnel a été chargé', 'success');
+            const contentType = response.headers.get('Content-Type') || '';
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+                fillFormWithProfileData(data);
+                showToast('✅ Votre profil nutritionnel a été chargé', 'success');
+            } else {
+                console.warn('Réponse non JSON reçue depuis l’API de profil nutritionnel', contentType);
+            }
         } else if (response.status === 404) {
             console.log('Aucun profil trouvé - formulaire vierge');
+        } else {
+            console.error('Erreur HTTP inattendue lors du chargement du profil:', response.status);
         }
     } catch (error) {
         console.error('Erreur lors du chargement du profil:', error);

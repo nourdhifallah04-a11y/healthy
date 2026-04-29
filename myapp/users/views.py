@@ -37,6 +37,11 @@ async_jobs_cache = {}
 def _send_activation_email(request, utilisateur):
     """Envoie un e-mail d'activation au nouvel utilisateur."""
     try:
+        # Validation de l'adresse email
+        if not utilisateur.email or not utilisateur.email.strip():
+            logger.error(f"Cannot send activation email: invalid or empty email address for user {utilisateur}")
+            raise ValueError("Adresse email invalide ou vide")
+        
         uidb64 = urlsafe_base64_encode(force_bytes(utilisateur.pk))
         token = default_token_generator.make_token(utilisateur)
         activation_url = request.build_absolute_uri(

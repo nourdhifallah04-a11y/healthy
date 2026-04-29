@@ -134,11 +134,29 @@
                                 <span>Gérer les plats</span>
                             </a>
                         </li>
+                           <!-- History -->
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#"
                                style="color: var(--vert-feuille); transition: 0.2s;">
+                                <i class="bi bi-clock-history" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
+                                <span>Historique</span>
+                            </a>
+                        </li>
+                        
+                        {% elif user.is_staff  %}
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'monitoring_dashboard' %}"
+                               style="color: var(--vert-feuille); transition: 0.2s;">
                                 <i class="fas fa-chart-bar" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
                                 <span>Statistiques</span>
+                            </a>
+                        </li>
+                        <!-- Settings -->
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="{% url 'admin:index' %}"
+                               style="color: var(--vert-feuille); transition: 0.2s;">
+                                <i class="bi bi-sliders" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
+                                <span>Paramètres</span>
                             </a>
                         </li>
                         {% else %}
@@ -152,23 +170,9 @@
                         </li>
                         {% endif %}
 
-                        <!-- History -->
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#"
-                               style="color: var(--vert-feuille); transition: 0.2s;">
-                                <i class="bi bi-clock-history" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
-                                <span>Historique</span>
-                            </a>
-                        </li>
+                     
 
-                        <!-- Settings -->
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#"
-                               style="color: var(--vert-feuille); transition: 0.2s;">
-                                <i class="bi bi-sliders" style="color: var(--vert-sauge); font-size: 1.1rem;"></i>
-                                <span>Paramètres</span>
-                            </a>
-                        </li>
+
 
                         <li><hr class="dropdown-divider my-1"></li>
 

@@ -138,10 +138,16 @@ function appelN8NRecommandationsAsync() {
     if (currentDiet === "plat-recommandation-ia") {
         displayDietMeals();
     }
-    
+    console.log('🚀 Appel /profilNutritionnel/api/profil-nutritionnel/obtenir/');
     // Récupérer le profil utilisateur
     fetch('/profilNutritionnel/api/profil-nutritionnel/obtenir/')
         .then(response => {
+            console.log('Response status from profil-nutritionnel:', response.status);
+            if (response.status === 404 || response.status === 301) {
+                console.log('ℹ️ Profil nutritionnel non trouvé, redirection vers la page de création du profil');
+                window.location.href = '/profil-nutritionnel/';
+                return;
+        }
             if (response.status === 401) {
                 console.log('ℹ️ Utilisateur non authentifié pour le webhook n8n');
                 return null;
@@ -212,8 +218,7 @@ function appelN8NRecommandationsAsync() {
                     displayDietMeals();
                 }
             });
-        })
-        .catch(error => console.error('Erreur récupération profil:', error));
+        });
 }
 
 /**

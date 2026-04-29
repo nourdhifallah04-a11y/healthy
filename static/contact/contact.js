@@ -112,8 +112,19 @@ function resetForm() {
     errorInputs.forEach(input => input.classList.remove('error'));
 }
 
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+function getCSRFToken() {
+    return getCookie('csrftoken');
+}
+
 // ========== ENVOI DU FORMULAIRE ==========
-function handleSubmit(e) {
+async function handleSubmit(e) {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -121,22 +132,36 @@ function handleSubmit(e) {
     }
 
     // Récupération des données
-    const formData = {
-        name: nameInput.value.trim(),
-        email: emailInput.value.trim(),
-        subject: subjectInput.value.trim() || 'Sans sujet',
-        message: messageInput.value.trim(),
-        date: new Date().toLocaleString('fr-FR')
-    };
+    const formData = new URLSearchParams();
+    formData.append('name', nameInput.value.trim());
+    formData.append('email', emailInput.value.trim());
+    formData.append('subject', subjectInput.value.trim() || 'Sans sujet');
+    formData.append('message', messageInput.value.trim());
 
-    // Simulation d'envoi (à remplacer par un appel API réel)
-    console.log('📧 Message envoyé :', formData);
+    try {
+        const response = await fetch(contactForm.action || window.location.pathname, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: formData,
+            credentials: 'same-origin',
+        });
 
-    // Afficher un message de succès
-    showNotification(`Merci ${formData.name} ! Votre message a bien été envoyé. Nous vous répondrons dans les plus brefs délais.`, 'success');
+        const result = await response.json();
 
-    // Réinitialiser le formulaire
-    resetForm();
+        if (!response.ok || !result.success) {
+            showNotification(result.error || 'Impossible d\'envoyer le message. Réessayez plus tard.', 'error');
+            return;
+        }
+
+        showNotification(result.message || `Merci ${nameInput.value.trim()} ! Votre message a bien été envoyé.`, 'success');
+        resetForm();
+    } catch (error) {
+        console.error('Erreur lors de l\'envoi du message :', error);
+        showNotification('Une erreur est survenue. Veuillez réessayer plus tard.', 'error');
+    }
 }
 
 // ========== VALIDATION EN TEMPS RÉEL ==========

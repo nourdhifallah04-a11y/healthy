@@ -1,31 +1,15 @@
-from myapp.commande.models import Commande, LigneCommande
 from myapp.profilNutritionnel.models import ProfilNutritionnel
 from myapp.profilNutritionnel.serializers import ProfilNutritionnelSerializer
-from rest_framework import viewsets, status, generics
-from rest_framework.decorators import action
+from rest_framework import status, generics
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.db.models import Q
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.views.decorators.http import require_http_methods
-from django.utils.html import mark_safe
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import redirect
 from django.conf import settings
-import json
-import requests
 import logging
-import threading
-import uuid
-from datetime import datetime
 from myapp.users.models import Client
 from myapp.plat.models import Plat
-from myapp.menu.models import Menu
-from myapp.systemeIA.models import SystemeIA
-from myapp.users.serializers import ClientSerializer
-from myapp.plat.serializers import PlatRecommandationSerializer, PlatSerializer
-from myapp.menu.serializers import MenuSerializer
-from myapp.commande.serializers import CommandeSerializer, LigneCommandeSerializer
-from myapp.systemeIA.serializers import SystemeIASerializer
+from myapp.plat.serializers import PlatRecommandationSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -100,9 +84,15 @@ class ObtenirProfilNutritionnelView(generics.RetrieveAPIView):
             profil = ProfilNutritionnel.objects.get(client=client)
             return profil
         except Client.DoesNotExist:
-            raise generics.NotFound('Client non trouvé pour cet utilisateur')
+            raise NotFound('Client non trouvé pour cet utilisateur')
         except ProfilNutritionnel.DoesNotExist:
-            raise generics.NotFound('Profil nutritionnel non trouvé')
+            raise NotFound('Profil nutritionnel non trouvé')
+    
+    def get(self, request, *args, **kwargs):
+            obj = self.get_object()
+            serializer = self.get_serializer(obj)
+            return Response(serializer.data)
+
 
 
 class SupprimerProfilNutritionnelView(generics.DestroyAPIView):
@@ -117,9 +107,9 @@ class SupprimerProfilNutritionnelView(generics.DestroyAPIView):
             profil = ProfilNutritionnel.objects.get(client=client)
             return profil
         except Client.DoesNotExist:
-            raise generics.NotFound('Client non trouvé pour cet utilisateur')
+            raise NotFound('Client non trouvé pour cet utilisateur')
         except ProfilNutritionnel.DoesNotExist:
-            raise generics.NotFound('Profil nutritionnel non trouvé')
+            raise NotFound('Profil nutritionnel non trouvé')
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

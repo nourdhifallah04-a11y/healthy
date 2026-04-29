@@ -22,8 +22,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'  # ou votre fournisseur SMTP
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = ''  # Remplacez par votre email
-EMAIL_HOST_PASSWORD = ''  # Mot de passe d'application Gmail
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')  # Utiliser variable d'environnement
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')  # Utiliser variable d'environnement
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Cache pour développement
