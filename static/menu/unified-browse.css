@@ -448,11 +448,11 @@
 
 .modal-content {
     background-color: white;
-    margin: 10% auto;
+    margin: 2% auto;
     padding: 30px;
     border-radius: 12px;
     width: 90%;
-    max-width: 400px;
+    max-width: 1400px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     animation: slideUp 0.3s ease;
 }

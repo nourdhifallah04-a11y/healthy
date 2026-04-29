@@ -546,7 +546,8 @@ body {
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--beige-moyen);
-    gap: 1rem;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .price {
@@ -557,6 +558,7 @@ body {
 
 .btn-add-to-cart {
     flex: 1;
+    min-width: 100px;
     padding: 0.75rem 1rem;
     background: linear-gradient(135deg, var(--vert-sauge) 0%, var(--vert-feuille) 100%);
     color: white;
@@ -586,6 +588,71 @@ body {
     font-size: 1rem;
 }
 
+.btn-add-cart {
+    flex: 1;
+    min-width: 100px;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, var(--vert-sauge) 0%, var(--vert-feuille) 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-add-cart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(90, 125, 92, 0.3);
+    background: linear-gradient(135deg, var(--vert-feuille) 0%, var(--vert-profond) 100%);
+}
+
+.btn-add-cart:active {
+    transform: translateY(0);
+}
+
+.btn-add-cart i {
+    font-size: 1rem;
+}
+
+.btn-compare {
+    flex: 0 1 auto;
+    min-width: 100px;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #E8A87C 0%, #D9A56F 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+
+.btn-compare:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(232, 168, 124, 0.3);
+    background: linear-gradient(135deg, #D9A56F 0%, #CA9558 100%);
+}
+
+.btn-compare:active {
+    transform: translateY(0);
+}
+
+.btn-compare i {
+    font-size: 1rem;
+}
+
 /* ========== MODAL ========== */
 .modal {
     display: none;
@@ -610,12 +677,12 @@ body {
 
 .modal-content {
     background-color: var(--beige-pale);
-    margin: 10% auto;
+    margin: 2% auto;
     padding: 2rem;
     border: 1px solid var(--beige-moyen);
     border-radius: 12px;
     width: 90%;
-    max-width: 500px;
+    max-width: 1500px;
     box-shadow: 0 15px 40px rgba(46, 74, 47, 0.15);
     animation: slideIn 0.3s ease;
 }
@@ -711,4 +778,439 @@ body {
 
 .btn-secondary:hover {
     background-color: var(--beige-fonce);
+}
+/* ============================================================
+   COMPARISON FEATURE — UX IMPROVED VERSION
+   ============================================================ */
+
+/* Compare Modal */
+.compare-modal {
+    z-index: 3000;
+}
+
+.compare-modal-content {
+    margin: 5% auto;
+    max-width: 1100px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 2.5rem;
+    border-radius: 20px;
+    animation: slideIn 0.35s ease;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Header */
+.compare-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--beige-moyen);
+}
+
+.compare-modal-title-group h2 {
+    color: var(--vert-profond);
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.compare-subtitle {
+    color: var(--vert-feuille);
+    font-size: 0.95rem;
+    margin-top: 0.3rem;
+}
+
+.close-compare {
+    cursor: pointer;
+    font-size: 2rem;
+    color: var(--vert-feuille);
+    transition: color 0.2s ease;
+}
+
+.close-compare:hover {
+    color: var(--vert-profond);
+}
+
+/* Body Layout */
+.compare-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+/* Menu Selector */
+.compare-selector {
+    background: linear-gradient(135deg, var(--beige-doux) 0%, var(--beige-pale) 100%);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--beige-moyen);
+}
+
+.selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.compare-selection-badge {
+    background: var(--beige-doux);
+    padding: 0.4rem 0.8rem;
+    border-radius: 12px;
+    font-weight: 600;
+    color: var(--vert-feuille);
+    font-size: 0.9rem;
+}
+
+.compare-menus-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+/* Menu Item */
+.compare-menu-item {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    position: relative;
+}
+
+.compare-menu-item:hover {
+    border-color: var(--accent-miel);
+    box-shadow: 0 6px 20px rgba(217, 180, 139, 0.2);
+    transform: translateY(-4px);
+}
+
+.compare-menu-item.selected {
+    background: linear-gradient(135deg, var(--vert-sauge) 0%, var(--vert-feuille) 100%);
+    color: white;
+    border-color: var(--vert-profond);
+    box-shadow: 0 8px 25px rgba(90, 125, 92, 0.3);
+}
+
+.compare-menu-item.selected::after {
+    content: "✔";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    color: var(--vert-profond);
+    font-weight: 700;
+    padding: 4px 6px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+}
+
+.compare-menu-item-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--beige-pale);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--vert-profond);
+}
+
+.compare-menu-item-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.compare-menu-item-score {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* Comparison Table */
+.compare-table {
+    border: 1px solid var(--beige-moyen);
+    border-radius: 12px;
+    overflow: hidden;
+    background: white;
+}
+
+.compare-controls {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--beige-moyen);
+    background: var(--beige-pale);
+    text-align: center;
+}
+
+.btn-reset-compare {
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, #E8A87C 0%, #D9A56F 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.btn-reset-compare:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(232, 168, 124, 0.3);
+}
+
+.nutrition-comparison {
+    overflow-x: auto;
+}
+
+/* Table */
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.comparison-table thead {
+    background: linear-gradient(135deg, var(--vert-profond) 0%, var(--vert-feuille) 100%);
+    color: white;
+    font-weight: 600;
+}
+
+.comparison-table th {
+    padding: 1.2rem;
+    text-align: left;
+    border: none;
+    font-size: 0.95rem;
+}
+
+.metric-col {
+    font-weight: 700;
+    min-width: 120px;
+    position: sticky;
+    left: 0;
+    background: var(--beige-doux);
+    z-index: 2;
+}
+
+.menu-col {
+    text-align: center;
+    min-width: 140px;
+    transition: background 0.2s ease;
+}
+
+.menu-col:hover {
+    background: rgba(155, 191, 143, 0.15);
+}
+
+.comparison-table tbody tr {
+    border-bottom: 1px solid var(--beige-moyen);
+    transition: background-color 0.2s ease;
+}
+
+.comparison-table tbody tr:hover {
+    background-color: var(--beige-pale);
+}
+
+.comparison-table tbody td {
+    padding: 1.2rem;
+    font-size: 0.95rem;
+    color: var(--vert-profond);
+}
+
+/* Nutrient Bars */
+.nutrient-value {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.nutrient-bar {
+    background: linear-gradient(90deg, var(--beige-moyen), var(--accent-miel));
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.nutrient-bar-fill {
+    background: linear-gradient(90deg, var(--vert-sauge), var(--vert-feuille));
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+/* Difference Badge */
+.difference-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.difference-badge.higher {
+    background: rgba(155, 191, 143, 0.2);
+    color: var(--vert-feuille);
+}
+
+.difference-badge.lower {
+    background: rgba(217, 180, 139, 0.2);
+    color: #B8860B;
+}
+
+/* Charts */
+.comparison-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    gap: 1.5rem;
+    height: 200px;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--beige-pale) 0%, rgba(155, 191, 143, 0.05) 100%);
+    border-radius: 8px;
+    background-image: linear-gradient(to top, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 100% 25px;
+}
+
+.chart-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    max-width: 600px;
+}
+
+.chart-bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, var(--vert-sauge) 0%, var(--vert-feuille) 100%);
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
+    position: relative;
+    animation: grow 0.6s ease-out;
+}
+
+@keyframes grow {
+    from { height: 0; }
+    to { height: var(--target-height); }
+}
+
+.chart-bar-value {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--vert-profond);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Recommendation */
+.compare-recommendation {
+    background: linear-gradient(135deg, rgba(155, 191, 143, 0.1) 0%, rgba(217, 180, 139, 0.1) 100%);
+    border-left: 4px solid var(--vert-sauge);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+}
+
+.recommendation-badge {
+    display: inline-block;
+    background: var(--vert-feuille);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+.btn-compare {
+    background: linear-gradient(135deg, #E8A87C 0%, #D9A56F 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-compare:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(232, 168, 124, 0.3);
+    background: linear-gradient(135deg, #D9A56F 0%, #CA9558 100%);
+}
+
+.btn-compare:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .compare-menus-list {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    .compare-modal-content {
+        padding: 1.5rem;
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+        padding: 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .compare-modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .compare-menus-list {
+        grid-template-columns: 1fr;
+    }
+
+    .nutrition-comparison {
+        overflow-x: scroll;
+        scroll-snap-type: x mandatory;
+    }
+
+    .menu-col {
+        scroll-snap-align: start;
+        min-width: 220px;
+    }
+
+    .compare-charts {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-chart {
+        height: 150px;
+        gap: 1rem;
+    }
+
+    .btn-add-cart,
+    .btn-compare {
+        width: 100%;
+    }
 }

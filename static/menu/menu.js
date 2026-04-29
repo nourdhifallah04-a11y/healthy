@@ -278,6 +278,9 @@ function displayMeals() {
                     <button class="btn-add-cart" data-item-id="${meal.id}" data-item-type="${meal.type}" data-item-name="${meal.name}" data-item-price="${meal.prix || '0'}">
                         <i class="fas fa-shopping-cart"></i> Ajouter
                     </button>
+                    <button class="btn-compare" data-menu-id="${meal.id}" title="Comparer ce menu avec d'autres">
+                        <i class="fas fa-balance-scale"></i> Comparer
+                    </button>
                 </div>
             </div>
         </div>
@@ -306,6 +309,14 @@ function displayMeals() {
             const itemName = btn.dataset.itemName;
             const itemPrice = btn.dataset.itemPrice;
             openAddToCartModal(itemId, itemType, itemName, itemPrice);
+        });
+    });
+    
+    // Ajouter les événements aux boutons Comparer
+    document.querySelectorAll('.btn-compare').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openCompareModal();
         });
     });
     
@@ -340,6 +351,277 @@ function displayMeals() {
 function loadMoreItems() {
     itemsDisplayed += ITEMS_PER_LOAD;
     displayMeals();
+}
+
+// ========== GESTION DE LA COMPARAISON DES MENUS ==========
+
+/**
+ * État de la comparaison
+ */
+const comparisonState = {
+    selectedMenus: new Map(),
+    maxMenusToCompare: 3
+};
+
+/**
+ * Ouvre le modal de comparaison
+ */
+function openCompareModal() {
+    const modal = document.getElementById('compareModal');
+    if (modal) {
+        modal.style.display = 'block';
+        populateCompareMenusList();
+    }
+}
+
+/**
+ * Ferme le modal de comparaison
+ */
+function closeCompareModal() {
+    const modal = document.getElementById('compareModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Remplit la liste des menus pour la comparaison
+ */
+function populateCompareMenusList() {
+    const compareMenusList = document.getElementById('compareMenusList');
+    if (!compareMenusList) return;
+
+    compareMenusList.innerHTML = meals.map(meal => {
+        const isSelected = comparisonState.selectedMenus.has(meal.id);
+        return `
+            <div class="compare-menu-item ${isSelected ? 'selected' : ''}" data-menu-id="${meal.id}">
+                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; width: 100%;">
+                    <input type="checkbox" 
+                           class="compare-checkbox" 
+                           data-menu-id="${meal.id}" 
+                           ${isSelected ? 'checked' : ''}
+                           ${comparisonState.selectedMenus.size >= comparisonState.maxMenusToCompare && !isSelected ? 'disabled' : ''}
+                           onchange="toggleMenuSelection(${meal.id}, '${meal.name}', ${meal.calories}, ${meal.protein}, ${meal.carbs}, ${meal.fat}, ${meal.fiber}, ${meal.score})">
+                    <div style="flex: 1;">
+                        <div class="compare-menu-item-name">${meal.name}</div>
+                        <div class="compare-menu-item-score">⭐ ${meal.score}/100</div>
+                    </div>
+                </label>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Bascule la sélection d'un menu pour la comparaison
+ */
+function toggleMenuSelection(menuId, menuName, calories, protein, carbs, fat, fiber, score) {
+    if (comparisonState.selectedMenus.has(menuId)) {
+        // Déselection
+        comparisonState.selectedMenus.delete(menuId);
+    } else {
+        // Selection
+        if (comparisonState.selectedMenus.size < comparisonState.maxMenusToCompare) {
+            comparisonState.selectedMenus.set(menuId, {
+                id: menuId,
+                name: menuName,
+                calories: calories,
+                protein: protein,
+                carbs: carbs,
+                fat: fat,
+                fiber: fiber,
+                score: score
+            });
+        }
+    }
+
+    updateComparisonUI();
+}
+
+/**
+ * Met à jour l'affichage du modal de comparaison
+ */
+function updateComparisonUI() {
+    // Mettre à jour le compteur de menus sélectionnés
+    const compareCount = document.getElementById('compareCount');
+    if (compareCount) {
+        compareCount.textContent = comparisonState.selectedMenus.size;
+    }
+
+    // Mettre à jour les boutons de sélection
+    document.querySelectorAll('.compare-menu-item').forEach(item => {
+        const menuId = parseInt(item.dataset.menuId);
+        if (comparisonState.selectedMenus.has(menuId)) {
+            item.classList.add('selected');
+        } else {
+            item.classList.remove('selected');
+        }
+    });
+
+    // Montrer/masquer le tableau de comparaison
+    const compareTable = document.getElementById('compareTable');
+    if (comparisonState.selectedMenus.size >= 2 && compareTable) {
+        compareTable.style.display = 'block';
+        displayComparisonTable();
+    } else if (compareTable) {
+        compareTable.style.display = 'none';
+    }
+}
+
+/**
+ * Affiche le tableau de comparaison
+ */
+function displayComparisonTable() {
+    const selectedMenusArray = Array.from(comparisonState.selectedMenus.values());
+    
+    // Mettre à jour les en-têtes
+    const headers = ['menu1-header', 'menu2-header', 'menu3-header'];
+    headers.forEach((headerId, index) => {
+        const header = document.getElementById(headerId);
+        const menuCol = document.querySelector(`#${headerId}`).closest('th');
+        if (header && menuCol) {
+            if (index < selectedMenusArray.length) {
+                header.textContent = selectedMenusArray[index].name;
+                menuCol.style.display = 'table-cell';
+            } else {
+                menuCol.style.display = 'none';
+            }
+        }
+    });
+
+    // Créer le contenu du tableau
+    const tbody = document.getElementById('comparisonTableBody');
+    if (!tbody) return;
+
+    const metrics = [
+        { label: 'Calories', key: 'calories', unit: 'kcal' },
+        { label: 'Protéines', key: 'protein', unit: 'g' },
+        { label: 'Glucides', key: 'carbs', unit: 'g' },
+        { label: 'Lipides', key: 'fat', unit: 'g' },
+        { label: 'Fibres', key: 'fiber', unit: 'g' },
+        { label: 'Score nutritionnel', key: 'score', unit: '/100' }
+    ];
+
+    tbody.innerHTML = metrics.map(metric => {
+        let cells = `<td class="metric-col">${metric.label}</td>`;
+        const values = selectedMenusArray.map(menu => menu[metric.key]);
+        
+        selectedMenusArray.forEach((menu, index) => {
+            const value = menu[metric.key];
+            const maxValue = Math.max(...values);
+            const percentage = (value / maxValue) * 100;
+            
+            cells += `
+                <td class="menu-col">
+                    <div class="nutrient-value">${value.toFixed(1)} ${metric.unit}</div>
+                    <div class="nutrient-bar">
+                        <div class="nutrient-bar-fill" style="width: ${percentage}%"></div>
+                    </div>
+                </td>
+            `;
+        });
+
+        // Masquer les colonnes vides
+        const row = document.createElement('tr');
+        row.innerHTML = cells;
+        document.querySelectorAll(`td.menu-col`).forEach((td, index) => {
+            if (index >= selectedMenusArray.length) {
+                td.style.display = 'none';
+            }
+        });
+
+        return cells;
+    }).map(html => `<tr>${html}</tr>`).join('');
+
+    // Afficher les graphiques
+    displayComparisonCharts(selectedMenusArray);
+
+    // Afficher la recommandation
+    displayComparisonRecommendation(selectedMenusArray);
+}
+
+/**
+ * Affiche les graphiques de comparaison
+ */
+function displayComparisonCharts(selectedMenus) {
+    const metrics = [
+        { id: 'caloriesChart', key: 'calories', unit: 'kcal' },
+        { id: 'proteinChart', key: 'protein', unit: 'g' },
+        { id: 'carbsChart', key: 'carbs', unit: 'g' },
+        { id: 'fatChart', key: 'fat', unit: 'g' }
+    ];
+
+    metrics.forEach(metric => {
+        const chartContainer = document.getElementById(metric.id);
+        if (!chartContainer) return;
+
+        const maxValue = Math.max(...selectedMenus.map(m => m[metric.key]));
+        
+        chartContainer.innerHTML = selectedMenus.map((menu, index) => {
+            const value = menu[metric.key];
+            const percentage = (value / maxValue) * 100;
+            return `
+                <div class="chart-bar">
+                    <div class="chart-bar-fill" style="height: ${percentage}%">
+                        <span class="chart-bar-value">${value.toFixed(1)}</span>
+                    </div>
+                    <div class="chart-bar-label">${menu.name}</div>
+                </div>
+            `;
+        }).join('');
+    });
+}
+
+/**
+ * Affiche une recommandation basée sur la comparaison
+ */
+function displayComparisonRecommendation(selectedMenus) {
+    const recommendationText = document.getElementById('recommendationText');
+    if (!recommendationText) return;
+
+    let recommendation = '';
+
+    if (selectedMenus.length === 2) {
+        const menu1 = selectedMenus[0];
+        const menu2 = selectedMenus[1];
+
+        if (menu1.protein > menu2.protein) {
+            recommendation += `<strong>${menu1.name}</strong> est plus riche en protéines (${menu1.protein.toFixed(1)}g vs ${menu2.protein.toFixed(1)}g). `;
+        } else if (menu2.protein > menu1.protein) {
+            recommendation += `<strong>${menu2.name}</strong> est plus riche en protéines (${menu2.protein.toFixed(1)}g vs ${menu1.protein.toFixed(1)}g). `;
+        }
+
+        if (menu1.calories < menu2.calories) {
+            recommendation += `${menu1.name} est plus léger en calories. `;
+        } else if (menu2.calories < menu1.calories) {
+            recommendation += `${menu2.name} est plus léger en calories. `;
+        }
+
+        if (menu1.score > menu2.score) {
+            recommendation += `<strong>${menu1.name}</strong> a un meilleur score nutritionnel (${menu1.score}/100).`;
+        } else if (menu2.score > menu1.score) {
+            recommendation += `<strong>${menu2.name}</strong> a un meilleur score nutritionnel (${menu2.score}/100).`;
+        }
+    } else if (selectedMenus.length === 3) {
+        const bestProtein = selectedMenus.reduce((max, m) => m.protein > max.protein ? m : max);
+        const lowestCals = selectedMenus.reduce((min, m) => m.calories < min.calories ? m : min);
+        const bestScore = selectedMenus.reduce((max, m) => m.score > max.score ? m : max);
+
+        recommendation += `💪 <strong>${bestProtein.name}</strong> offre le plus de protéines. `;
+        recommendation += `🔥 <strong>${lowestCals.name}</strong> est le plus léger. `;
+        recommendation += `⭐ <strong>${bestScore.name}</strong> a le meilleur score nutritionnel.`;
+    }
+
+    recommendationText.innerHTML = recommendation || 'Sélectionnez au moins 2 menus pour obtenir une analyse.';
+}
+
+/**
+ * Réinitialise la comparaison
+ */
+function resetComparison() {
+    comparisonState.selectedMenus.clear();
+    updateComparisonUI();
+    populateCompareMenusList();
 }
 
 // ========== GESTION DES FILTRES ==========
@@ -398,6 +680,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Charger les plats et menus
     chargerPlats();
     console.log('🌿 Menu Fresh & Greens chargé avec succès !');
+
+    // ========== GESTION MODAL COMPARAISON ==========
+    // Fermer le modal de comparaison avec le bouton X
+    const closeCompareBtn = document.querySelector('.close-compare');
+    if (closeCompareBtn) {
+        closeCompareBtn.addEventListener('click', closeCompareModal);
+    }
+
+    // Fermer le modal de comparaison en cliquant en dehors
+    const compareModal = document.getElementById('compareModal');
+    if (compareModal) {
+        compareModal.addEventListener('click', (e) => {
+            if (e.target === compareModal) {
+                closeCompareModal();
+            }
+        });
+    }
+
+    // Bouton réinitialiser la comparaison
+    const resetCompareBtn = document.getElementById('resetCompareBtn');
+    if (resetCompareBtn) {
+        resetCompareBtn.addEventListener('click', resetComparison);
+    }
 });
 
 // ========== GESTION MODAL AJOUTER AU PANIER ==========

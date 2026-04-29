@@ -47,6 +47,160 @@
             </form>
         </div>
     </div>
+
+<!-- ===========================
+     MODAL COMPARAISON MENUS
+     =========================== -->
+
+<div id="compareModal" class="modal compare-modal">
+    <div class="modal-content compare-modal-content">
+
+        <!-- HEADER -->
+        <div class="compare-modal-header">
+            <div class="compare-modal-title-group">
+                <h2><i class="fas fa-balance-scale"></i> Comparer les Menus</h2>
+                <p class="compare-subtitle">Sélectionnez 2 à 3 menus pour voir leur comparaison nutritionnelle</p>
+            </div>
+            <span class="close close-compare">&times;</span>
+        </div>
+
+        <!-- BODY -->
+        <div class="compare-body">
+
+            <!-- ===========================
+                 SÉLECTION DES MENUS
+                 =========================== -->
+            <div class="compare-selector">
+                <div class="selector-header">
+                    <h3><i class="fas fa-check-square"></i> Sélection des Menus</h3>
+
+                    <div class="compare-selection-badge">
+                        <span id="compareCount" class="count-number">0</span>
+                        <span class="count-text">/3</span>
+                    </div>
+                </div>
+
+                <div id="compareMenusList" class="compare-menus-list">
+                    <!-- Menus chargés dynamiquement via JS -->
+                </div>
+            </div>
+
+            <!-- ===========================
+                 TABLEAU DE COMPARAISON
+                 =========================== -->
+            <div id="compareTable" class="compare-table-wrapper" style="display: none;">
+
+                <!-- HEADER DES MENUS SÉLECTIONNÉS -->
+                <div class="compare-selected-menus">
+                    <div class="selected-menus-header">
+                        <h3><i class="fas fa-table"></i> Comparaison Nutritionnelle</h3>
+
+                        <button id="resetCompareBtn" class="btn-reset-compare">
+                            <i class="fas fa-redo"></i> Recommencer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABLEAU -->
+                <div class="nutrition-comparison">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th class="metric-col">
+                                    <i class="fas fa-leaf"></i> Nutriment
+                                </th>
+
+                                <th id="menu1-header" class="menu-col menu-col-1">
+                                    <div class="menu-header-content">
+                                        <span class="menu-number">Menu 1</span>
+                                    </div>
+                                </th>
+
+                                <th id="menu2-header" class="menu-col menu-col-2" style="display: none;">
+                                    <div class="menu-header-content">
+                                        <span class="menu-number">Menu 2</span>
+                                    </div>
+                                </th>
+
+                                <th id="menu3-header" class="menu-col menu-col-3" style="display: none;">
+                                    <div class="menu-header-content">
+                                        <span class="menu-number">Menu 3</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="comparisonTableBody">
+                            <!-- Lignes générées dynamiquement -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ===========================
+                     GRAPHIQUES
+                     =========================== -->
+                <div class="compare-charts-section">
+                    <h3><i class="fas fa-chart-bar"></i> Visualisation des Nutriments</h3>
+
+                    <div class="compare-charts">
+
+                        <!-- CALORIES -->
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h4>🔥 Calories</h4>
+                                <span class="chart-unit">kcal</span>
+                            </div>
+                            <div id="caloriesChart" class="comparison-chart"></div>
+                        </div>
+
+                        <!-- PROTÉINES -->
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h4>💪 Protéines</h4>
+                                <span class="chart-unit">g</span>
+                            </div>
+                            <div id="proteinChart" class="comparison-chart"></div>
+                        </div>
+
+                        <!-- GLUCIDES -->
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h4>🍞 Glucides</h4>
+                                <span class="chart-unit">g</span>
+                            </div>
+                            <div id="carbsChart" class="comparison-chart"></div>
+                        </div>
+
+                        <!-- LIPIDES -->
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h4>🥑 Lipides</h4>
+                                <span class="chart-unit">g</span>
+                            </div>
+                            <div id="fatChart" class="comparison-chart"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ===========================
+                     RECOMMANDATION
+                     =========================== -->
+                <div class="compare-recommendation">
+                    <div class="recommendation-badge">⭐ Recommandation</div>
+
+                    <div class="recommendation-header">
+                        <h4><i class="fas fa-lightbulb"></i> Analyse Personnalisée</h4>
+                    </div>
+
+                    <p id="recommendationText"></p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
