@@ -894,6 +894,7 @@ class UnifiedMenuItemViewSet(viewsets.ViewSet):
     ViewSet unifié pour combiner Menus et Plats avec catégorisation par régime.
     Permet de récupérer tous les articles (Menus + Plats) avec filtrage par catégorie de régime.
     """
+    print("UnifiedMenuItemViewSet initialisé")
     permission_classes = [AllowAny]
     
     def list(self, request):
@@ -903,6 +904,7 @@ class UnifiedMenuItemViewSet(viewsets.ViewSet):
         - diet_category: 'high-protein', 'low-carb', 'vegan', 'gluten-free', ou 'autre'
         - item_type: 'menu' ou 'plat' pour filtrer par type
         """
+        print("UnifiedMenuItemViewSet.list() appelée")
         diet_category = request.query_params.get('diet_category', None)
         item_type = request.query_params.get('item_type', None)
         
@@ -911,12 +913,13 @@ class UnifiedMenuItemViewSet(viewsets.ViewSet):
         # Récupérer les menus actifs
         if item_type is None or item_type == 'menu':
             menus = Menu.objects.filter(est_actif=True)
-            
+            print(f"Menus avant filtrage: {menus.count()}")
             if diet_category:
                 menus = menus.filter(diet_category=diet_category)
             
             for menu in menus:
                 serializer = UnifiedMenuItemSerializer(menu)
+                print(f"Menu sérialisé: {serializer.data}")
                 items.append(serializer.data)
         
         # Récupérer les plats disponibles

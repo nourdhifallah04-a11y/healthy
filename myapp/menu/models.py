@@ -1,6 +1,9 @@
 from django.db import models
 from typing import Dict
 
+from myapp.plat.models import Plat
+
+
 class Menu(models.Model):
     """ModÃ¨le Menu"""
     DIET_CATEGORIES = [
@@ -43,17 +46,18 @@ class Menu(models.Model):
             return 'gluten-free'
         
         return 'autre'
-
-    def ajouter_plat(self, plat: "Plat") -> None:
+    
+    def ajouter_plat(self, plat: Plat) -> None:
         """Ajoute un plat au menu"""
         self.plats.add(plat)
     
-    def supprimer_plat(self, plat: "Plat") -> None:
+    def supprimer_plat(self, plat: Plat) -> None:
         """Supprime un plat du menu"""
         self.plats.remove(plat)
     
     def calculer_valeur_nutritionnelle_totale(self) -> Dict:
         """Calcule les valeurs nutritionnelles totales du menu"""
+        #print(f"Calcul des valeurs nutritionnelles pour le menu '{self.nom}' (ID: {self.id_menu})")
         plats = self.plats.all()
         
         total = {
@@ -72,7 +76,7 @@ class Menu(models.Model):
             total['lipides'] += plat.lipides
             total['fibres'] += plat.fibres
             total['prix'] += float(plat.prix)
-            
+            #print(f"  - {plat.nom}: {total['calories']:.0f} kcal, {total['proteines']:.0f}g prot, {total['glucides']:.0f}g gluc, {total['lipides']:.0f}g lip, {total['fibres']:.0f}g fib, {total['prix']:.2f}€")
         return total
     
     def __str__(self):
