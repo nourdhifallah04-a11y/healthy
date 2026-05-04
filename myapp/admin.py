@@ -22,7 +22,7 @@ class AdministrateurAdmin(admin.ModelAdmin):
     list_display = ['id', 'utilisateur', 'role']
     search_fields = ['utilisateur__nom', 'utilisateur__email']
     list_filter = ['role']
-    fields = ['utilisateur', 'role', 'permissions']
+    fields = ['utilisateur', 'role', 'permissions', 'n8n_basic_auth_password']
 
 @admin.register(ProfilNutritionnel)
 class ProfilNutritionnelAdmin(admin.ModelAdmin):

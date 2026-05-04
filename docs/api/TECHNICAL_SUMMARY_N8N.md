@@ -205,7 +205,7 @@ timeout=30  # Augmentez si nécessaire
 
 ### Variable d'environnement (production)
 ```python
-webhook_url = os.getenv('N8N_WEBHOOK_URL', 'http://localhost:5678/webhook/reco-nutrition')
+webhook_url = os.getenv('N8N_WEBHOOK_URL_RECO_NUTRITION', 'http://localhost:5678/webhook/reco-nutrition')
 ```
 
 ## 🧪 Tests

@@ -150,7 +150,7 @@ webhook_url = 'http://your-n8n-host:5678/webhook/reco-nutrition'
 
 Ou utilisez une variable d'environnement:
 ```python
-webhook_url = settings.N8N_WEBHOOK_URL
+webhook_url = settings.N8N_WEBHOOK_URL_RECO_NUTRITION
 ```
 
 ### Augmenter le timeout

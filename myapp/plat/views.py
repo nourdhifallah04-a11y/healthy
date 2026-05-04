@@ -1,3 +1,5 @@
+from tkinter import N
+
 from myapp.commande.models import LigneCommande
 from myapp.profilNutritionnel.models import ProfilNutritionnel
 from rest_framework import viewsets, status, generics
@@ -8,6 +10,7 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.utils.html import mark_safe
 from django.conf import settings
+import base64
 import json
 import requests
 import logging
@@ -25,9 +28,12 @@ logger = logging.getLogger(__name__)
 
 # ===== Configuration Timeout N8N =====
 N8N_WEBHOOK_TIMEOUT = getattr(settings, 'N8N_WEBHOOK_TIMEOUT', 600)  # Default: 120 secondes
-N8N_WEBHOOK_URL = getattr(settings, 'N8N_WEBHOOK_URL', 'http://192.168.1.184:5678/webhook/reco-nutrition')
-
+N8N_WEBHOOK_URL_RECO_NUTRITION = getattr(settings, 'N8N_WEBHOOK_URL_RECO_NUTRITION', 'http://192.168.1.184:5678/webhook/reco-nutrition')
+N8N_PLAT_CREATION_WEBHOOK_URL = getattr(settings, 'N8N_PLAT_CREATION_WEBHOOK_URL', N8N_WEBHOOK_URL_RECO_NUTRITION)
+N8N_PLAT_MODIFICATION_WEBHOOK_URL = getattr(settings, 'N8N_PLAT_MODIFICATION_WEBHOOK_URL', N8N_WEBHOOK_URL_RECO_NUTRITION)
+N8N_PLAT_DELETE_WEBHOOK_URL = getattr(settings, 'N8N_PLAT_DELETE_WEBHOOK_URL', N8N_WEBHOOK_URL_RECO_NUTRITION)
 # ===== Async Jobs Cache =====
+
 # Dictionnaire pour stocker les résultats des jobs async
 # Clé: job_id, Valeur: {'status': 'pending|completed|failed', 'result': {...}, 'error': {...}, 'timestamp': datetime}
 async_jobs_cache = {}
@@ -135,8 +141,11 @@ class PlatViewSet(viewsets.ModelViewSet):
         """
         Supprime un plat en vérifiant d'abord s'il est utilisé dans un menu ou une ligne de commande avec statut panier.
         Retourne une erreur 409 CONFLICT si le plat est utilisé.
+        Notifie N8N en arrière-plan si la suppression est réussie.
         """
         plat = self.get_object()
+        plat_id = plat.id_plat
+        plat_nom = plat.nom
         
         # Vérifier si le plat est utilisé dans une menu
         est_utilise_dans_menu = Menu.objects.filter(plats=plat).exists()
@@ -163,8 +172,27 @@ class PlatViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_409_CONFLICT
             )
         
-        # Si le plat n'est pas utilisé, procéder à la suppression
-        return super().destroy(request, *args, **kwargs)
+        # Si le plat n'est pas utilisé, procéder à la suppression et notifier N8N
+        response = super().destroy(request, *args, **kwargs)
+        
+        try:
+            plat_temp = type('obj', (object,), {
+                'id_plat': plat_id,
+                'nom': plat_nom
+            })()
+            headers = self._get_n8n_auth_headers(request)
+            print(f"DEBUG: Démarrage thread N8N pour suppression plat {plat_id} avec headers: {headers}")
+            thread = threading.Thread(
+                target=self._notify_n8n_plat_delete,
+                args=(plat_temp, headers),
+                daemon=True
+            )
+            thread.start()
+            logger.info(f"Thread N8N créé pour la suppression du plat {plat_id}")
+        except Exception as e:
+            logger.error(f"Impossible de notifier N8N après suppression du plat: {e}")
+        
+        return response
     
     @action(detail=False, methods=['get'])
     def search(self, request):
@@ -193,6 +221,231 @@ class PlatViewSet(viewsets.ModelViewSet):
                 {'error': 'La méthode calculer_score_nutritionnel n\'est pas disponible'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    def _build_n8n_creation_payload(self, plat):
+        """Construit le payload envoyé à N8N lors de la création d'un plat."""
+        image_url = None
+        try:
+            if plat.image:
+                image_url = plat.image.url
+        except Exception:
+            image_url = None
+
+        return {
+            'event': 'creationPlat',
+            'plat': {
+                'id_plat': plat.id_plat,
+                'nom': plat.nom,
+                'description': plat.description,
+                'calorie': float(plat.calorie) if plat.calorie is not None else None,
+                'proteine': float(plat.proteine) if plat.proteine is not None else None,
+                'glucides': float(plat.glucides) if plat.glucides is not None else None,
+                'lipides': float(plat.lipides) if plat.lipides is not None else None,
+                'fibres': float(plat.fibres) if plat.fibres is not None else None,
+                'prix': float(plat.prix) if plat.prix is not None else None,
+                'est_disponible': plat.est_disponible,
+                'isNew': plat.isNew,
+                'image_url': image_url,
+                'created_at': plat.created_at.isoformat() if plat.created_at else None
+            },
+            'source': 'healthy-ia'
+        }
+
+    def _get_n8n_auth_headers(self, request):
+        """Retourne les headers d'authentification Basic Auth pour N8N."""
+        auth_header = request.headers.get('Authorization') if hasattr(request, 'headers') else None
+        if not auth_header:
+            auth_header = request.META.get('HTTP_AUTHORIZATION')
+
+        if auth_header and auth_header.strip().lower().startswith('basic '):
+            return {'Authorization': auth_header.strip()}
+
+        username = None
+        password = None
+        user = getattr(request, 'user', None)
+        print(f"DEBUG: Récupération auth headers - User: {user}, Auth Header: {auth_header}")
+        if user is not None and getattr(user, 'is_authenticated', False):
+            admin_profile = getattr(user, 'administrateur', None)
+            if admin_profile is not None:
+                username = getattr(user, 'email', None) or getattr(user, 'username', None)
+                password = getattr(admin_profile, 'n8n_basic_auth_password', None)
+
+        if not username:
+            username = getattr(settings, 'N8N_PLAT_CREATION_BASIC_AUTH_USER', None)
+        if not password:
+            password = getattr(settings, 'N8N_PLAT_CREATION_BASIC_AUTH_PASSWORD', None)
+
+        if username and password:
+            token = base64.b64encode(f"{username}:{password}".encode('utf-8')).decode('utf-8')
+            return {'Authorization': f'Basic {token}'}
+
+        return {}
+
+    def _notify_n8n_plat_creation(self, plat, headers=None):
+        """Envoie en arrière-plan un événement de création de plat à N8N."""
+        payload = self._build_n8n_creation_payload(plat)
+        auth_headers = headers or {}
+        logger.info(f"Appel N8N création plat: {N8N_PLAT_CREATION_WEBHOOK_URL}")
+        logger.debug(f"Payload création plat: {json.dumps(payload, indent=2, ensure_ascii=False)}")
+        logger.debug(f"Headers N8N création plat: {auth_headers}")
+        print(f"DEBUG: Appel N8N création plat - URL: {N8N_PLAT_CREATION_WEBHOOK_URL}, Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}, Headers: {auth_headers}")
+        try:
+            response = requests.post(
+                N8N_PLAT_CREATION_WEBHOOK_URL,
+                json=payload,
+                headers=auth_headers,
+                timeout=N8N_WEBHOOK_TIMEOUT
+            )
+            logger.info(f"Réponse N8N création plat (status {response.status_code}): {response.text[:500]}")
+            if response.status_code != 200:
+                logger.warning(
+                    f"N8N création plat a répondu {response.status_code}: {response.text[:500]}"
+                )
+        except requests.exceptions.Timeout as e:
+            logger.error(f"Timeout N8N création plat: {str(e)}")
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Erreur de connexion N8N création plat: {str(e)}")
+        except Exception as e:
+            logger.error(f"Erreur inattendue lors de l'appel N8N création plat: {str(e)}")
+
+    def create(self, request, *args, **kwargs):
+        """Crée un nouveau plat et notifie N8N en arrière-plan."""
+        response = super().create(request, *args, **kwargs)
+        try:
+            plat_id = response.data.get('id_plat') or response.data.get('id')
+            if plat_id:
+                plat = Plat.objects.get(id_plat=plat_id)
+                headers = self._get_n8n_auth_headers(request)
+                print(f"DEBUG: Démarrage thread N8N pour plat {plat_id} avec headers: {headers}")
+                thread = threading.Thread(
+                    target=self._notify_n8n_plat_creation,
+                    args=(plat, headers),
+                    daemon=True
+                )
+                thread.start()
+                logger.info(f"Thread N8N créé pour la création du plat {plat_id}")
+            else:
+                logger.warning("Impossible de récupérer l'id du plat créé pour notifier N8N")
+        except Exception as e:
+            logger.error(f"Impossible de notifier N8N après création du plat: {e}")
+        return response
+
+    def _build_n8n_modification_payload(self, plat):
+        """Construit le payload envoyé à N8N lors de la modification d'un plat."""
+        image_url = None
+        try:
+            if plat.image:
+                image_url = plat.image.url
+        except Exception:
+            image_url = None
+
+        return {
+            'event': 'modificationPlat',
+            'plat': {
+                'id_plat': plat.id_plat,
+                'nom': plat.nom,
+                'description': plat.description,
+                'calorie': float(plat.calorie) if plat.calorie is not None else None,
+                'proteine': float(plat.proteine) if plat.proteine is not None else None,
+                'glucides': float(plat.glucides) if plat.glucides is not None else None,
+                'lipides': float(plat.lipides) if plat.lipides is not None else None,
+                'fibres': float(plat.fibres) if plat.fibres is not None else None,
+                'prix': float(plat.prix) if plat.prix is not None else None,
+                'est_disponible': plat.est_disponible,
+                'isNew': plat.isNew,
+                'image_url': image_url,
+                'updated_at': plat.updated_at.isoformat() if hasattr(plat, 'updated_at') and plat.updated_at else None
+            },
+            'source': 'healthy-ia'
+        }
+
+    def _notify_n8n_plat_modification(self, plat, headers=None):
+        """Envoie en arrière-plan un événement de modification de plat à N8N."""
+        payload = self._build_n8n_modification_payload(plat)
+        auth_headers = headers or {}
+        logger.info(f"Appel N8N modification plat: {N8N_PLAT_MODIFICATION_WEBHOOK_URL}")
+        logger.debug(f"Payload modification plat: {json.dumps(payload, indent=2, ensure_ascii=False)}")
+        logger.debug(f"Headers N8N modification plat: {auth_headers}")
+        print(f"DEBUG: Appel N8N modification plat - URL: {N8N_PLAT_MODIFICATION_WEBHOOK_URL}, Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}, Headers: {auth_headers}")
+        try:
+            response = requests.post(
+                N8N_PLAT_MODIFICATION_WEBHOOK_URL,
+                json=payload,
+                headers=auth_headers,
+                timeout=N8N_WEBHOOK_TIMEOUT
+            )
+            logger.info(f"Réponse N8N modification plat (status {response.status_code}): {response.text[:500]}")
+            if response.status_code != 200:
+                logger.warning(
+                    f"N8N modification plat a répondu {response.status_code}: {response.text[:500]}"
+                )
+        except requests.exceptions.Timeout as e:
+            logger.error(f"Timeout N8N modification plat: {str(e)}")
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Erreur de connexion N8N modification plat: {str(e)}")
+        except Exception as e:
+            logger.error(f"Erreur inattendue lors de l'appel N8N modification plat: {str(e)}")
+
+    def update(self, request, *args, **kwargs):
+        """Modifie un plat et notifie N8N en arrière-plan."""
+        response = super().update(request, *args, **kwargs)
+        try:
+            plat_id = response.data.get('id_plat') or response.data.get('id')
+            if plat_id:
+                plat = Plat.objects.get(id_plat=plat_id)
+                headers = self._get_n8n_auth_headers(request)
+                print(f"DEBUG: Démarrage thread N8N pour modification plat {plat_id} avec headers: {headers}")
+                thread = threading.Thread(
+                    target=self._notify_n8n_plat_modification,
+                    args=(plat, headers),
+                    daemon=True
+                )
+                thread.start()
+                logger.info(f"Thread N8N créé pour la modification du plat {plat_id}")
+            else:
+                logger.warning("Impossible de récupérer l'id du plat modifié pour notifier N8N")
+        except Exception as e:
+            logger.error(f"Impossible de notifier N8N après modification du plat: {e}")
+        return response
+
+    def _build_n8n_deletion_payload(self, plat):
+        """Construit le payload envoyé à N8N lors de la suppression d'un plat."""
+        return {
+            'event': 'suppressionPlat',
+            'plat': {
+                'id_plat': plat.id_plat,
+                'nom': plat.nom,
+                'deleted_at': datetime.now().isoformat()
+            },
+            'source': 'healthy-ia'
+        }
+
+    def _notify_n8n_plat_delete(self, plat, headers=None):
+        """Envoie en arrière-plan un événement de suppression de plat à N8N."""
+        payload = self._build_n8n_deletion_payload(plat)
+        auth_headers = headers or {}
+        logger.info(f"Appel N8N suppression plat: {N8N_PLAT_DELETE_WEBHOOK_URL}")
+        logger.debug(f"Payload suppression plat: {json.dumps(payload, indent=2, ensure_ascii=False)}")
+        logger.debug(f"Headers N8N suppression plat: {auth_headers}")
+        print(f"DEBUG: Appel N8N suppression plat - URL: {N8N_PLAT_DELETE_WEBHOOK_URL}, Payload: {json.dumps(payload, indent=2, ensure_ascii=False)}, Headers: {auth_headers}")
+        try:
+            response = requests.post(
+                N8N_PLAT_DELETE_WEBHOOK_URL,
+                json=payload,
+                headers=auth_headers,
+                timeout=N8N_WEBHOOK_TIMEOUT
+            )
+            logger.info(f"Réponse N8N suppression plat (status {response.status_code}): {response.text[:500]}")
+            if response.status_code != 200:
+                logger.warning(
+                    f"N8N suppression plat a répondu {response.status_code}: {response.text[:500]}"
+                )
+        except requests.exceptions.Timeout as e:
+            logger.error(f"Timeout N8N suppression plat: {str(e)}")
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Erreur de connexion N8N suppression plat: {str(e)}")
+        except Exception as e:
+            logger.error(f"Erreur inattendue lors de l'appel N8N suppression plat: {str(e)}")
 
 
 class RecommenderPlatsView(generics.ListAPIView):
@@ -606,7 +859,7 @@ class RecommenderIAProfilNutritionnelWebhookView(generics.GenericAPIView):
             logger.info(f"[Job {job_id}] Payload: {json.dumps(payload, indent=2)}")
             
             response = requests.post(
-                N8N_WEBHOOK_URL,
+                N8N_WEBHOOK_URL_RECO_NUTRITION,
                 json=payload,
                 timeout=N8N_WEBHOOK_TIMEOUT
             )
@@ -662,7 +915,7 @@ class RecommenderIAProfilNutritionnelWebhookView(generics.GenericAPIView):
                 'error': {
                     'success': False,
                     'error': f'Impossible de se connecter au webhook n8n',
-                    'webhook_url': N8N_WEBHOOK_URL,
+                    'webhook_url': N8N_WEBHOOK_URL_RECO_NUTRITION,
                     'details': str(e)
                 },
                 'timestamp': datetime.now()
@@ -786,7 +1039,7 @@ class RecommenderIAProfilNutritionnelWebhookView(generics.GenericAPIView):
                 
                 try:
                     response = requests.post(
-                        N8N_WEBHOOK_URL,
+                        N8N_WEBHOOK_URL_RECO_NUTRITION,
                         json=payload,
                         timeout=N8N_WEBHOOK_TIMEOUT
                     )
@@ -826,7 +1079,7 @@ class RecommenderIAProfilNutritionnelWebhookView(generics.GenericAPIView):
                     return Response({
                         'success': False,
                         'error': f'Impossible de se connecter au webhook n8n',
-                        'webhook_url': N8N_WEBHOOK_URL,
+                        'webhook_url': N8N_WEBHOOK_URL_RECO_NUTRITION,
                         'details': str(e)
                     }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
                 

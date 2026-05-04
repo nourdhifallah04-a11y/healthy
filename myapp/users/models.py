@@ -66,6 +66,12 @@ class Administrateur(models.Model):
     utilisateur = models.OneToOneField(Utilisateur, on_delete=models.CASCADE, related_name='administrateur')
     role = models.CharField(max_length=50, default='admin')
     permissions = models.JSONField(default=dict, blank=True)
+    n8n_basic_auth_password = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Mot de passe Basic Auth spécifique pour les appels N8N"
+    )
     
     class Meta:
         verbose_name = "Administrateur"
