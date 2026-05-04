@@ -97,7 +97,7 @@ function chargerPlat() {
 
     const csrftoken = getCookie('csrftoken');
 
-    fetch(`/api/plats/${platId}/`, {
+    fetch(`/plat/api/plats/${platId}/`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -173,7 +173,7 @@ function sauvegarderPlat(event) {
 
     const csrftoken = getCookie('csrftoken');
 
-    fetch(`/api/plats/${platId}/`, {
+    fetch(`/plat/api/plats/${platId}/`, {
         method: 'PUT',
         headers: {
             'X-CSRFToken': csrftoken,
@@ -193,7 +193,7 @@ function sauvegarderPlat(event) {
         afficherMessage('✓ Plat modifié avec succès !', 'success');
         
         setTimeout(() => {
-            window.location.href = '/list_plats/?action=modified';
+            window.location.href = '/plat/list_plats/?action=modified';
         }, 2000);
     })
     .catch(error => {

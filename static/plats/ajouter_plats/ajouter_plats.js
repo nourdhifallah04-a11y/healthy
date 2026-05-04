@@ -69,7 +69,7 @@ function sauvegarderPlat(event) {
 
     const csrftoken = getCookie('csrftoken');
 
-    fetch('/api/plats/', {
+    fetch('/plat/api/plats/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrftoken,
@@ -91,7 +91,7 @@ function sauvegarderPlat(event) {
         // Rediriger vers la liste des plats après 2 secondes
         setTimeout(() => {
             console.log('Redirection vers la liste des plats...');
-            window.location.href = '/list_plats/?action=added';
+            window.location.href = '/plat/list_plats/?action=added';
         }, 2000);
     })
     .catch(error => {

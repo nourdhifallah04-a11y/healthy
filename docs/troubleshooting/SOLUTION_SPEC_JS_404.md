@@ -8,7 +8,7 @@ L'endpoint POST `http://localhost:8000/api/ligne-commande/` retournait **404 (No
 
 | Aspect | AVANT | APRÈS |
 |--------|-------|-------|
-| **Endpoint chargé** | `/api/plats/` | `/api/menus/` |
+| **Endpoint chargé** | `/plat/api/plats/` | `/api/menus/` |
 | **ID envoyé** | `id_plat` (plat ID) | `id_menu` (menu ID) ✅ |
 | **Erreur** | 404 - Menu not found | 201 - Created ✅ |
 
@@ -18,7 +18,7 @@ L'endpoint POST `http://localhost:8000/api/ligne-commande/` retournait **404 (No
 
 #### 1️⃣ Fonction `chargerDietMeals()` (ligne 80-110)
 ```diff
-- fetch('/api/plats/')
+- fetch('/plat/api/plats/')
 + fetch('/api/menus/')
 
 - const platsArray = Array.isArray(data) ? data : (data.results || []);

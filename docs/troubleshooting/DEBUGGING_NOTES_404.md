@@ -24,7 +24,7 @@
 ### Partie 1: Données Chargées
 ```javascript
 // Ce que spec.js chargeait:
-fetch('/api/plats/')  // Plats
+fetch('/plat/api/plats/')  // Plats
 → [{ id_plat: 236, nom: "...", calorie: 500, ... }]
 
 // Ce qu'on devrait charger:
@@ -93,7 +93,7 @@ curl -X POST http://localhost:8000/api/ligne-commande/ \
 ### Solution 3: Analyser le JavaScript ✅
 ```
 Chargement spec.js:
-  1. fetch('/api/plats/') ← Plats, pas menus!
+  1. fetch('/plat/api/plats/') ← Plats, pas menus!
   2. id = plat.id_plat   ← Mauvais ID
   3. POST avec id        ← 404 car ce menu n'existe pas
 ```
@@ -136,7 +136,7 @@ class Menu(models.Model):
 
 ### Changement 1: Source des données
 ```diff
-- fetch('/api/plats/')      # Mauvaise source
+- fetch('/plat/api/plats/')      # Mauvaise source
 + fetch('/api/menus/')      # Bonne source
 ```
 

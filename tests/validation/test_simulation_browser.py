@@ -131,7 +131,7 @@ print_header("RÉSUMÉ")
 print("""
 ✅ Tous les changements fonctionnent correctement:
 
-1. ✅ spec.js charge /api/menus/ au lieu de /api/plats/
+1. ✅ spec.js charge /api/menus/ au lieu de /plat/api/plats/
 2. ✅ Les menus sont transformés correctement avec menu.id_menu
 3. ✅ Le POST envoie le menu_id valide
 4. ✅ La LigneCommande est créée avec le statut 201

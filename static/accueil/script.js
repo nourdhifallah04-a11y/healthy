@@ -679,7 +679,7 @@ async function displayRecommendations(data, container) {
             
             // Récupérer les listes complètes de plats et menus
             const [platsRes, menusRes] = await Promise.all([
-                fetch('/api/plats/', { credentials: 'same-origin' }),
+                fetch('/plat/api/plats/', { credentials: 'same-origin' }),
                 fetch('/menu/api/menus/', { credentials: 'same-origin' })
             ]);
             

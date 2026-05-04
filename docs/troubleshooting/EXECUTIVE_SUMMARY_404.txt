@@ -4,7 +4,7 @@
 
 **Erreur**: POST `/api/ligne-commande/` → 404 (Not Found)
 **Cause**: Envoi de `plat_id` au lieu de `menu_id`
-**Solution**: Changer le source des données de `/api/plats/` à `/api/menus/`
+**Solution**: Changer le source des données de `/plat/api/plats/` à `/api/menus/`
 **Résultat**: ✅ 201 Created - Fonctionne
 
 ## 🔧 MODIFICATIONS
@@ -12,7 +12,7 @@
 **Fichier**: `static/specialdiet/spec.js`
 
 **3 changements clés**:
-1. Ligne ~80: `fetch('/api/plats/')` → `fetch('/api/menus/')`
+1. Ligne ~80: `fetch('/plat/api/plats/')` → `fetch('/api/menus/')`
 2. Ligne ~24: `id_plat` → `id_menu`
 3. Ligne ~373: Meilleure gestion d'erreurs dans le POST
 

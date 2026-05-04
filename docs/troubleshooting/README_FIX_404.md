@@ -11,7 +11,7 @@ POST http://localhost:8000/api/ligne-commande/ → 404 (Not Found)
 - `static/specialdiet/spec.js`
 
 ### Changements Principaux
-1. ✅ **Changement du endpoint**: `/api/plats/` → `/api/menus/`
+1. ✅ **Changement du endpoint**: `/plat/api/plats/` → `/api/menus/`
 2. ✅ **Correction du ID**: `id_plat` → `id_menu`
 3. ✅ **Amélioration du handler POST**: Meilleure gestion d'erreurs et logs
 
@@ -20,7 +20,7 @@ POST http://localhost:8000/api/ligne-commande/ → 404 (Not Found)
 #### AVANT (❌ 404)
 ```javascript
 // Charger les PLATS
-fetch('/api/plats/')
+fetch('/plat/api/plats/')
 
 // Transformer en meal avec plat ID
 id: plat.id_plat  // ← ID du plat

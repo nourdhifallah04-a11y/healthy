@@ -65,7 +65,7 @@ function showToast(message, type = 'success') {
 function modifierPlat(id) {
     showToast('Redirection vers la modification...', 'success');
     setTimeout(() => {
-        window.location.href = `/modifier-plat/?id=${id}`;
+        window.location.href = `/plat/modifier-plat/?id=${id}`;
     }, 500);
 }
 
@@ -84,7 +84,7 @@ function confirmerSuppression() {
 
     const csrftoken = getCookie('csrftoken');
     
-    fetch(`/api/plats/${platIdEnSuppression}/`, {
+    fetch(`/plat/api/plats/${platIdEnSuppression}/`, {
         method: 'DELETE',
         headers: {
             'X-CSRFToken': csrftoken,
@@ -193,7 +193,7 @@ function escapeHtml(text) {
 function chargerPlats() {
     const csrftoken = getCookie('csrftoken');
     
-    fetch('/api/plats/', {
+    fetch('/plat/api/plats/', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

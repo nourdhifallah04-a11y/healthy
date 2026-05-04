@@ -5,7 +5,7 @@ Le endpoint POST `http://localhost:8000/api/ligne-commande/` retournait une erre
 
 ## Cause Identifiée
 Le problème venait d'un **mismatch entre les données**:
-- **Avant**: Le code chargeait les **plats** (`/api/plats/`) et envoyait `id_plat` (plat ID)
+- **Avant**: Le code chargeait les **plats** (`/plat/api/plats/`) et envoyait `id_plat` (plat ID)
 - **Besoin**: L'API attend un `menu_id` (menu ID), pas un plat ID
 - **Résultat**: Le POST échouait car le menu n'existait pas (404)
 
@@ -14,7 +14,7 @@ Le problème venait d'un **mismatch entre les données**:
 ### 1. **Changement du endpoint de chargement** 📊
 ```javascript
 // AVANT
-fetch('/api/plats/')
+fetch('/plat/api/plats/')
 
 // APRÈS  
 fetch('/api/menus/')
