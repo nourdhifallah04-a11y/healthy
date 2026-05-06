@@ -92,7 +92,7 @@ function categoriserPlatsByDiet(plats) {
  */
 function chargerDietMeals() {
     // Charger les plats par catégorie
-    fetch('//plat/api/plats/')
+    fetch('/plat/api/plats/')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Erreur HTTP: ${response.status}`);
