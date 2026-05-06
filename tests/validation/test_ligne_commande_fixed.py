@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Comprehensive test for POST /api/ligne-commande/ endpoint
+Comprehensive test for POST /commande/api/ligne-commandes/ endpoint
 """
 
 import os
@@ -28,7 +28,7 @@ def print_test(title):
     print(f"{'='*70}")
 
 def test_ligne_commande_post_authenticated():
-    """Test POST /api/ligne-commande/ with authenticated user"""
+    """Test POST /commande/api/ligne-commandes/ with authenticated user"""
     print_test("TEST 1: POST with Authenticated User")
     
     # Setup
@@ -60,7 +60,7 @@ def test_ligne_commande_post_authenticated():
     print(f"Menu ID: {menu.id_menu} (Primary Key)")
     print(f"Payload: {payload}")
     
-    response = api_client.post('/api/ligne-commande/', payload, format='json')
+    response = api_client.post('/commande/api/ligne-commandes/', payload, format='json')
     
     print(f"Status Code: {response.status_code}")
     print(f"Response: {response.data}")
@@ -73,7 +73,7 @@ def test_ligne_commande_post_authenticated():
         return False
 
 def test_ligne_commande_post_unauthenticated():
-    """Test POST /api/ligne-commande/ without authentication"""
+    """Test POST /commande/api/ligne-commandes/ without authentication"""
     print_test("TEST 2: POST without Authentication")
     
     api_client = APIClient()
@@ -90,7 +90,7 @@ def test_ligne_commande_post_unauthenticated():
     
     print(f"Payload: {payload}")
     
-    response = api_client.post('/api/ligne-commande/', payload, format='json')
+    response = api_client.post('/commande/api/ligne-commandes/', payload, format='json')
     
     print(f"Status Code: {response.status_code}")
     print(f"Response: {response.data}")
@@ -103,7 +103,7 @@ def test_ligne_commande_post_unauthenticated():
         return False
 
 def test_ligne_commande_invalid_menu():
-    """Test POST /api/ligne-commande/ with invalid menu_id"""
+    """Test POST /commande/api/ligne-commandes/ with invalid menu_id"""
     print_test("TEST 3: POST with Invalid Menu ID")
     
     # Setup
@@ -126,7 +126,7 @@ def test_ligne_commande_invalid_menu():
     
     print(f"Payload: {payload}")
     
-    response = api_client.post('/api/ligne-commande/', payload, format='json')
+    response = api_client.post('/commande/api/ligne-commandes/', payload, format='json')
     
     print(f"Status Code: {response.status_code}")
     print(f"Response: {response.data}")
@@ -139,7 +139,7 @@ def test_ligne_commande_invalid_menu():
         return False
 
 def test_ligne_commande_missing_menu_id():
-    """Test POST /api/ligne-commande/ without menu_id"""
+    """Test POST /commande/api/ligne-commandes/ without menu_id"""
     print_test("TEST 4: POST without menu_id Parameter")
     
     # Setup
@@ -162,7 +162,7 @@ def test_ligne_commande_missing_menu_id():
     
     print(f"Payload: {payload}")
     
-    response = api_client.post('/api/ligne-commande/', payload, format='json')
+    response = api_client.post('/commande/api/ligne-commandes/', payload, format='json')
     
     print(f"Status Code: {response.status_code}")
     print(f"Response: {response.data}")
@@ -175,7 +175,7 @@ def test_ligne_commande_missing_menu_id():
         return False
 
 def test_ligne_commande_invalid_quantity():
-    """Test POST /api/ligne-commande/ with invalid quantite"""
+    """Test POST /commande/api/ligne-commandes/ with invalid quantite"""
     print_test("TEST 5: POST with Invalid Quantity")
     
     # Setup
@@ -203,7 +203,7 @@ def test_ligne_commande_invalid_quantity():
     
     print(f"Payload: {payload}")
     
-    response = api_client.post('/api/ligne-commande/', payload, format='json')
+    response = api_client.post('/commande/api/ligne-commandes/', payload, format='json')
     
     print(f"Status Code: {response.status_code}")
     print(f"Response: {response.data}")
@@ -218,7 +218,7 @@ def test_ligne_commande_invalid_quantity():
 def run_all_tests():
     """Run all tests and report results"""
     print("\n" + "="*70)
-    print("  RUNNING COMPREHENSIVE TESTS FOR /api/ligne-commande/")
+    print("  RUNNING COMPREHENSIVE TESTS FOR /commande/api/ligne-commandes/")
     print("="*70)
     
     results = {

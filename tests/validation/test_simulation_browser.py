@@ -81,7 +81,7 @@ print(f"  - menu_id: {menu_id}")
 print(f"  - quantite: {quantity}")
 
 # Étape 5: POST réelle
-print_header("ÉTAPE 5: POST /api/ligne-commande/")
+print_header("ÉTAPE 5: POST /commande/api/ligne-commandes/")
 
 payload = {
     'menu_id': menu_id,
@@ -93,14 +93,14 @@ headers = {
     'X-CSRFToken': COOKIES['csrftoken']
 }
 
-print(f"URL: {API_URL}/api/ligne-commande/")
+print(f"URL: {API_URL}/commande/api/ligne-commandes/")
 print(f"Méthode: POST")
 print(f"Payload: {json.dumps(payload, indent=2)}")
 print(f"Headers: {json.dumps(headers, indent=2)}")
 print(f"Cookies: sessionid={COOKIES['sessionid'][:10]}...")
 
 response = requests.post(
-    f"{API_URL}/api/ligne-commande/",
+    f"{API_URL}/commande/api/ligne-commandes/",
     json=payload,
     headers=headers,
     cookies=COOKIES,

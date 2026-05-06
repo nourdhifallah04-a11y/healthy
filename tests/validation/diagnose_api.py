@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Diagnostic script for POST /api/ligne-commande/ 404 error
+Diagnostic script for POST /commande/api/ligne-commandes/ 404 error
 """
 
 import os
@@ -17,7 +17,7 @@ from django.urls import get_resolver
 from rest_framework.routers import DefaultRouter
 
 print("\n" + "="*70)
-print("DIAGNOSTIC: POST /api/ligne-commande/ 404 Error")
+print("DIAGNOSTIC: POST /commande/api/ligne-commandes/ 404 Error")
 print("="*70)
 
 print("\n1️⃣  SERVER CONFIGURATION:")
@@ -53,7 +53,7 @@ for url_pattern in router.urls:
     print(f"   ✓ {url_pattern.pattern}")
 
 print("\n5️⃣  CORRECT REQUEST FORMAT:")
-print("   URL: http://localhost:8000/api/ligne-commande/")
+print("   URL: http://localhost:8000/commande/api/ligne-commandes/")
 print("   Method: POST")
 print("   Header: Content-Type: application/json")
 print("   Authentication: Required (IsAuthenticated by default)")
@@ -65,7 +65,7 @@ print("   }")
 
 print("\n6️⃣  TROUBLESHOOTING STEPS:")
 print("   ❌ Getting 404? Check:")
-print("      1. Is the URL exactly 'http://localhost:8000/api/ligne-commande/'?")
+print("      1. Is the URL exactly 'http://localhost:8000/commande/api/ligne-commandes/'?")
 print("      2. Is the HTTP method POST?")
 print("      3. Is localhost:8000 in ALLOWED_HOSTS?")
 print("      4. Are you authenticated (have a valid session/token)?")

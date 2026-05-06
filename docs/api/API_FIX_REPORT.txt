@@ -1,12 +1,12 @@
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                                                                            ║
-║       ✅ POST /api/ligne-commande/ 404 ERROR - FIXED & TESTED              ║
+║       ✅ POST /commande/api/ligne-commandes/ 404 ERROR - FIXED & TESTED              ║
 ║                                                                            ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 
 ┌─ ISSUE FIXED ─────────────────────────────────────────────────────────────┐
 │                                                                             │
-│  Error: POST http://localhost:8000/api/ligne-commande/ 404 (Not Found)    │
+│  Error: POST http://localhost:8000/commande/api/ligne-commandes/ 404 (Not Found)    │
 │  Status: ✅ RESOLVED AND TESTED                                            │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -60,7 +60,7 @@
 
 ┌─ API USAGE ───────────────────────────────────────────────────────────────┐
 │                                                                             │
-│  Endpoint: POST /api/ligne-commande/                                       │
+│  Endpoint: POST /commande/api/ligne-commandes/                                       │
 │  Authentication: Required                                                  │
 │  Content-Type: application/json                                            │
 │                                                                             │

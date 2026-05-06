@@ -1,8 +1,8 @@
-# 🔧 FIX: POST /api/ligne-commande/ 404 Error - RESOLVED ✅
+# 🔧 FIX: POST /commande/api/ligne-commandes/ 404 Error - RESOLVED ✅
 
 ## 📋 Issue Summary
 
-**Problem**: `POST http://localhost:8000/api/ligne-commande/ 404 (Not Found)` error when adding items to cart
+**Problem**: `POST http://localhost:8000/commande/api/ligne-commandes/ 404 (Not Found)` error when adding items to cart
 
 **Status**: ✅ **FIXED AND TESTED**
 
@@ -65,7 +65,7 @@ Same fix for consistency across all cart functionality
 
 ## 🌐 Correct API Usage
 
-### Endpoint: `POST /api/ligne-commande/`
+### Endpoint: `POST /commande/api/ligne-commandes/`
 
 **Requirements:**
 - ✅ User must be authenticated
@@ -142,7 +142,7 @@ The fix is automatically applied when you restart the server.
 
 ```javascript
 // Add item to cart
-fetch('/api/ligne-commande/', {
+fetch('/commande/api/ligne-commandes/', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
@@ -164,7 +164,7 @@ curl -c cookies.txt -X POST http://localhost:8000/login/ \
   -d "email=user@example.com&password=password"
 
 # Then add to cart
-curl -b cookies.txt -X POST http://localhost:8000/api/ligne-commande/ \
+curl -b cookies.txt -X POST http://localhost:8000/commande/api/ligne-commandes/ \
   -H "Content-Type: application/json" \
   -d '{"menu_id":1,"quantite":2}'
 ```
@@ -182,7 +182,7 @@ session.post("http://localhost:8000/login/",
 
 # Add to cart
 response = session.post(
-    "http://localhost:8000/api/ligne-commande/",
+    "http://localhost:8000/commande/api/ligne-commandes/",
     json={"menu_id": 1, "quantite": 2}
 )
 print(response.status_code, response.json())
@@ -235,5 +235,5 @@ Key features:
 - [ ] Are you authenticated?
 - [ ] Are you using menu_id=1 (not 135)?
 - [ ] Is your JSON payload valid?
-- [ ] Are you posting to `/api/ligne-commande/` (not `/api/ligne_commande/`)?
+- [ ] Are you posting to `/commande/api/ligne-commandes/` (not `/api/ligne_commande/`)?
 - [ ] Is the server running on port 8000?

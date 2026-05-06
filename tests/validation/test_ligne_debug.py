@@ -27,7 +27,7 @@ client = TestClient()
 print("=" * 60)
 print("TEST 1: Unauthenticated POST (should get 401)")
 print("=" * 60)
-response = client.post('/api/ligne-commande/', 
+response = client.post('/commande/api/ligne-commandes/', 
     data=json.dumps({'menu_id': menu.id_menu, 'quantite': 1}),
     content_type='application/json'
 )
@@ -38,7 +38,7 @@ print("\n" + "=" * 60)
 print("TEST 2: Authenticated POST without menu_id (should get error)")
 print("=" * 60)
 client.force_login(user)
-response = client.post('/api/ligne-commande/', 
+response = client.post('/commande/api/ligne-commandes/', 
     data=json.dumps({'quantite': 1}),
     content_type='application/json'
 )
@@ -48,7 +48,7 @@ print(f'Response: {response.json()}')
 print("\n" + "=" * 60)
 print("TEST 3: Authenticated POST with menu_id=135 (should get 404)")
 print("=" * 60)
-response = client.post('/api/ligne-commande/', 
+response = client.post('/commande/api/ligne-commandes/', 
     data=json.dumps({'menu_id': 135, 'quantite': 1}),
     content_type='application/json'
 )
@@ -58,7 +58,7 @@ print(f'Response: {response.json()}')
 print("\n" + "=" * 60)
 print("TEST 4: Authenticated POST with valid menu_id (should work)")
 print("=" * 60)
-response = client.post('/api/ligne-commande/', 
+response = client.post('/commande/api/ligne-commandes/', 
     data=json.dumps({'menu_id': menu.id_menu, 'quantite': 1}),
     content_type='application/json'
 )

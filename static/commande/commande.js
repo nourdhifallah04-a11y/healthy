@@ -113,7 +113,7 @@ function handleQtyChange(event) {
  */
 async function updateCartItem(ligneId, qty) {
     try {
-        const response = await fetch(`/api/ligne-commande/${ligneId}/`, {
+        const response = await fetch(`/commande/api/ligne-commandes/${ligneId}/`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ function handleRemoveItem(event) {
  */
 async function removeCartItem(ligneId) {
     try {
-        const response = await fetch(`/api/ligne-commande/${ligneId}/`, {
+        const response = await fetch(`/commande/api/ligne-commandes/${ligneId}/`, {
             method: 'DELETE',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken')

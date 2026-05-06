@@ -16,6 +16,29 @@
     --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* ========== PAGE HEADER ========== */
+.page-header {
+    text-align: center;
+    padding: 3rem 5% 2rem;
+    background: linear-gradient(135deg, var(--beige-doux), var(--beige-pale));
+}
+
+.page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .highlight {
+    color: var(--vert-feuille);
+}
+
+.page-header p {
+    color: #6C7A6A;
+    font-size: 1rem;
+}
+
+
 /* ============================================
    Panier (Cart) Page Styles
    ============================================ */

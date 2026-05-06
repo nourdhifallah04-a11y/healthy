@@ -2,7 +2,7 @@
 
 ## ✅ FIX APPLIQUÉ
 
-**Erreur**: POST `/api/ligne-commande/` → 404 (Not Found)
+**Erreur**: POST `/commande/api/ligne-commandes/` → 404 (Not Found)
 **Cause**: Envoi de `plat_id` au lieu de `menu_id`
 **Solution**: Changer le source des données de `/plat/api/plats/` à `/api/menus/`
 **Résultat**: ✅ 201 Created - Fonctionne

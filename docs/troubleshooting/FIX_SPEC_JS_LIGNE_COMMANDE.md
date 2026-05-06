@@ -1,7 +1,7 @@
-# RÉSUMÉ DES CORRECTIONS - POST /api/ligne-commande/ 404
+# RÉSUMÉ DES CORRECTIONS - POST /commande/api/ligne-commandes/ 404
 
 ## Problème
-Le endpoint POST `http://localhost:8000/api/ligne-commande/` retournait une erreur **404 (Not Found)** dans le fichier `spec.js`.
+Le endpoint POST `http://localhost:8000/commande/api/ligne-commandes/` retournait une erreur **404 (Not Found)** dans le fichier `spec.js`.
 
 ## Cause Identifiée
 Le problème venait d'un **mismatch entre les données**:
@@ -72,7 +72,7 @@ Tous les tests passent ✅:
 - Menus disponibles: 1
 - Données correctement formatées
 
-### ✅ TEST 2: POST /api/ligne-commande/ 
+### ✅ TEST 2: POST /commande/api/ligne-commandes/ 
 - Status: 201 Created
 - LigneCommande créée avec succès
 - Avec menu_id=1 et quantite=1
@@ -94,7 +94,7 @@ Tous les tests passent ✅:
 ## Configuration Finale
 ```javascript
 // addToCartForm envoie maintenant:
-POST /api/ligne-commande/
+POST /commande/api/ligne-commandes/
 {
     "menu_id": 1,        // ✅ Correct
     "quantite": 2        // ✅ Correct
@@ -112,7 +112,7 @@ POST /api/ligne-commande/
 ## Vérification Manuelle (Si nécessaire)
 ```bash
 # Test du POST avec curl/Postman
-POST http://localhost:8000/api/ligne-commande/
+POST http://localhost:8000/commande/api/ligne-commandes/
 {
     "menu_id": 1,
     "quantite": 1
@@ -121,4 +121,4 @@ POST http://localhost:8000/api/ligne-commande/
 ```
 
 ## ✅ CONCLUSION
-L'erreur **404** est maintenant résolue. Le POST `/api/ligne-commande/` fonctionne correctement avec les sessions authentifiées.
+L'erreur **404** est maintenant résolue. Le POST `/commande/api/ligne-commandes/` fonctionne correctement avec les sessions authentifiées.

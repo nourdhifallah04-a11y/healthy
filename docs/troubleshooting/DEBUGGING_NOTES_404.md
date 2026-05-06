@@ -3,7 +3,7 @@
 ## 🔍 Processus d'investigation
 
 ### 1. Identification du Problème
-**Symptôme**: POST `/api/ligne-commande/` retourne 404
+**Symptôme**: POST `/commande/api/ligne-commandes/` retourne 404
 **Fichier affecté**: `static/specialdiet/spec.js`
 **Fonction problématique**: `addToCartForm` submit handler (ligne 370)
 
@@ -51,7 +51,7 @@ addToCart(id=1)  // ← POST envoie 1 (menu existant)
 
 ### Partie 3: Analyse du Backend
 ```
-POST /api/ligne-commande/ avec { menu_id: 236 }
+POST /commande/api/ligne-commandes/ avec { menu_id: 236 }
 ↓
 try:
     menu = Menu.objects.get(id_menu=menu_id)  # 236
@@ -60,7 +60,7 @@ try:
     ↓
     return { error: 'Menu non trouvé' }
 
-POST /api/ligne-commande/ avec { menu_id: 1 }
+POST /commande/api/ligne-commandes/ avec { menu_id: 1 }
 ↓
 try:
     menu = Menu.objects.get(id_menu=menu_id)  # 1
@@ -81,7 +81,7 @@ python test_with_cookie.py
 
 ### Solution 2: Tester directement le POST ✅
 ```bash
-curl -X POST http://localhost:8000/api/ligne-commande/ \
+curl -X POST http://localhost:8000/commande/api/ligne-commandes/ \
   -H "Content-Type: application/json" \
   -H "X-CSRFToken: ..." \
   -d '{"menu_id": 1, "quantite": 2}'
@@ -104,7 +104,7 @@ Chargement spec.js:
 ```python
 # Ce test réussissait:
 response = requests.post(
-    '/api/ligne-commande/',
+    '/commande/api/ligne-commandes/',
     json={'menu_id': 1, 'quantite': 1}  # ← Avec menu_id=1
 )
 # Status: 201 ✅
@@ -171,7 +171,7 @@ User clicks "Ajouter"
 ↓
 selectedMealId = 236  (plat ID)
 ↓
-POST /api/ligne-commande/ { "menu_id": 236 }
+POST /commande/api/ligne-commandes/ { "menu_id": 236 }
 ↓
 Backend: Menu.objects.get(id_menu=236)
 ↓
@@ -184,7 +184,7 @@ User clicks "Ajouter"
 ↓
 selectedMealId = 1  (menu ID)
 ↓
-POST /api/ligne-commande/ { "menu_id": 1 }
+POST /commande/api/ligne-commandes/ { "menu_id": 1 }
 ↓
 Backend: Menu.objects.get(id_menu=1)
 ↓
@@ -201,7 +201,7 @@ assert len(response.json()) > 0  # ✅
 
 # Test 2: Vérifier que POST avec menu_id valide fonctionne
 response = requests.post(
-    '/api/ligne-commande/',
+    '/commande/api/ligne-commandes/',
     json={'menu_id': 1, 'quantite': 1}
 )
 assert response.status_code == 201  # ✅
@@ -231,4 +231,4 @@ assert response.status_code == 201  # ✅
 ---
 **Résolution**: ✅ COMPLÈTE
 **Erreur 404**: ✅ ÉLIMINÉE
-**Status Final**: ✅ POST /api/ligne-commande/ = 201 Created
+**Status Final**: ✅ POST /commande/api/ligne-commandes/ = 201 Created

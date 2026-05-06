@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Test POST /api/ligne-commande/ using provided session cookie
+Test POST /commande/api/ligne-commandes/ using provided session cookie
 """
 
 import requests
@@ -22,10 +22,10 @@ def print_section(title):
     print(f"{'='*70}")
 
 def test_get_ligne_commande():
-    """Test GET /api/ligne-commande/"""
-    print_section("TEST 1: GET /api/ligne-commande/ with Cookie")
+    """Test GET /commande/api/ligne-commandes/"""
+    print_section("TEST 1: GET /commande/api/ligne-commandes/ with Cookie")
     
-    url = f"{API_URL}/api/ligne-commande/"
+    url = f"{API_URL}/commande/api/ligne-commandes/"
     headers = {
         'Content-Type': 'application/json',
         'X-CSRFToken': COOKIES['csrftoken']
@@ -41,10 +41,10 @@ def test_get_ligne_commande():
         return False
 
 def test_post_ligne_commande():
-    """Test POST /api/ligne-commande/"""
-    print_section("TEST 2: POST /api/ligne-commande/ with Cookie")
+    """Test POST /commande/api/ligne-commandes/"""
+    print_section("TEST 2: POST /commande/api/ligne-commandes/ with Cookie")
     
-    url = f"{API_URL}/api/ligne-commande/"
+    url = f"{API_URL}/commande/api/ligne-commandes/"
     headers = {
         'Content-Type': 'application/json',
         'X-CSRFToken': COOKIES['csrftoken']
@@ -79,7 +79,7 @@ def test_without_cookie():
     """Test POST without cookie to verify auth is required"""
     print_section("TEST 3: POST without Cookie (should fail)")
     
-    url = f"{API_URL}/api/ligne-commande/"
+    url = f"{API_URL}/commande/api/ligne-commandes/"
     payload = {
         'menu_id': 1,
         'quantite': 1
@@ -102,7 +102,7 @@ def test_without_cookie():
 
 if __name__ == '__main__':
     print("\n" + "="*70)
-    print("  TESTING /api/ligne-commande/ WITH PROVIDED COOKIE")
+    print("  TESTING /commande/api/ligne-commandes/ WITH PROVIDED COOKIE")
     print("="*70)
     
     results = {}

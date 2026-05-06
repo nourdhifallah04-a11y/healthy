@@ -29,7 +29,7 @@ client = TestClient()
 
 # Try to POST without authentication
 print('\nTesting POST without authentication...')
-response = client.post('/api/ligne-commande/', 
+response = client.post('/commande/api/ligne-commandes/', 
     data=json.dumps({'menu_id': menu.id_menu, 'quantite': 1}),
     content_type='application/json'
 )
@@ -42,7 +42,7 @@ except:
 # Try with authentication
 print('\nTesting POST with authentication...')
 client.force_login(user)
-response = client.post('/api/ligne-commande/', 
+response = client.post('/commande/api/ligne-commandes/', 
     data=json.dumps({'menu_id': menu.id_menu, 'quantite': 1}),
     content_type='application/json'
 )

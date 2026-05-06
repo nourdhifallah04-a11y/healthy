@@ -405,9 +405,10 @@ document.addEventListener('DOMContentLoaded', () => {
 let selectedMealId = null;
 
 function openAddToCartModal(mealId, mealName, mealPrice) {
+    // Validation de l'ID
     if (!mealId || mealId === 'undefined') {
-        console.error('❌ ID invalide:', mealId);
-        alert('❌ Erreur: Identifiant invalide.');
+        console.error('❌ Error in openAddToCartModal: Invalid mealId', mealId);
+        alert('❌ Erreur: L\'identifiant du plat est invalide.');
         return;
     }
     
@@ -416,30 +417,146 @@ function openAddToCartModal(mealId, mealName, mealPrice) {
     const itemInfo = document.getElementById('itemInfo');
     const quantity = document.getElementById('quantity');
     
-    if (!modal || !itemInfo) return;
-    
-    itemInfo.textContent = `${mealName} (ID: ${mealId})`;
+    let priceText = mealName;
+    if (mealPrice && mealPrice > 0) {
+        priceText += ` - €${parseFloat(mealPrice).toFixed(2)}`;
+    }
+    itemInfo.textContent = priceText;
     quantity.value = 1;
     modal.style.display = 'block';
 }
 
 function closeAddToCartModal() {
     const modal = document.getElementById('addToCartModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    modal.style.display = 'none';
 }
 
-// Fermer la modal au clic sur le X
-const closeBtn = document.querySelector('.close');
+// Fermer modal si on clique en dehors
+window.addEventListener('click', (e) => {
+    const modal = document.getElementById('addToCartModal');
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Fermer modal avec le bouton X
+const closeBtn = document.querySelector('.modal .close');
 if (closeBtn) {
     closeBtn.addEventListener('click', closeAddToCartModal);
 }
 
-// Fermer la modal au clic en dehors
-window.addEventListener('click', (event) => {
-    const modal = document.getElementById('addToCartModal');
-    if (event.target == modal) {
-        modal.style.display = 'none';
+// Soumettre le formulaire
+const addToCartForm = document.getElementById('addToCartForm');
+if (addToCartForm) {
+    addToCartForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!selectedMealId) {
+            console.error('No plat selected');
+            return;
+        }
+        
+        const quantity = parseInt(document.getElementById('quantity').value);
+        
+        try {
+            console.log('Envoi POST avec plat_id:', selectedMealId, 'quantite:', quantity);
+            
+            // Appel API pour ajouter au panier
+            const response = await fetch('/commande/api/ligne-commandes/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    plat_id: selectedMealId,
+                    quantite: quantity
+                })
+            });
+            
+            console.log('Response status:', response.status);
+            
+            // Vérifier d'abord le statut avant de parser JSON
+            if (response.status === 401 || response.status === 403) {
+                const errorMsg = '❌ Vous devez être connecté pour ajouter au panier. Veuillez vous connecter.';
+                if (typeof PanierManager !== 'undefined') {
+                    PanierManager.showError(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+                setTimeout(() => {
+                    window.location.href = '/login/';
+                }, 2000);
+                return;
+            }
+            
+            // Parser la réponse JSON
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (response.status === 404) {
+                const errorMsg = '❌ ' + (data.error || 'Le plat n\'a pas été trouvé (ID: ' + selectedMealId + ')');
+                if (typeof PanierManager !== 'undefined') {
+                    PanierManager.showError(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+                return;
+            }
+            
+            if (response.status === 400) {
+                const errorMsg = '❌ ' + (data.error || 'Erreur de validation');
+                if (typeof PanierManager !== 'undefined') {
+                    PanierManager.showError(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+                return;
+            }
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de l\'ajout au panier');
+            }
+            
+            // Succès: 201 Created
+            console.log('✅ Ligne commande créée avec succès:', data);
+            if (typeof PanierManager !== 'undefined') {
+                PanierManager.showSuccess('✓ Plat ajouté au panier !');
+            } else {
+                alert('✓ Plat ajouté au panier !');
+            }
+            closeAddToCartModal();
+            // Actualiser le compteur du panier dans la navbar
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+        } catch (error) {
+            console.error('Erreur lors du POST:', error);
+            const errorMsg = '❌ ' + error.message;
+            if (typeof PanierManager !== 'undefined') {
+                PanierManager.showError(errorMsg);
+            } else {
+                alert(errorMsg);
+            }
+        }
+    });
+}
+
+// Fonction pour récupérer le cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
-});
+    return cookieValue;
+}
+

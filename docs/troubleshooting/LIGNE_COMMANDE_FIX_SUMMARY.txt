@@ -1,8 +1,8 @@
-## 🎯 SUMMARY: POST /api/ligne-commande/ 404 Fix
+## 🎯 SUMMARY: POST /commande/api/ligne-commandes/ 404 Fix
 
 ### ✅ Issue: RESOLVED
 
-The `POST http://localhost:8000/api/ligne-commande/ 404 (Not Found)` error has been **completely fixed and tested**.
+The `POST http://localhost:8000/commande/api/ligne-commandes/ 404 (Not Found)` error has been **completely fixed and tested**.
 
 ---
 

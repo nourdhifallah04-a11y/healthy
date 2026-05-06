@@ -26,7 +26,7 @@ from myapp.models import Client, Menu, Commande
 Utilisateur = get_user_model()
 
 def test_ligne_commande_post():
-    """Test POST to /api/ligne-commande/"""
+    """Test POST to /commande/api/ligne-commandes/"""
     
     # Create test user
     user, created = Utilisateur.objects.get_or_create(
@@ -63,7 +63,7 @@ def test_ligne_commande_post():
     
     # Test POST
     print("\n" + "="*60)
-    print("Testing POST /api/ligne-commande/")
+    print("Testing POST /commande/api/ligne-commandes/")
     print("="*60)
     
     payload = {
@@ -73,7 +73,7 @@ def test_ligne_commande_post():
     
     print(f"\nPayload: {payload}")
     
-    response = api_client.post('/api/ligne-commande/', payload, format='json')
+    response = api_client.post('/commande/api/ligne-commandes/', payload, format='json')
     
     print(f"\nStatus Code: {response.status_code}")
     print(f"Response: {response.data}")

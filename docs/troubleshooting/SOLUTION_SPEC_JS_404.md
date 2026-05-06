@@ -1,8 +1,8 @@
-# ✅ CORRECTIONS APPLIQUÉES - POST /api/ligne-commande/ 404
+# ✅ CORRECTIONS APPLIQUÉES - POST /commande/api/ligne-commandes/ 404
 
 ## 🎯 PROBLÈME RÉSOLU
 
-L'endpoint POST `http://localhost:8000/api/ligne-commande/` retournait **404 (Not Found)** dans `spec.js`.
+L'endpoint POST `http://localhost:8000/commande/api/ligne-commandes/` retournait **404 (Not Found)** dans `spec.js`.
 
 ## 🔍 ANALYSE DE LA CAUSE
 
@@ -84,7 +84,7 @@ Menus: 1 trouvé
 Données: Complètes et valides ✅
 ```
 
-### Test 2: POST /api/ligne-commande/
+### Test 2: POST /commande/api/ligne-commandes/
 ```
 Payload: { "menu_id": 1, "quantite": 2 }
 Status: 201 Created ✅
@@ -113,7 +113,7 @@ Response: LigneCommande créée avec ID=6 ✅
 ## 📋 CHECKLIST DE DÉPLOIEMENT
 
 - [x] Fichier `spec.js` modifié et testé
-- [x] Tous les endpoints testés (GET /api/menus/, POST /api/ligne-commande/)
+- [x] Tous les endpoints testés (GET /api/menus/, POST /commande/api/ligne-commandes/)
 - [x] Transformation des données validée
 - [x] Gestion des erreurs améliorée
 - [x] Logs console ajoutés pour déboggage
@@ -121,7 +121,7 @@ Response: LigneCommande créée avec ID=6 ✅
 
 ## 🎉 STATUS: RÉSOLU ✅
 
-L'erreur **404** est complètement résolue. Le POST vers `/api/ligne-commande/` fonctionne maintenant correctement avec:
+L'erreur **404** est complètement résolue. Le POST vers `/commande/api/ligne-commandes/` fonctionne maintenant correctement avec:
 - ✅ Les menus chargés depuis l'API
 - ✅ Les menu_id valides envoyés
 - ✅ Les LigneCommande créées (201)

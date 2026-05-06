@@ -1,8 +1,8 @@
-# 🔧 Correction du Point de Terminaison `/api/ligne-commande/`
+# 🔧 Correction du Point de Terminaison `/commande/api/ligne-commandes/`
 
 ## 📋 Problème Identifié
 
-L'endpoint `/api/ligne-commande/` retournait une erreur **404 Not Found** car:
+L'endpoint `/commande/api/ligne-commandes/` retournait une erreur **404 Not Found** car:
 1. Il n'existait pas de **ViewSet** pour le modèle `LigneCommande`
 2. Le modèle n'était pas enregistré auprès du `DefaultRouter`
 
@@ -53,7 +53,7 @@ from .serializers import (
 
 ## 🌐 Endpoints Disponibles
 
-### `POST /api/ligne-commande/` - Ajouter au Panier
+### `POST /commande/api/ligne-commandes/` - Ajouter au Panier
 
 **Authentification**: Requise (`IsAuthenticated`)
 
@@ -83,7 +83,7 @@ from .serializers import (
 }
 ```
 
-### `GET /api/ligne-commande/` - Lister les Lignes
+### `GET /commande/api/ligne-commandes/` - Lister les Lignes
 
 **Authentification**: Requise
 
@@ -101,9 +101,9 @@ from .serializers import (
 ]
 ```
 
-### `GET /api/ligne-commande/{id}/` - Détails d'une Ligne
+### `GET /commande/api/ligne-commandes/{id}/` - Détails d'une Ligne
 
-### `PATCH /api/ligne-commande/{id}/` - Modifier une Ligne
+### `PATCH /commande/api/ligne-commandes/{id}/` - Modifier une Ligne
 
 **Body:**
 ```json
@@ -112,7 +112,7 @@ from .serializers import (
 }
 ```
 
-### `DELETE /api/ligne-commande/{id}/` - Supprimer une Ligne
+### `DELETE /commande/api/ligne-commandes/{id}/` - Supprimer une Ligne
 
 ---
 
@@ -147,7 +147,7 @@ from .serializers import (
 
 ```javascript
 // Ajouter un menu au panier
-const response = await fetch('/api/ligne-commande/', {
+const response = await fetch('/commande/api/ligne-commandes/', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ console.log('Article ajouté:', data);
 ### cURL
 
 ```bash
-curl -X POST http://localhost:8000/api/ligne-commande/ \
+curl -X POST http://localhost:8000/commande/api/ligne-commandes/ \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
   -d '{"menu_id": 5, "quantite": 3}'
@@ -178,7 +178,7 @@ curl -X POST http://localhost:8000/api/ligne-commande/ \
 import requests
 
 response = requests.post(
-    'http://localhost:8000/api/ligne-commande/',
+    'http://localhost:8000/commande/api/ligne-commandes/',
     json={'menu_id': 5, 'quantite': 3},
     headers={'Authorization': f'Bearer {token}'}
 )
@@ -191,7 +191,7 @@ print(response.json())
 ## ✨ Améliorations
 
 ### Ce qui a été fixé:
-- ✅ Endpoint `/api/ligne-commande/` maintenant accessible
+- ✅ Endpoint `/commande/api/ligne-commandes/` maintenant accessible
 - ✅ Création automatique du panier si nécessaire
 - ✅ Augmentation intelligente des quantités si le menu existe
 - ✅ Gestion des erreurs complète

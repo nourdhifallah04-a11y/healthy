@@ -8,15 +8,10 @@
 {% endblock %}
 
 {% block content %}
+    <section class="page-header">
+        <h1><i class="fas fa-shopping-cart"></i> Mon-<span class="highlight">Panier</span></h1>
+    </section>
 <div class="container panier-container">
-    <div class="panier-header" style="position: relative; display: inline-block;">
-        <h1 class="page-title">
-            <i class="fas fa-shopping-cart"></i> Mon Panier
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; display: none;" id="cart-count">
-                0
-            </span>
-        </h1>
-    </div>
     
     <!-- Messages de succès ou erreur -->
     {% if messages %}

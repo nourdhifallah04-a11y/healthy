@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Script de test pour l'API /api/ligne-commande/
+Script de test pour l'API /commande/api/ligne-commandes/
 Teste la creation, lecture et modification des lignes de commande
 """
 
@@ -32,7 +32,7 @@ def print_header(title):
 def test_ligne_commande_api():
     """Test complet de l'API ligne-commande"""
     
-    print_header("[TEST] API /api/ligne-commande/")
+    print_header("[TEST] API /commande/api/ligne-commandes/")
     
     # 1. Creer un utilisateur de test
     print("\n[OK] Test 1: Creation d'un utilisateur de test")
@@ -79,14 +79,14 @@ def test_ligne_commande_api():
     print(f"  [OK] Client API authentifie comme: {user.email}")
     
     # 5. Ajouter au panier
-    print("\n[OK] Test 5: Ajout au panier (POST /api/ligne-commande/)")
+    print("\n[OK] Test 5: Ajout au panier (POST /commande/api/ligne-commandes/)")
     payload = {
         'menu_id': menu.id_menu,
         'quantite': 2
     }
     print(f"  [SEND] Envoi: {payload}")
     
-    response = api_client.post('/api/ligne-commande/', payload, format='json')
+    response = api_client.post('/commande/api/ligne-commandes/', payload, format='json')
     
     if response.status_code == status.HTTP_201_CREATED:
         print(f"  [OK] Reponse: 201 Created")
@@ -105,8 +105,8 @@ def test_ligne_commande_api():
         return False
     
     # 6. Lister les lignes de commande
-    print("\n[OK] Test 6: Recuperation des lignes (GET /api/ligne-commande/)")
-    response = api_client.get('/api/ligne-commande/')
+    print("\n[OK] Test 6: Recuperation des lignes (GET /commande/api/ligne-commandes/)")
+    response = api_client.get('/commande/api/ligne-commandes/')
     
     if response.status_code == status.HTTP_200_OK:
         print(f"  [OK] Reponse: 200 OK")
@@ -124,8 +124,8 @@ def test_ligne_commande_api():
         return False
     
     # 7. Recuperer une ligne specifique
-    print(f"\n[OK] Test 7: Recuperation d'une ligne specifique (GET /api/ligne-commande/{ligne_id}/)")
-    response = api_client.get(f'/api/ligne-commande/{ligne_id}/')
+    print(f"\n[OK] Test 7: Recuperation d'une ligne specifique (GET /commande/api/ligne-commandes/{ligne_id}/)")
+    response = api_client.get(f'/commande/api/ligne-commandes/{ligne_id}/')
     
     if response.status_code == status.HTTP_200_OK:
         print(f"  [OK] Reponse: 200 OK")
@@ -140,10 +140,10 @@ def test_ligne_commande_api():
             pass
     
     # 8. Modifier la quantite
-    print(f"\n[OK] Test 8: Modification de la quantite (PATCH /api/ligne-commande/{ligne_id}/)")
+    print(f"\n[OK] Test 8: Modification de la quantite (PATCH /commande/api/ligne-commandes/{ligne_id}/)")
     update_payload = {'quantite': 5}
     print(f"  [SEND] Envoi: {update_payload}")
-    response = api_client.patch(f'/api/ligne-commande/{ligne_id}/', update_payload, format='json')
+    response = api_client.patch(f'/commande/api/ligne-commandes/{ligne_id}/', update_payload, format='json')
     
     if response.status_code in [status.HTTP_200_OK, status.HTTP_201_CREATED]:
         print(f"  [OK] Reponse: {response.status_code}")
@@ -162,7 +162,7 @@ def test_ligne_commande_api():
         'menu_id': menu.id_menu,
         'quantite': 3
     }
-    response = api_client.post('/api/ligne-commande/', payload, format='json')
+    response = api_client.post('/commande/api/ligne-commandes/', payload, format='json')
     
     if response.status_code == status.HTTP_201_CREATED:
         print(f"  [OK] Reponse: 201 Created")
@@ -176,7 +176,7 @@ def test_ligne_commande_api():
     # 10. Tester sans authentification
     print(f"\n[OK] Test 10: Tentative sans authentification")
     api_client_unauth = APIClient()
-    response = api_client_unauth.get('/api/ligne-commande/')
+    response = api_client_unauth.get('/commande/api/ligne-commandes/')
     
     if response.status_code == status.HTTP_401_UNAUTHORIZED:
         print(f"  [OK] Reponse: 401 Unauthorized (securite OK)")

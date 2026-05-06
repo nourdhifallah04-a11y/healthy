@@ -317,7 +317,7 @@ async function handleAddToCart(e) {
             body.plat_id = selectedItemId;
         }
 
-        const response = await fetch('/api/ligne-commande/', {
+        const response = await fetch('/commande/api/ligne-commandes/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

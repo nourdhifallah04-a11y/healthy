@@ -2,7 +2,7 @@
 
 ## 🎯 PROBLÈME
 ```
-POST http://localhost:8000/api/ligne-commande/ → 404 (Not Found)
+POST http://localhost:8000/commande/api/ligne-commandes/ → 404 (Not Found)
 ```
 
 ## ✅ SOLUTION APPLIQUÉE
@@ -26,7 +26,7 @@ fetch('/plat/api/plats/')
 id: plat.id_plat  // ← ID du plat
 
 // Envoyer ID du plat au POST
-POST /api/ligne-commande/ { menu_id: 236 }  // ← Plat ID
+POST /commande/api/ligne-commandes/ { menu_id: 236 }  // ← Plat ID
 // ❌ Menu non trouvé (404)
 ```
 
@@ -39,7 +39,7 @@ fetch('/api/menus/')
 id: menu.id_menu  // ← ID du menu
 
 // Envoyer ID du menu au POST
-POST /api/ligne-commande/ { menu_id: 1 }  // ← Menu ID
+POST /commande/api/ligne-commandes/ { menu_id: 1 }  // ← Menu ID
 // ✅ LigneCommande créée (201)
 ```
 
@@ -48,7 +48,7 @@ POST /api/ligne-commande/ { menu_id: 1 }  // ← Menu ID
 | Test | Résultat | Details |
 |------|----------|---------|
 | GET /api/menus/ | ✅ 200 | 1 menu trouvé |
-| POST /api/ligne-commande/ | ✅ 201 | LigneCommande créée |
+| POST /commande/api/ligne-commandes/ | ✅ 201 | LigneCommande créée |
 | Transformation logique | ✅ OK | Tous les champs valides |
 | Simulation navigateur | ✅ OK | Flux complet fonctionnel |
 
@@ -89,21 +89,21 @@ static/specialdiet/spec.js  ← MODIFIÉ ET TESTÉ
 
 ### Tests Avant Publication
 1. ✅ Test GET /api/menus/ 
-2. ✅ Test POST /api/ligne-commande/
+2. ✅ Test POST /commande/api/ligne-commandes/
 3. ✅ Test complet depuis le navigateur
 
 ## 🎉 STATUS
 
 **RÉSOLU ✅**
 
-L'erreur 404 est complètement éliminée. Le POST `/api/ligne-commande/` fonctionne maintenant correctement avec un statut 201 (Created).
+L'erreur 404 est complètement éliminée. Le POST `/commande/api/ligne-commandes/` fonctionne maintenant correctement avec un statut 201 (Created).
 
 ---
 
 ### Pour Vérifier en Production
 ```bash
 # Terminal
-curl -X POST http://your-domain/api/ligne-commande/ \
+curl -X POST http://your-domain/commande/api/ligne-commandes/ \
   -H "Content-Type: application/json" \
   -d '{"menu_id": 1, "quantite": 2}'
 

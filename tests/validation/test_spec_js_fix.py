@@ -55,8 +55,8 @@ def test_menus_endpoint():
         return False
 
 def test_post_with_menu_id():
-    """Tester POST /api/ligne-commande/ avec un menu_id valide"""
-    print_section("TEST 2: POST /api/ligne-commande/ avec menu_id valide")
+    """Tester POST /commande/api/ligne-commandes/ avec un menu_id valide"""
+    print_section("TEST 2: POST /commande/api/ligne-commandes/ avec menu_id valide")
     
     # D'abord, récupérer un menu valide
     try:
@@ -72,7 +72,7 @@ def test_post_with_menu_id():
         menu_id = menu.get('id_menu', menu.get('id'))
         
         # Faire le POST
-        post_url = f"{API_URL}/api/ligne-commande/"
+        post_url = f"{API_URL}/commande/api/ligne-commandes/"
         payload = {
             'menu_id': menu_id,
             'quantite': 1

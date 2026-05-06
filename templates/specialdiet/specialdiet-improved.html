@@ -84,21 +84,22 @@
              aria-busy="false"></div>
     </div>
 
+   
     <!-- Modal Ajouter au Panier -->
-    <div id="addToCartModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+    <div id="addToCartModal" class="modal">
         <div class="modal-content">
-            <button type="button" class="close" aria-label="Fermer la fenêtre" aria-hidden="true">&times;</button>
-            <h2 id="modalTitle">Ajouter au Panier</h2>
+            <span class="close">&times;</span>
+            <h2>Ajouter au Panier</h2>
             <form id="addToCartForm">
                 <div class="form-group">
-                    <label for="quantity">Quantité :</label>
-                    <input type="number" id="quantity" name="quantity" min="1" max="100" value="1" required aria-label="Quantité à ajouter">
+                    <label for="quantity">Quantité:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" max="100" value="1" required>
                 </div>
                 <div class="form-group">
-                    <p id="itemInfo" aria-label="Détails du produit"></p>
+                    <p id="itemInfo"></p>
                 </div>
                 <button type="submit" class="btn-primary">Ajouter au Panier</button>
-                <button type="button" class="btn-secondary" onclick="closeAddToCartModal()" aria-label="Annuler">Annuler</button>
+                <button type="button" class="btn-secondary" onclick="closeAddToCartModal()">Annuler</button>
             </form>
         </div>
     </div>

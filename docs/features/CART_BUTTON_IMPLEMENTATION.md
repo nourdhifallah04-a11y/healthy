@@ -26,7 +26,7 @@ Des boutons "Ajouter au Panier" ont été ajoutés aux pages **Menu** et **Speci
 - ✅ Fonction `openAddToCartModal(mealId, mealName, mealPrice)` - Ouvre le modal
 - ✅ Fonction `closeAddToCartModal()` - Ferme le modal
 - ✅ Gestion des événements du formulaire d'ajout
-- ✅ Appel API POST vers `/api/ligne-commande/` avec:
+- ✅ Appel API POST vers `/commande/api/ligne-commandes/` avec:
   - `menu_id`: ID du plat
   - `quantite`: Quantité sélectionnée
 
@@ -43,7 +43,7 @@ Des boutons "Ajouter au Panier" ont été ajoutés aux pages **Menu** et **Speci
 - ✅ Fonction `openAddToCartModal(mealId, mealName)` - Ouvre le modal
 - ✅ Fonction `closeAddToCartModal()` - Ferme le modal
 - ✅ Gestion des événements du formulaire d'ajout
-- ✅ Appel API POST vers `/api/ligne-commande/`
+- ✅ Appel API POST vers `/commande/api/ligne-commandes/`
 - ✅ Vérification de l'existence de `PanierManager` avant utilisation
 
 ### 3. **Fichiers CSS**
@@ -99,7 +99,7 @@ Des boutons "Ajouter au Panier" ont été ajoutés aux pages **Menu** et **Speci
 
 ## 🔗 Points d'Intégration API
 
-### Endpoint: `POST /api/ligne-commande/`
+### Endpoint: `POST /commande/api/ligne-commandes/`
 
 **Body:**
 ```json
