@@ -116,7 +116,7 @@ def specialdiet(request):
         'plats': plats,
         'diet_meals_json': mark_safe(json.dumps(diet_meals))
     }
-    return render(request, 'specialdiet/specialdiet.html', context)
+    return render(request, 'specialdiet/specialdiet-improved.html', context)
 
 
 

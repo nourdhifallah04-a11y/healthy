@@ -1,0 +1,200 @@
+<!-- ===========================
+     MODAL COMPARAISON MENUS - OPTIMISÉE
+     =========================== -->
+
+<div id="compareModal" class="modal compare-modal" role="dialog" aria-labelledby="compareTitle" aria-hidden="true">
+    <div class="modal-content compare-modal-content">
+
+        <!-- HEADER -->
+        <div class="compare-modal-header">
+            <div class="compare-modal-title-group">
+                <h2 id="compareTitle">
+                    <svg class="compare-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3h4v18H3M8 8h4v13H8M13 12h4v9h-4M18 5h4v16h-4"/>
+                    </svg>
+                    Comparer les Menus
+                </h2>
+                <p class="compare-subtitle">Sélectionnez 2 à 3 menus pour analyser leur nutritionnel</p>
+            </div>
+            <button class="close close-compare" aria-label="Fermer la modal" aria-controls="compareModal">&times;</button>
+        </div>
+
+        <!-- BODY -->
+        <div class="compare-body">
+
+            <!-- ===========================
+                 SÉLECTION DES MENUS
+                 =========================== -->
+            <section class="compare-selector" aria-label="Sélection des menus à comparer">
+                <div class="selector-header">
+                    <h3>
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                        </svg>
+                        Sélectionner vos menus
+                    </h3>
+                    <div class="compare-selection-badge" aria-live="polite" aria-label="Nombre de menus sélectionnés">
+                        <span id="compareCount" class="count-number">0</span>
+                        <span class="count-text">/3</span>
+                    </div>
+                </div>
+
+                <!-- Liste des menus avec styles inline minimisés -->
+                <div id="compareMenusList" class="compare-menus-list" role="group" aria-label="Liste des menus">
+                    <!-- Menus chargés dynamiquement via JS -->
+                </div>
+
+                <p class="selection-helper" id="selectionHelper" role="status" aria-live="polite">
+                    Choisissez 2 menus minimum pour commencer
+                </p>
+            </section>
+
+            <!-- ===========================
+                 TABLEAU DE COMPARAISON
+                 =========================== -->
+            <section id="compareTable" class="compare-table-wrapper" style="display: none;" aria-label="Tableau de comparaison nutritionnelle">
+
+                <!-- CONTRÔLES -->
+                <div class="compare-controls">
+                    <button id="resetCompareBtn" class="btn-reset-compare" aria-label="Réinitialiser la comparaison">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 4v6h6M23 20v-6h-6"/>
+                            <path d="M20.49 9A9 9 0 0 0 5.64 5.64M3.51 15A9 9 0 0 0 18.36 18.36"/>
+                        </svg>
+                        Recommencer
+                    </button>
+                </div>
+
+                <!-- TABLEAU -->
+                <div class="nutrition-comparison">
+                    <table class="comparison-table" role="table" aria-label="Nutriments comparés">
+                        <thead>
+                            <tr>
+                                <th class="metric-col" scope="col">
+                                    <svg class="nutrient-icon" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                                    </svg>
+                                    Nutriment
+                                </th>
+                                <th id="menu1-header" class="menu-col menu-col-1" scope="col">
+                                    <div class="menu-header-content">
+                                        <span class="menu-number">Menu 1</span>
+                                    </div>
+                                </th>
+                                <th id="menu2-header" class="menu-col menu-col-2" style="display: none;" scope="col">
+                                    <div class="menu-header-content">
+                                        <span class="menu-number">Menu 2</span>
+                                    </div>
+                                </th>
+                                <th id="menu3-header" class="menu-col menu-col-3" style="display: none;" scope="col">
+                                    <div class="menu-header-content">
+                                        <span class="menu-number">Menu 3</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <!-- Lignes générées dynamiquement -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ===========================
+                     VISUALISATION DES NUTRIMENTS
+                     =========================== -->
+                <section class="nutrients-visualization" aria-label="Visualisation des nutriments">
+                    
+                    <div class="visualization-header">
+                        <h3 class="visualization-title">
+                            <svg class="visualization-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <line x1="12" y1="2" x2="12" y2="22"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h.5M6 13H3.5a2.5 2.5 0 0 0 0 5H6"/>
+                            </svg>
+                            Visualisation des Nutriments
+                        </h3>
+                        <p class="visualization-subtitle">Comparaison des valeurs nutritionnelles par portion</p>
+                    </div>
+
+                    <div class="nutrients-grid">
+                        <!-- CALORIES -->
+                        <div class="nutrient-chart-wrapper" data-nutrient="calories">
+                            <div class="nutrient-badge">
+                                <span class="nutrient-icon" aria-hidden="true">🔥</span>
+                                <span class="nutrient-label">Calories</span>
+                                <span class="nutrient-unit">kcal</span>
+                            </div>
+                            <div id="caloriesChart" class="nutrient-chart" role="img" aria-label="Comparaison des calories">
+                                <!-- Barres générées dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- PROTÉINES -->
+                        <div class="nutrient-chart-wrapper" data-nutrient="proteins">
+                            <div class="nutrient-badge">
+                                <span class="nutrient-icon" aria-hidden="true">💪</span>
+                                <span class="nutrient-label">Protéines</span>
+                                <span class="nutrient-unit">g</span>
+                            </div>
+                            <div id="proteinChart" class="nutrient-chart" role="img" aria-label="Comparaison des protéines">
+                                <!-- Barres générées dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- GLUCIDES -->
+                        <div class="nutrient-chart-wrapper" data-nutrient="carbs">
+                            <div class="nutrient-badge">
+                                <span class="nutrient-icon" aria-hidden="true">🌾</span>
+                                <span class="nutrient-label">Glucides</span>
+                                <span class="nutrient-unit">g</span>
+                            </div>
+                            <div id="carbsChart" class="nutrient-chart" role="img" aria-label="Comparaison des glucides">
+                                <!-- Barres générées dynamiquement -->
+                            </div>
+                        </div>
+
+                        <!-- LIPIDES -->
+                        <div class="nutrient-chart-wrapper" data-nutrient="fats">
+                            <div class="nutrient-badge">
+                                <span class="nutrient-icon" aria-hidden="true">🧈</span>
+                                <span class="nutrient-label">Lipides</span>
+                                <span class="nutrient-unit">g</span>
+                            </div>
+                            <div id="fatChart" class="nutrient-chart" role="img" aria-label="Comparaison des lipides">
+                                <!-- Barres générées dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nutrition-legend">
+                        <div class="legend-item">
+                            <span class="legend-indicator" style="background: var(--nutrient-calories)"></span>
+                            <span>Calories</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-indicator" style="background: var(--nutrient-proteins)"></span>
+                            <span>Protéines</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-indicator" style="background: var(--nutrient-carbs)"></span>
+                            <span>Glucides</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-indicator" style="background: var(--nutrient-fats)"></span>
+                            <span>Lipides</span>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- ===========================
+                     RECOMMANDATION
+                     =========================== -->
+                <aside class="compare-recommendation" aria-label="Recommandation personnalisée">
+                    <div class="recommendation-badge">💡 Conseil Nutritionnel</div>
+                    <p id="recommendationText" role="status" aria-live="polite"></p>
+                </aside>
+
+            </section>
+        </div>
+    </div>
+</div>

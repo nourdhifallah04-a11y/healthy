@@ -6,10 +6,11 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'menu/menu.css' %}">
 <link rel="stylesheet" href="{% static 'menu/unified-browse.css' %}">
+<link rel="stylesheet" href="{% static 'menu/compare-modal-refactored.css' %}">
 {% endblock %}
 
 {% block content %}
-    <section class="hero-section">
+    <section class="page-header">
         <h1>Nos <span class="highlight">Menus</span> Healthy</h1>
         <p>Découvrez nos menus équilibrés préparés avec des ingrédients frais et naturels</p>
     </section>
@@ -49,19 +50,19 @@
     </div>
 
 <!-- ===========================
-     MODAL COMPARAISON MENUS
+     MODAL COMPARAISON MENUS - REFACTORISÉE
      =========================== -->
 
-<div id="compareModal" class="modal compare-modal">
+<div id="compareModal" class="modal compare-modal" role="dialog" aria-labelledby="compareTitle" aria-hidden="true">
     <div class="modal-content compare-modal-content">
 
         <!-- HEADER -->
         <div class="compare-modal-header">
             <div class="compare-modal-title-group">
-                <h2><i class="fas fa-balance-scale"></i> Comparer les Menus</h2>
-                <p class="compare-subtitle">Sélectionnez 2 à 3 menus pour voir leur comparaison nutritionnelle</p>
+                <h2 id="compareTitle">Comparer les Menus</h2>
+                <p class="compare-subtitle">Sélectionnez 2 à 3 menus pour analyser leur nutritionnel</p>
             </div>
-            <span class="close close-compare">&times;</span>
+            <button class="close close-compare" aria-label="Fermer la modal" aria-controls="compareModal">&times;</button>
         </div>
 
         <!-- BODY -->
@@ -70,66 +71,59 @@
             <!-- ===========================
                  SÉLECTION DES MENUS
                  =========================== -->
-            <div class="compare-selector">
+            <section class="compare-selector" aria-label="Sélection des menus à comparer">
                 <div class="selector-header">
-                    <h3><i class="fas fa-check-square"></i> Sélection des Menus</h3>
-
-                    <div class="compare-selection-badge">
+                    <h3>Sélectionner vos menus</h3>
+                    <div class="compare-selection-badge" aria-live="polite" aria-label="Nombre de menus sélectionnés">
                         <span id="compareCount" class="count-number">0</span>
                         <span class="count-text">/3</span>
                     </div>
                 </div>
 
-                <div id="compareMenusList" class="compare-menus-list">
+                <div id="compareMenusList" class="compare-menus-list" role="group" aria-label="Liste des menus">
                     <!-- Menus chargés dynamiquement via JS -->
                 </div>
-            </div>
+
+                <p class="selection-helper" id="selectionHelper" role="status" aria-live="polite">
+                    Sélectionnez 2 à 3 menus pour commencer
+                </p>
+            </section>
 
             <!-- ===========================
                  TABLEAU DE COMPARAISON
                  =========================== -->
-            <div id="compareTable" class="compare-table-wrapper" style="display: none;">
+            <section id="compareTable" class="compare-table-wrapper" style="display: none;" aria-label="Tableau de comparaison nutritionnelle">
 
-                <!-- HEADER DES MENUS SÉLECTIONNÉS -->
-                <div class="compare-selected-menus">
-                    <div class="selected-menus-header">
-                        <h3><i class="fas fa-table"></i> Comparaison Nutritionnelle</h3>
-
-                        <button id="resetCompareBtn" class="btn-reset-compare">
-                            <i class="fas fa-redo"></i> Recommencer
-                        </button>
-                    </div>
+                <!-- CONTRÔLES -->
+                <div class="compare-controls">
+                    <button id="resetCompareBtn" class="btn-reset-compare" aria-label="Réinitialiser la comparaison">
+                        Recommencer
+                    </button>
                 </div>
 
                 <!-- TABLEAU -->
                 <div class="nutrition-comparison">
-                    <table class="comparison-table">
+                    <table class="comparison-table" role="table" aria-label="Nutriments comparés">
                         <thead>
                             <tr>
-                                <th class="metric-col">
-                                    <i class="fas fa-leaf"></i> Nutriment
-                                </th>
-
-                                <th id="menu1-header" class="menu-col menu-col-1">
+                                <th class="metric-col" scope="col">Nutriment</th>
+                                <th id="menu1-header" class="menu-col menu-col-1" scope="col">
                                     <div class="menu-header-content">
                                         <span class="menu-number">Menu 1</span>
                                     </div>
                                 </th>
-
-                                <th id="menu2-header" class="menu-col menu-col-2" style="display: none;">
+                                <th id="menu2-header" class="menu-col menu-col-2" style="display: none;" scope="col">
                                     <div class="menu-header-content">
                                         <span class="menu-number">Menu 2</span>
                                     </div>
                                 </th>
-
-                                <th id="menu3-header" class="menu-col menu-col-3" style="display: none;">
+                                <th id="menu3-header" class="menu-col menu-col-3" style="display: none;" scope="col">
                                     <div class="menu-header-content">
                                         <span class="menu-number">Menu 3</span>
                                     </div>
                                 </th>
                             </tr>
                         </thead>
-
                         <tbody id="comparisonTableBody">
                             <!-- Lignes générées dynamiquement -->
                         </tbody>
@@ -139,64 +133,56 @@
                 <!-- ===========================
                      GRAPHIQUES
                      =========================== -->
-                <div class="compare-charts-section">
-                    <h3><i class="fas fa-chart-bar"></i> Visualisation des Nutriments</h3>
-
+                <section class="compare-charts-section" aria-label="Visualisation des nutriments">
+                    <h3>Visualisation des Nutriments</h3>
                     <div class="compare-charts">
-
                         <!-- CALORIES -->
                         <div class="chart-container">
                             <div class="chart-header">
-                                <h4>🔥 Calories</h4>
+                                <h4>Calories</h4>
                                 <span class="chart-unit">kcal</span>
                             </div>
-                            <div id="caloriesChart" class="comparison-chart"></div>
+                            <div id="caloriesChart" class="comparison-chart" role="img" aria-label="Graphique de comparaison des calories"></div>
                         </div>
 
                         <!-- PROTÉINES -->
                         <div class="chart-container">
                             <div class="chart-header">
-                                <h4>💪 Protéines</h4>
+                                <h4>Protéines</h4>
                                 <span class="chart-unit">g</span>
                             </div>
-                            <div id="proteinChart" class="comparison-chart"></div>
+                            <div id="proteinChart" class="comparison-chart" role="img" aria-label="Graphique de comparaison des protéines"></div>
                         </div>
 
                         <!-- GLUCIDES -->
                         <div class="chart-container">
                             <div class="chart-header">
-                                <h4>🍞 Glucides</h4>
+                                <h4>Glucides</h4>
                                 <span class="chart-unit">g</span>
                             </div>
-                            <div id="carbsChart" class="comparison-chart"></div>
+                            <div id="carbsChart" class="comparison-chart" role="img" aria-label="Graphique de comparaison des glucides"></div>
                         </div>
 
                         <!-- LIPIDES -->
                         <div class="chart-container">
                             <div class="chart-header">
-                                <h4>🥑 Lipides</h4>
+                                <h4>Lipides</h4>
                                 <span class="chart-unit">g</span>
                             </div>
-                            <div id="fatChart" class="comparison-chart"></div>
+                            <div id="fatChart" class="comparison-chart" role="img" aria-label="Graphique de comparaison des lipides"></div>
                         </div>
-
                     </div>
-                </div>
+                </section>
 
                 <!-- ===========================
                      RECOMMANDATION
                      =========================== -->
-                <div class="compare-recommendation">
-                    <div class="recommendation-badge">⭐ Recommandation</div>
+                <aside class="compare-recommendation" aria-label="Recommandation personnalisée">
+                    <div class="recommendation-badge">💡 Conseil Nutritionnel</div>
+                    <p id="recommendationText" role="status" aria-live="polite"></p>
+                </aside>
 
-                    <div class="recommendation-header">
-                        <h4><i class="fas fa-lightbulb"></i> Analyse Personnalisée</h4>
-                    </div>
-
-                    <p id="recommendationText"></p>
-                </div>
-
-            </div>
+            </section>
         </div>
     </div>
 </div>
@@ -205,5 +191,6 @@
 
 {% block extra_js %}
 <script src="{% static 'menu/menu.js' %}"></script>
+<script src="{% static 'menu/compare-modal.interactions.js' %}" defer></script>
 <script src="{% static 'commande/commande.js' %}"></script>
 {% endblock %}

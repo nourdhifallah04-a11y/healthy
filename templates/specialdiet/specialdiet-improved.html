@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens | Special Diet{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'specialdiet/specialdiet-improved.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <h1>Special <span class="highlight">Diet</span></h1>
+    <p>Des plats adaptés à vos besoins nutritionnels spécifiques</p>
+</section>
+
+<section class="diet-section">
+    <!-- Catégories de régimes -->
+    <div class="diet-categories" role="tablist">
+        <div class="diet-card" 
+             data-diet="high-protein" 
+             role="tab" 
+             tabindex="0"
+             aria-selected="false"
+             aria-controls="dietGrid"
+             aria-label="Régime High Protein - Pour vos objectifs sportifs">
+            <i class="fas fa-dumbbell" aria-hidden="true"></i>
+            <h3>High Protein</h3>
+            <p>Objectifs sportifs</p>
+        </div>
+        <div class="diet-card" 
+             data-diet="low-carb" 
+             role="tab" 
+             tabindex="-1"
+             aria-selected="false"
+             aria-controls="dietGrid"
+             aria-label="Régime Low Carb - Peu de glucides">
+            <i class="fas fa-chart-line" aria-hidden="true"></i>
+            <h3>Low Carb</h3>
+            <p>Peu de glucides</p>
+        </div>
+        <div class="diet-card" 
+             data-diet="vegan" 
+             role="tab" 
+             tabindex="-1"
+             aria-selected="false"
+             aria-controls="dietGrid"
+             aria-label="Régime Vegan - 100% végétal">
+            <i class="fas fa-seedling" aria-hidden="true"></i>
+            <h3>Vegan</h3>
+            <p>100% végétal</p>
+        </div>
+        <div class="diet-card" 
+             data-diet="gluten-free" 
+             role="tab" 
+             tabindex="-1"
+             aria-selected="false"
+             aria-controls="dietGrid"
+             aria-label="Régime Sans Gluten - Pour intolérants">
+            <i class="fas fa-leaf" aria-hidden="true"></i>
+            <h3>Sans Gluten</h3>
+            <p>Pour intolérants</p>
+        </div>
+        <div class="diet-card" 
+             data-diet="plat-recommande" 
+             role="tab" 
+             tabindex="-1"
+             aria-selected="false"
+             aria-controls="dietGrid"
+             aria-label="Recommandations Personnalisées - Basées sur votre profil">
+            <i class="fas fa-heart" aria-hidden="true"></i>
+            <h3>Recommandé</h3>
+            <p>Personnalisé</p>
+        </div>
+    </div>
+
+    <!-- Résultats et grille de plats -->
+    <div class="diet-results">
+        <h2>Plats recommandés pour <span id="selectedDiet">High Protein</span></h2>
+        <div class="menu-grid" 
+             id="dietGrid" 
+             role="region" 
+             aria-label="Plats disponibles"
+             aria-live="polite"
+             aria-busy="false"></div>
+    </div>
+
+    <!-- Modal Ajouter au Panier -->
+    <div id="addToCartModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-content">
+            <button type="button" class="close" aria-label="Fermer la fenêtre" aria-hidden="true">&times;</button>
+            <h2 id="modalTitle">Ajouter au Panier</h2>
+            <form id="addToCartForm">
+                <div class="form-group">
+                    <label for="quantity">Quantité :</label>
+                    <input type="number" id="quantity" name="quantity" min="1" max="100" value="1" required aria-label="Quantité à ajouter">
+                </div>
+                <div class="form-group">
+                    <p id="itemInfo" aria-label="Détails du produit"></p>
+                </div>
+                <button type="submit" class="btn-primary">Ajouter au Panier</button>
+                <button type="button" class="btn-secondary" onclick="closeAddToCartModal()" aria-label="Annuler">Annuler</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'specialdiet/spec-improved.js' %}"></script>
+<script src="{% static 'commande/commande.js' %}"></script>
+<script>
+    const dietMealsFromDB = {{ diet_meals_json }};
+</script>
+{% endblock %}
