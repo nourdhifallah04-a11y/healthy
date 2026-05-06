@@ -25,10 +25,9 @@ urlpatterns = [
     path("profilNutritionnel/", include("myapp.profilNutritionnel.urls")),
     path("systemeIA/", include("myapp.systemeIA.urls")),
     path("monitoring/", include("myapp.monitoring.urls")),
-    path("browse/", views.unified_browse, name="unified_browse"),
+    path("contact/", include("myapp.contact.urls")),
     #path('', include(router.urls)),
     #path('', include(router.urls)),
-    path("contact/", views.contact, name="contact"),
 
 
 

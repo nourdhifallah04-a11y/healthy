@@ -16,6 +16,12 @@ def menu(request):
     return render(request, 'menu/menu.html', {})
 
 
+def unified_browse(request):
+    """Affiche la page de navigation unifiée pour menus et plats"""
+    return render(request, 'menu/unified-browse.html', {})
+
+
+
 class MenuViewSet(viewsets.ModelViewSet):
     """
     ViewSet pour gérer les menus.

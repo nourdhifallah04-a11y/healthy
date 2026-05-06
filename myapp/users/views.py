@@ -34,6 +34,10 @@ N8N_WEBHOOK_URL_RECO_NUTRITION = getattr(settings, 'N8N_WEBHOOK_URL_RECO_NUTRITI
 # Clé: job_id, Valeur: {'status': 'pending|completed|failed', 'result': {...}, 'error': {...}, 'timestamp': datetime}
 async_jobs_cache = {}
 
+def administrateur(request):
+    """Affiche la page du profil administrateur"""
+    return render(request, 'administrateur/administrateur.html', {})
+
 def _send_activation_email(request, utilisateur):
     """Envoie un e-mail d'activation au nouvel utilisateur."""
     try:
