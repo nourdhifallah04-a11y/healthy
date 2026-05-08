@@ -1,6 +1,8 @@
 // ========== DONNÉES DES PLATS (MENU COMPLET) - CHARGÉ DYNAMIQUEMENT ==========
 let meals = [];
 let menus = [];
+let menusRecommandationIA = []; // Menus recommandés par IA
+let isLoadingMenusIA = false; // Suivi du chargement des menus IA
 
 // ========== CONSTANTES D'OPTIMISATION DU SCORE ==========
 const SCORE_CONSTANTS = {
@@ -131,6 +133,38 @@ function transformerMenuEnMeal(menu) {
     };
 }
 
+function transformerMenuIAEnMeal(menu) {
+    // Calculer les totaux nutritionnels depuis la structure retournée par le webhook
+    console.log('Transformation du menu IA en meal:', menu);
+    
+    const totalProtein = menu.nutrition ? menu.nutrition.proteine : 0;
+    const totalFiber = menu.nutrition ? menu.nutrition.fibres : 0;
+    const totalCarbs = menu.nutrition ? menu.nutrition.glucides : 0;
+    const totalFat = menu.nutrition ? menu.nutrition.lipides : 0;
+    const totalCalories = menu.nutrition ? menu.nutrition.calorie : 0;
+    const totalPrix = menu.prix ? parseFloat(menu.prix) : 0;
+    const menuFromMeals = meals.filter(meal => Number(menu.menu_id) === meal.id)[0] || {};
+    return {
+        id: menu.menu_id || menu.id,
+        name: menu.nom,
+        calories: totalCalories,
+        protein: totalProtein,
+        carbs: totalCarbs,
+        fat: totalFat,
+        fiber: totalFiber,
+        category: totalProtein >= 35 ? "proteine" : "autre",
+        image: menu.image ? menu.image : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500",
+        isNew: menu.isNew,
+        prix: menuFromMeals.prix > 0 ? menuFromMeals.prix : null,
+        description: menu.description,
+        est_disponible: menu.est_disponible,
+        type: 'menu',
+        plats: menuFromMeals.plats || [],
+        score: menu.score
+    };
+}
+
+
 /**
  * Charge les menus depuis l'API et les affiche
  */
@@ -166,6 +200,95 @@ function chargerPlats() {
         });
 }
 
+/**
+ * Appelle le webhook n8n asynchrone pour obtenir les menus recommandés par IA
+ */
+function chargerMenusRecommandationIA() {
+    isLoadingMenusIA = true;
+    if (currentFilter === "menu-recommandation-ia") {
+        displayMeals();
+    }
+    
+    console.log('🚀 Appel /profilNutritionnel/api/profil-nutritionnel/obtenir/');
+    fetch('/profilNutritionnel/api/profil-nutritionnel/obtenir/')
+        .then(response => {
+            console.log('Response status from profil-nutritionnel:', response.status);
+            if (response.status === 404 || response.status === 301) {
+                console.log('ℹ️ Profil nutritionnel non trouvé, redirection vers la page de création du profil');
+                window.location.href = '/profil-nutritionnel/';
+                return;
+            }
+            if (response.status === 401) {
+                console.log('ℹ️ Utilisateur non authentifié pour le webhook n8n');
+                return null;
+            }
+            if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+            return response.json();
+        })
+        .then(profil => {
+            if (!profil) return;
+            
+            const payload = {
+                profil: {
+                    age: profil.age || null,
+                    poids: profil.poids || null,
+                    taille: profil.taille || null,
+                    sexe: profil.sexe || null,
+                    objectif: profil.objectif_sante || null,
+                    allergies: profil.allergies || null,
+                    restrictions_alimentaires: profil.restrictions_alimentaires || null,
+                    niveau_activite: profil.niveau_activite || null
+                },
+                consentements: {
+                    donnees_sante_sensibles: profil.donnees_sante_sensibles || false,
+                    learning_collectif: profil.learning_collectif || false
+                }
+            };
+            
+            console.log('🤖 Appel asynchrone webhook n8n pour menus:', payload);
+            
+            // Appel POST asynchrone au webhook
+            fetch('http://192.168.1.184:5678/webhook/reco-top-plat-menu', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Webhook n8n appelé avec succès');
+                    return response.json();
+                } else {
+                    console.error('⚠️ Erreur webhook n8n:', response.status);
+                    return null;
+                }
+            })
+            .then(data => {
+                if (data) {
+                    console.log('📊 Réponse du webhook n8n (menus):', data);
+                    
+                    // Adapter les données au format menu
+                    const menusArray = Array.isArray(data) ? data : (data.top_menus || []);
+                    menusRecommandationIA = menusArray
+                        .map(menu => transformerMenuIAEnMeal(menu))
+                        .filter(menu => menu);
+                    console.log('Menus recommandés par IA transformés:', menusRecommandationIA);
+                    if (currentFilter === "menu-recommandation-ia") {
+                        displayMeals();
+                    }
+                }
+            })
+            .catch(error => console.error('❌ Erreur appel webhook n8n (menus):', error))
+            .finally(() => {
+                // Marquer la fin du chargement
+                isLoadingMenusIA = false;
+                // Rafraîchir l'affichage si c'est la catégorie active
+                if (currentFilter === "menu-recommandation-ia") {
+                    displayMeals();
+                }
+            });
+        });
+}
+
 // ========== VARIABLES GLOBALES ==========
 let currentFilter = "all";
 let currentSearch = "";
@@ -191,6 +314,8 @@ function displayMeals() {
         filteredMeals = filteredMeals.filter(meal => meal.isNew === true);
     } else if (currentFilter === "proteine") {
         filteredMeals = filteredMeals.filter(meal => meal.protein >= 35);
+    } else if (currentFilter === "menu-recommandation-ia") {
+        filteredMeals = [...menusRecommandationIA];
     }
 
     // Filtre par recherche
@@ -202,6 +327,33 @@ function displayMeals() {
 
     // Tri par score nutritionnel (décroissant)
     filteredMeals.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+    // Affichage du loader pour recommandations IA si en cours de chargement
+    if (currentFilter === "menu-recommandation-ia" && isLoadingMenusIA) {
+        menuGrid.innerHTML = `
+            <div class="loader-container" style="display: flex; justify-content: center; align-items: center; min-height: 400px; grid-column: 1 / -1;">
+                <div class="spinner" style="
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #667eea;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    animation: spin 1s linear infinite;
+                "></div>
+                <div style="margin-left: 15px; font-size: 16px; color: #666;">
+                    <p>⏳ Calcul de vos recommandations personnalisées...</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 5px;">Cela peut prendre quelques secondes</p>
+                </div>
+            </div>
+            <style>
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            </style>
+        `;
+        return;
+    }
 
     // Affichage des résultats
     if (filteredMeals.length === 0) {
@@ -278,9 +430,7 @@ function displayMeals() {
                     <button class="btn-add-cart" data-item-id="${meal.id}" data-item-type="${meal.type}" data-item-name="${meal.name}" data-item-price="${meal.prix || '0'}">
                         <i class="fas fa-shopping-cart"></i> Ajouter
                     </button>
-                    <button class="btn-compare" data-menu-id="${meal.id}" title="Comparer ce menu avec d'autres">
-                        <i class="fas fa-balance-scale"></i> Comparer
-                    </button>
+                
                 </div>
             </div>
         </div>
@@ -679,6 +829,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Charger les plats et menus
     chargerPlats();
+    
+    // Charger les menus recommandés par IA
+    chargerMenusRecommandationIA();
+    
     console.log('🌿 Menu Fresh & Greens chargé avec succès !');
 
     // ========== GESTION MODAL COMPARAISON ==========
