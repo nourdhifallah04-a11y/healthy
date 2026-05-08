@@ -12,7 +12,8 @@ let dietMeals = {
     "low-carb": [],
     "vegan": [],
     "gluten-free": [],
-    "plat-recommande": [] // Fusionné avec "plat-recommandation-ia"
+    "plat-recommander": [],
+    "plat-recommandation-ia": []
 };
 
 /**
@@ -56,7 +57,9 @@ function categoriserPlatsByDiet(plats) {
         "high-protein": [],
         "low-carb": [],
         "vegan": [],
-        "gluten-free": []
+        "gluten-free": [],
+        "plat-recommander": [],
+        "plat-recommandation-ia": []
     };
 
     plats.forEach(meal => {
@@ -99,7 +102,14 @@ function chargerDietMeals() {
                 .filter(plat => plat.est_disponible === true)
                 .map(plat => transformerPlatEnMealDiet(plat));
             
-            dietMeals = categoriserPlatsByDiet(mealsFormatted);
+            const baseDietMeals = categoriserPlatsByDiet(mealsFormatted);
+            // Fusionner avec les clés existantes pour conserver plat-recommander et plat-recommandation-ia
+            dietMeals = {
+                ...baseDietMeals,
+                "plat-recommander": dietMeals["plat-recommander"] || [],
+                "plat-recommandation-ia": dietMeals["plat-recommandation-ia"] || []
+            };
+            
             displayDietMeals();
             chargerPlatsRecommandes();
             console.log('✅ Régimes spéciaux chargés avec succès !');
@@ -117,19 +127,21 @@ function chargerDietMeals() {
  */
 function appelN8NRecommandationsAsync() {
     isLoadingRecoIA = true;
-    if (currentDiet === "plat-recommande") {
+    if (currentDiet === "plat-recommandation-ia") {
         displayDietMeals();
     }
     
+    console.log('🚀 Appel /profilNutritionnel/api/profil-nutritionnel/obtenir/');
     fetch('/profilNutritionnel/api/profil-nutritionnel/obtenir/')
         .then(response => {
+            console.log('Response status from profil-nutritionnel:', response.status);
             if (response.status === 404 || response.status === 301) {
-                console.log('ℹ️ Profil nutritionnel non trouvé');
+                console.log('ℹ️ Profil nutritionnel non trouvé, redirection vers la page de création du profil');
                 window.location.href = '/profil-nutritionnel/';
                 return;
             }
             if (response.status === 401) {
-                console.log('ℹ️ Utilisateur non authentifié');
+                console.log('ℹ️ Utilisateur non authentifié pour le webhook n8n');
                 return null;
             }
             if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
@@ -155,28 +167,43 @@ function appelN8NRecommandationsAsync() {
                 }
             };
             
+            console.log('🤖 Appel asynchrone webhook n8n:', payload);
+            
+            // Appel POST asynchrone au webhook
             fetch('http://192.168.1.184:5678/webhook/reco-top-plat-menu', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
-            .then(response => response.ok ? response.json() : null)
+            .then(response => {
+                if (response.ok) {
+                    console.log('✅ Webhook n8n appelé avec succès');
+                    return response.json();
+                } else {
+                    console.error('⚠️ Erreur webhook n8n:', response.status);
+                    return null;
+                }
+            })
             .then(data => {
                 if (data) {
-                    console.log('✅ Recommandations IA reçues');
+                    console.log('📊 Réponse du webhook n8n:', data);
+                    
+                    // Adapter les données au format plat
                     const platsArray = Array.isArray(data) ? data : (data.top_plats || []);
                     const mealsFormatted = platsArray.map(plat => transformerPlatEnMealDiet(plat));
-                    dietMeals["plat-recommande"] = mealsFormatted;
+                    dietMeals["plat-recommandation-ia"] = mealsFormatted;
                     
-                    if (currentDiet === "plat-recommande") {
+                    if (currentDiet === "plat-recommandation-ia") {
                         displayDietMeals();
                     }
                 }
             })
-            .catch(error => console.error('❌ Erreur webhook:', error))
+            .catch(error => console.error('❌ Erreur appel webhook n8n:', error))
             .finally(() => {
+                // Marquer la fin du chargement
                 isLoadingRecoIA = false;
-                if (currentDiet === "plat-recommande") {
+                // Rafraîchir l'affichage si c'est la catégorie active
+                if (currentDiet === "plat-recommandation-ia") {
                     displayDietMeals();
                 }
             });
@@ -187,13 +214,15 @@ function appelN8NRecommandationsAsync() {
  * Charge les plats recommandés basés sur le profil nutritionnel
  */
 function chargerPlatsRecommandes() {
+    // Appeler le webhook n8n asynchrone (ne pas attendre)
     appelN8NRecommandationsAsync();
     
     fetch('/plat/api/profil-nutritionnel/recommander-plats/')
         .then(response => {
             if (response.status === 401) {
                 console.log('ℹ️ Utilisateur non authentifié');
-                dietMeals["plat-recommande"] = [];
+                dietMeals["plat-recommander"] = [];
+                displayDietMeals();
                 return;
             }
             if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
@@ -202,18 +231,20 @@ function chargerPlatsRecommandes() {
         .then(data => {
             if (!data) return;
             
+            console.log('Plats recommandés reçus:', data);
+            
             const platsArray = Array.isArray(data) ? data : (data.results || []);
             const mealsFormatted = platsArray.map(plat => transformerPlatEnMealDiet(plat));
-            dietMeals["plat-recommande"] = mealsFormatted;
+            dietMeals["plat-recommander"] = mealsFormatted;
             
-            if (currentDiet === "plat-recommande") {
+            if (currentDiet === "plat-recommander") {
                 displayDietMeals();
             }
             console.log('✅ Plats recommandés chargés');
         })
         .catch(error => {
             console.error('❌ Erreur plats recommandés:', error);
-            dietMeals["plat-recommande"] = [];
+            dietMeals["plat-recommander"] = [];
         });
 }
 
@@ -232,7 +263,8 @@ const dietNames = {
     "low-carb": "Low Carb",
     "vegan": "Vegan",
     "gluten-free": "Sans Gluten",
-    "plat-recommande": "Recommandations Personnalisées"
+    "plat-recommander": "Plat recommander",
+    "plat-recommandation-ia": "Recommendation IA"
 };
 
 // ========== FONCTION POUR AFFICHER LES PLATS ==========
@@ -247,7 +279,7 @@ function displayDietMeals() {
     }
 
     // Loading state pour recommandations IA
-    if (currentDiet === "plat-recommande" && isLoadingRecoIA) {
+    if (currentDiet === "plat-recommandation-ia" && isLoadingRecoIA) {
         dietGrid.innerHTML = `
             <div class="loader-container">
                 <div class="spinner" aria-hidden="true"></div>
