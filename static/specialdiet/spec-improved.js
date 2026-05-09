@@ -4,6 +4,29 @@ document.addEventListener('DOMContentLoaded', function() {
     dropdownElements.forEach(function(element) {
         new bootstrap.Dropdown(element);
     });
+
+        // ========== GESTION MODAL COMPARAISON ==========
+    // Fermer le modal de comparaison avec le bouton X
+    const closeCompareBtn = document.querySelector('.close-compare');
+    if (closeCompareBtn) {
+        closeCompareBtn.addEventListener('click', closeCompareModal);
+    }
+
+    // Fermer le modal de comparaison en cliquant en dehors
+    const compareModal = document.getElementById('compareModal');
+    if (compareModal) {
+        compareModal.addEventListener('click', (e) => {
+            if (e.target === compareModal) {
+                closeCompareModal();
+            }
+        });
+    }
+
+    // Bouton réinitialiser la comparaison
+    const resetCompareBtn = document.getElementById('resetCompareBtn');
+    if (resetCompareBtn) {
+        //resetCompareBtn.addEventListener('click', resetComparison);
+    }
 });
 
 // ========== DONNÉES DES PLATS PAR CATÉGORIE DIET ==========
@@ -251,9 +274,17 @@ function chargerPlatsRecommandes() {
 // ========== VARIABLES GLOBALES ==========
 let currentDiet = "high-protein";
 let isLoadingRecoIA = false;
+let currentSearch = "";
+
+// ========== GESTION COMPARAISON PLATS ==========
+const compareState = {
+    selectedMenus: [],
+    maxMenus: 3
+};
 
 // ========== RÉFÉRENCES DOM ==========
 const dietGrid = document.getElementById('dietGrid');
+const searchInput = document.getElementById('searchInput');
 const dietCards = document.querySelectorAll('.diet-card');
 const selectedDietSpan = document.getElementById('selectedDiet');
 
@@ -267,13 +298,28 @@ const dietNames = {
     "plat-recommandation-ia": "Recommendation IA"
 };
 
+
+// ========== GESTION DE LA RECHERCHE ==========
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        currentSearch = e.target.value;
+        itemsDisplayed = 0; // Réinitialiser la pagination
+        displayDietMeals();
+    });
+}
+
 // ========== FONCTION POUR AFFICHER LES PLATS ==========
 function displayDietMeals() {
     if (!dietGrid) return;
 
-    const meals = dietMeals[currentDiet] || [];
+    let meals = dietMeals[currentDiet] || [];
     const dietName = dietNames[currentDiet] || currentDiet;
-
+    // Filtre par recherche
+    if (currentSearch.trim() !== "") {
+        meals = meals.filter(meal =>
+            meal.name.toLowerCase().includes(currentSearch.toLowerCase())
+        );
+    }
     if (selectedDietSpan) {
         selectedDietSpan.textContent = dietName;
     }
@@ -430,6 +476,14 @@ document.addEventListener('DOMContentLoaded', () => {
         dietCards[0].classList.add('active');
     }
     
+    // Ajouter les événements aux boutons Comparer
+    document.querySelectorAll('.btn-compare').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openCompareModal();
+        });
+    });
+    
     console.log('✅ Module Special Diet chargé avec succès !');
 });
 
@@ -575,6 +629,319 @@ if (addToCartForm) {
         }
     });
 }
+
+// ========== GESTION MODAL COMPARAISON ==========
+/**
+ * Ouvre le modal de comparaison
+ */
+function openCompareModal() {
+    const modal = document.getElementById('compareModal');
+    if (modal) {
+        modal.style.display = 'block';
+        populateComparePlasList();
+    }
+}
+
+/**
+ * Ferme le modal de comparaison
+ */
+function closeCompareModal() {
+    const modal = document.getElementById('compareModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Remplit la liste des plats pour la comparaison
+ */
+function populateComparePlasList() {
+    const comparePlatsList = document.getElementById('comparePlatsList');
+    if (!comparePlatsList) return;
+
+    const currentMeals = dietMeals[currentDiet] || [];
+    
+    comparePlatsList.innerHTML = currentMeals.map(meal => {
+        const isSelected = compareState.selectedMenus.some(m => m.id === meal.id);
+        return `
+            <div class="compare-menu-item ${isSelected ? 'selected' : ''}" data-menu-id="${meal.id}">
+                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; width: 100%;">
+                    <input type="checkbox" 
+                           class="compare-checkbox" 
+                           data-menu-id="${meal.id}" 
+                           ${isSelected ? 'checked' : ''}
+                           ${compareState.selectedMenus.length >= compareState.maxMenus && !isSelected ? 'disabled' : ''}
+                           onchange="toggleMenuSelection(${meal.id}, '${meal.name}', ${meal.calories}, ${meal.protein}, ${meal.carbs}, ${meal.fat}, ${meal.fiber}, ${meal.score})">
+                    <div style="flex: 1;">
+                        <div class="compare-menu-item-name">${meal.name}</div>
+                        <div class="compare-menu-item-score">⭐ ${Math.round(meal.score)}/100</div>
+                    </div>
+                </label>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Bascule la sélection d'un plat pour la comparaison
+ */
+function toggleMenuSelection(menuId, menuName, calories, protein, carbs, fat, fiber, score) {
+    const existingIndex = compareState.selectedMenus.findIndex(m => m.id === menuId);
+    
+    if (existingIndex !== -1) {
+        // Déselection
+        compareState.selectedMenus.splice(existingIndex, 1);
+    } else {
+        // Selection
+        if (compareState.selectedMenus.length < compareState.maxMenus) {
+            compareState.selectedMenus.push({
+                id: menuId,
+                name: menuName,
+                calories: calories,
+                protein: protein,
+                carbs: carbs,
+                fat: fat,
+                fiber: fiber,
+                score: score
+            });
+        }
+    }
+
+    updateComparisonUI();
+}
+
+/**
+ * Met à jour l'affichage du modal de comparaison
+ */
+function updateComparisonUI() {
+    // Mettre à jour le compteur de plats sélectionnés
+    const compareCount = document.getElementById('compareCount');
+    if (compareCount) {
+        compareCount.textContent = compareState.selectedMenus.length;
+    }
+    
+    // Mettre à jour la visibilité du tableau
+    const compareTable = document.getElementById('compareTable');
+    if (compareTable) {
+        if (compareState.selectedMenus.length >= 2) {
+            compareTable.style.display = 'block';
+            populateComparisonTable();
+        } else {
+            compareTable.style.display = 'none';
+        }
+    }
+    
+    // Mettre à jour le texte d'aide
+    const selectionHelper = document.getElementById('selectionHelper');
+    if (selectionHelper) {
+        const messageMap = {
+            0: 'Sélectionnez 2 à 3 plats pour commencer',
+            1: 'Sélectionnez 1 plat supplémentaire minimum',
+            2: 'Parfait ! Vous pouvez ajouter 1 plat de plus',
+            3: 'Maximum atteint (3 plats)'
+        };
+        
+        const message = messageMap[compareState.selectedMenus.length];
+        const icon = compareState.selectedMenus.length >= 2 ? '✓' : 'ℹ';
+        selectionHelper.textContent = `${icon} ${message}`;
+    }
+    
+    // Mettre à jour la liste pour refléter l'état
+    populateComparePlasList();
+}
+
+/**
+ * Remplit le tableau de comparaison des nutriments
+ */
+function populateComparisonTable() {
+    const tbody = document.getElementById('comparisonTableBody');
+    if (!tbody) return;
+    
+    if (compareState.selectedMenus.length < 2) return;
+    
+    // Afficher les en-têtes des colonnes
+    const headers = ['menu1-header', 'menu2-header', 'menu3-header'];
+    headers.forEach((headerId, index) => {
+        const header = document.getElementById(headerId);
+        if (header) {
+            if (index < compareState.selectedMenus.length) {
+                header.style.display = '';
+                const menuName = compareState.selectedMenus[index].name;
+                header.querySelector('.menu-number').textContent = `${menuName}`;
+            } else {
+                header.style.display = 'none';
+            }
+        }
+    });
+    
+    // Nutriments à afficher
+    const nutrients = [
+        { key: 'calories', label: 'Calories', unit: 'kcal' },
+        { key: 'protein', label: 'Protéines', unit: 'g' },
+        { key: 'carbs', label: 'Glucides', unit: 'g' },
+        { key: 'fat', label: 'Lipides', unit: 'g' },
+        { key: 'fiber', label: 'Fibres', unit: 'g' }
+    ];
+    
+    tbody.innerHTML = nutrients.map(nutrient => {
+        const values = compareState.selectedMenus.map(menu => menu[nutrient.key]);
+
+        const cells = compareState.selectedMenus.map(menu => {
+        const value = menu[nutrient.key];
+        const maxValue = Math.max(...values);
+        const percentage = (value / maxValue) * 100;
+            return `<td class="compare-cell">${Math.round(menu[nutrient.key])} 
+            <div class="nutrient-bar">
+                        <div class="nutrient-bar-fill" style="width: ${percentage}%"></div>
+                    </div></td>`   
+        }
+        ).join('');
+        
+        return `
+            <tr>
+                <td class="metric-col"><strong>${nutrient.label}</strong></td>
+                ${cells}
+            </tr>
+        `;
+    }).join('');
+
+        // Afficher les graphiques
+    displayComparisonCharts(compareState.selectedMenus);
+
+    // Afficher la recommandation
+    displayComparisonRecommendation(compareState.selectedMenus);
+}
+
+/**
+ * Affiche les graphiques de comparaison
+ */
+function displayComparisonCharts(selectedMenus) {
+    const metrics = [
+        { id: 'caloriesChart', key: 'calories', unit: 'kcal' },
+        { id: 'proteinChart', key: 'protein', unit: 'g' },
+        { id: 'carbsChart', key: 'carbs', unit: 'g' },
+        { id: 'fatChart', key: 'fat', unit: 'g' }
+    ];
+
+    metrics.forEach(metric => {
+        const chartContainer = document.getElementById(metric.id);
+        if (!chartContainer) return;
+
+        const maxValue = Math.max(...selectedMenus.map(m => m[metric.key]));
+        
+        renderComparisonChart({ selectedMenus, metric, maxValue, chartContainer });
+    });
+}
+
+function renderComparisonChart({ selectedMenus, metric, maxValue, chartContainer }) {
+    if (!selectedMenus || !selectedMenus.length || !metric || !maxValue) return;
+
+    const colorClass = {
+        calories: "bar-calories",
+        protein: "bar-proteines",
+        carbs: "bar-glucides",
+        fat: "bar-lipides"
+    }[metric.key] || "bar-default";
+
+    chartContainer.innerHTML = `
+        <div class="comparison-chart-wrapper">
+            <div class="chart-legend">
+                <span><span class="legend-dot bar-calories"></span>Calories</span>
+                <span><span class="legend-dot bar-proteines"></span>Protéines</span>
+                <span><span class="legend-dot bar-glucides"></span>Glucides</span>
+                <span><span class="legend-dot bar-lipides"></span>Lipides</span>
+            </div>
+            <div class="comparison-chart">
+                <div class="chart-bars-wrapper">
+                    ${selectedMenus.map((menu, index) => {
+                        const rawValue = Number(menu[metric.key]) || 0;
+                        const safeValue = rawValue > 0 ? rawValue : 0.1;
+                        const percentage = (safeValue / maxValue) * 100;
+                        const displayValue = rawValue > 0 ? rawValue.toFixed(1) : "0";
+
+                        return `
+                            <div class="chart-bar" data-index="${index}">
+                                <div class="chart-bar-fill ${colorClass}" data-target="${percentage}">
+                                    <span class="chart-bar-value">${displayValue}</span>
+                                </div>
+                                <div class="chart-bar-label" data-full="${menu.name}">
+                                    ${menu.name}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+
+    const bars = chartContainer.querySelectorAll(".chart-bar-fill");
+
+    function animateHeight(el, target, delay) {
+        let current = 0;
+        const step = () => {
+            current += (target - current) * 0.08;
+            el.style.height = current + "%";
+            if (Math.abs(current - target) > 0.5) {
+                requestAnimationFrame(step);
+            } else {
+                el.style.height = target + "%";
+            }
+        };
+        setTimeout(() => requestAnimationFrame(step), delay);
+    }
+
+    bars.forEach((bar, index) => {
+        const target = parseFloat(bar.getAttribute("data-target")) || 0;
+        animateHeight(bar, target, index * 120);
+    });
+}
+
+
+/**
+ * Affiche une recommandation basée sur la comparaison
+ */
+function displayComparisonRecommendation(selectedMenus) {
+    const recommendationText = document.getElementById('recommendationText');
+    if (!recommendationText) return;
+
+    let recommendation = '';
+
+    if (selectedMenus.length === 2) {
+        const menu1 = selectedMenus[0];
+        const menu2 = selectedMenus[1];
+
+        if (menu1.protein > menu2.protein) {
+            recommendation += `<strong>${menu1.name}</strong> est plus riche en protéines (${menu1.protein.toFixed(1)}g vs ${menu2.protein.toFixed(1)}g). `;
+        } else if (menu2.protein > menu1.protein) {
+            recommendation += `<strong>${menu2.name}</strong> est plus riche en protéines (${menu2.protein.toFixed(1)}g vs ${menu1.protein.toFixed(1)}g). `;
+        }
+
+        if (menu1.calories < menu2.calories) {
+            recommendation += `${menu1.name} est plus léger en calories. `;
+        } else if (menu2.calories < menu1.calories) {
+            recommendation += `${menu2.name} est plus léger en calories. `;
+        }
+
+        if (menu1.score > menu2.score) {
+            recommendation += `<strong>${menu1.name}</strong> a un meilleur score nutritionnel (${menu1.score}/100).`;
+        } else if (menu2.score > menu1.score) {
+            recommendation += `<strong>${menu2.name}</strong> a un meilleur score nutritionnel (${menu2.score}/100).`;
+        }
+    } else if (selectedMenus.length === 3) {
+        const bestProtein = selectedMenus.reduce((max, m) => m.protein > max.protein ? m : max);
+        const lowestCals = selectedMenus.reduce((min, m) => m.calories < min.calories ? m : min);
+        const bestScore = selectedMenus.reduce((max, m) => m.score > max.score ? m : max);
+
+        recommendation += `💪 <strong>${bestProtein.name}</strong> offre le plus de protéines. `;
+        recommendation += `🔥 <strong>${lowestCals.name}</strong> est le plus léger. `;
+        recommendation += `⭐ <strong>${bestScore.name}</strong> a le meilleur score nutritionnel.`;
+    }
+
+    recommendationText.innerHTML = recommendation || 'Sélectionnez au moins 2 menus pour obtenir une analyse.';
+}
+
+
 
 // Fonction pour récupérer le cookie CSRF
 function getCookie(name) {

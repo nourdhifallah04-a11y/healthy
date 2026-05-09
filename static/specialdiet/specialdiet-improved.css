@@ -849,3 +849,287 @@ body {
         margin-bottom: var(--spacing-xs);
     }
 }
+/* Wrapper global */
+.comparison-chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Légende */
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--vert-profond);
+}
+
+.chart-legend span {
+    display: inline-flex;
+    align-items: center;
+}
+
+.legend-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+/* Zone du graphique */
+.comparison-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--beige-pale) 0%, rgba(155, 191, 143, 0.08) 100%);
+    background-image: linear-gradient(to top, rgba(0,0,0,0.06) 1px, transparent 1px);
+    background-size: 100% 28px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.chart-bars-wrapper {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2rem;
+    width: 100%;
+}
+
+/* Conteneur d'une barre */
+.chart-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90px;
+    gap: 0.75rem;
+    position: relative;
+}
+
+/* Barre remplie (Apple-like) */
+.chart-bar-fill {
+    width: 100%;
+    border-radius: 50px;
+    position: relative;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    transform-origin: bottom;
+    height: 0;
+}
+
+/* Valeur affichée */
+.chart-bar-value {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--vert-profond);
+    color: white;
+    padding: 0.3rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Label */
+.chart-bar-label {
+    font-size: 0.78rem;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--vert-profond);
+    font-weight: 600;
+    position: relative;
+}
+
+.chart-bar-label:hover {
+    cursor: help;
+    color: var(--vert-feuille);
+}
+
+/* Tooltip label complet */
+.chart-bar-label[data-full]:hover::after {
+    content: attr(data-full);
+    position: absolute;
+    background: var(--vert-profond);
+    color: white;
+    padding: 0.45rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    transform: translate(-50%, -130%);
+    left: 50%;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+/* Hover barre */
+.chart-bar-fill:hover {
+    transform: translateY(-4px);
+}
+
+/* Couleurs dynamiques par nutriment */
+.bar-calories {
+    background: linear-gradient(180deg, #ffb36b, #ff8a2d);
+}
+
+.bar-proteines {
+    background: linear-gradient(180deg, #4a7bd1, #2f5cab);
+}
+
+.bar-glucides {
+    background: linear-gradient(180deg, #ffe27a, #f5c400);
+}
+
+.bar-lipides {
+    background: linear-gradient(180deg, #ff9aa2, #ff6f7d);
+}
+
+.bar-default {
+    background: linear-gradient(180deg, var(--vert-sauge), var(--vert-feuille));
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .chart-bars-wrapper {
+        gap: 1.25rem;
+    }
+
+    .chart-bar {
+        width: 70px;
+    }
+
+    .chart-bar-value {
+        font-size: 0.72rem;
+    }
+
+    .chart-legend {
+        gap: 0.75rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .comparison-chart {
+        padding: 1rem;
+    }
+
+    .chart-bar {
+        width: 60px;
+    }
+
+    .chart-bar-label {
+        font-size: 0.72rem;
+    }
+}
+
+
+
+/* Recommendation */
+.compare-recommendation {
+    background: linear-gradient(135deg, rgba(155, 191, 143, 0.1) 0%, rgba(217, 180, 139, 0.1) 100%);
+    border-left: 4px solid var(--vert-sauge);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 2rem;
+}
+
+.recommendation-badge {
+    display: inline-block;
+    background: var(--vert-feuille);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+.btn-compare {
+    background: linear-gradient(135deg, #E8A87C 0%, #D9A56F 100%);
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.btn-compare:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(232, 168, 124, 0.3);
+    background: linear-gradient(135deg, #D9A56F 0%, #CA9558 100%);
+}
+
+.btn-compare:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .compare-menus-list {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    .compare-modal-content {
+        padding: 1.5rem;
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+        padding: 0.8rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .compare-modal-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .compare-menus-list {
+        grid-template-columns: 1fr;
+    }
+
+    .nutrition-comparison {
+        overflow-x: scroll;
+        scroll-snap-type: x mandatory;
+    }
+
+    .menu-col {
+        scroll-snap-align: start;
+        min-width: 220px;
+    }
+
+    .compare-charts {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-chart {
+        height: 150px;
+        gap: 1rem;
+    }
+
+    .btn-add-cart,
+    .btn-compare {
+        width: 100%;
+    }
+}

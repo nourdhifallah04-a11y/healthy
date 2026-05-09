@@ -5,6 +5,8 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'specialdiet/specialdiet-improved.css' %}">
+<link rel="stylesheet" href="{% static 'menu/unified-browse.css' %}">
+<link rel="stylesheet" href="{% static 'menu/compare-modal-refactored.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -87,6 +89,17 @@
     <!-- Résultats et grille de plats -->
     <div class="diet-results">
         <h2>Plats recommandés pour <span id="selectedDiet">High Protein</span></h2>
+        
+        <!-- Search and Compare Bar -->
+        <div class="search-filter-bar">
+            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Rechercher un plat...">
+            <div class="filter-buttons">
+                <button class="btn-compare" data-menu-id="${meal.id}" title="Comparer ces plats avec d'autres">
+                    <i class="fas fa-balance-scale"></i> Comparer
+                </button>
+            </div>
+        </div>
+        
         <div class="menu-grid" 
              id="dietGrid" 
              role="region" 
@@ -114,11 +127,149 @@
             </form>
         </div>
     </div>
+
+    <!-- ===========================
+         MODAL COMPARAISON PLATS - REFACTORISÉE
+         =========================== -->
+    <div id="compareModal" class="modal compare-modal" role="dialog" aria-labelledby="compareTitle" aria-hidden="true">
+        <div class="modal-content compare-modal-content">
+
+            <!-- HEADER -->
+            <div class="compare-modal-header">
+                <div class="compare-modal-title-group">
+                    <h2 id="compareTitle">Comparer les Plats</h2>
+                    <p class="compare-subtitle">Sélectionnez 2 à 3 plats pour analyser leur nutritionnel</p>
+                </div>
+                <button class="close close-compare" aria-label="Fermer la modal" aria-controls="compareModal">&times;</button>
+            </div>
+
+            <!-- BODY -->
+            <div class="compare-body">
+
+                <!-- ===========================
+                     SÉLECTION DES PLATS
+                     =========================== -->
+                <section class="compare-selector" aria-label="Sélection des plats à comparer">
+                    <div class="selector-header">
+                        <h3>Sélectionner vos plats</h3>
+                        <div class="compare-selection-badge" aria-live="polite" aria-label="Nombre de plats sélectionnés">
+                            <span id="compareCount" class="count-number">0</span>
+                            <span class="count-text">/3</span>
+                        </div>
+                    </div>
+
+                    <div id="comparePlatsList" class="compare-menus-list" role="group" aria-label="Liste des plats">
+                        <!-- Plats chargés dynamiquement via JS -->
+                    </div>
+
+                    <p class="selection-helper" id="selectionHelper" role="status" aria-live="polite">
+                        Sélectionnez 2 à 3 plats pour commencer
+                    </p>
+                </section>
+
+                <!-- ===========================
+                     TABLEAU DE COMPARAISON
+                     =========================== -->
+                <section id="compareTable" class="compare-table-wrapper" style="display: none;" aria-label="Tableau de comparaison nutritionnelle">
+
+                    <!-- CONTRÔLES -->
+                    <div class="compare-controls">
+                        <button id="resetCompareBtn" class="btn-reset-compare" aria-label="Réinitialiser la comparaison">
+                            Recommencer
+                        </button>
+                    </div>
+
+                    <!-- TABLEAU -->
+                    <div class="nutrition-comparison">
+                        <table class="comparison-table" role="table" aria-label="Nutriments comparés">
+                            <thead>
+                                <tr>
+                                    <th class="metric-col" scope="col">Nutriment</th>
+                                    <th id="menu1-header" class="menu-col menu-col-1" scope="col">
+                                        <div class="menu-header-content">
+                                            <span class="menu-number">Plat 1</span>
+                                        </div>
+                                    </th>
+                                    <th id="menu2-header" class="menu-col menu-col-2" style="display: none;" scope="col">
+                                        <div class="menu-header-content">
+                                            <span class="menu-number">Plat 2</span>
+                                        </div>
+                                    </th>
+                                    <th id="menu3-header" class="menu-col menu-col-3" style="display: none;" scope="col">
+                                        <div class="menu-header-content">
+                                            <span class="menu-number">Plat 3</span>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparisonTableBody">
+                                <!-- Lignes générées dynamiquement -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- ===========================
+                         GRAPHIQUES
+                         =========================== -->
+                    <section class="compare-charts-section" aria-label="Visualisation des nutriments">
+                        <h3>Visualisation des Nutriments</h3>
+                        <div class="compare-charts">
+                            <!-- CALORIES -->
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h4>Calories</h4>
+                                    <span class="chart-unit">kcal</span>
+                                </div>
+                                <div id="caloriesChart" class="comparison-chart" role="img" aria-label="Graphique de comparaison des calories"></div>
+                            </div>
+
+                            <!-- PROTÉINES -->
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h4>Protéines</h4>
+                                    <span class="chart-unit">g</span>
+                                </div>
+                                <div id="proteinChart" class="comparison-chart" role="img" aria-label="Graphique de comparaison des protéines"></div>
+                            </div>
+
+                            <!-- GLUCIDES -->
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h4>Glucides</h4>
+                                    <span class="chart-unit">g</span>
+                                </div>
+                                <div id="carbsChart" class="comparison-chart" role="img" aria-label="Graphique de comparaison des glucides"></div>
+                            </div>
+
+                            <!-- LIPIDES -->
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h4>Lipides</h4>
+                                    <span class="chart-unit">g</span>
+                                </div>
+                                <div id="fatChart" class="comparison-chart" role="img" aria-label="Graphique de comparaison des lipides"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ===========================
+                         RECOMMANDATION
+                         =========================== -->
+                    <aside class="compare-recommendation" aria-label="Recommandation personnalisée">
+                        <div class="recommendation-badge">💡 Conseil Nutritionnel</div>
+                        <p id="recommendationText" role="status" aria-live="polite"></p>
+                    </aside>
+
+                </section>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'specialdiet/spec-improved.js' %}"></script>
+<script src="{% static 'menu/compare-modal.interactions.js' %}" defer></script>
 <script src="{% static 'commande/commande.js' %}"></script>
 <script>
     const dietMealsFromDB = {{ diet_meals_json }};

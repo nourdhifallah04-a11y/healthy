@@ -712,7 +712,7 @@ function displayComparisonCharts(selectedMenus) {
             const percentage = (value / maxValue) * 100;
             return `
                 <div class="chart-bar">
-                    <div class="chart-bar-fill" style="height: ${percentage}%">
+                    <div class="chart-bar-fill" style="height: ${percentage}%!important;">
                         <span class="chart-bar-value">${value.toFixed(1)}</span>
                     </div>
                     <div class="chart-bar-label">${menu.name}</div>

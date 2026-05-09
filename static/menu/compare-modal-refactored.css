@@ -625,7 +625,6 @@
 }
 
 .chart-unit {
-    color: white;
     font-size: var(--text-xs);
     font-weight: 700;
     background: linear-gradient(135deg, var(--color-green-light) 0%, var(--color-green-medium) 100%);
@@ -646,7 +645,6 @@
 .comparison-chart {
     display: flex;
     align-items: flex-end;
-    justify-content: space-around;
     gap: var(--space-lg);
     height: 180px;
     padding: var(--space-lg);

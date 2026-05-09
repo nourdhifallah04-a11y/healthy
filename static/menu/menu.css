@@ -1069,7 +1069,6 @@ body {
 .comparison-chart {
     display: flex;
     align-items: flex-end;
-    justify-content: space-around;
     gap: 1.5rem;
     height: 200px;
     padding: 1rem;
