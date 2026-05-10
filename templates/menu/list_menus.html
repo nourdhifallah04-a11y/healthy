@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fresh & Greens - Gestion des Menus{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'menu/list_menus.css' %}">
+{% endblock %}
+
+{% block content %}
+        <div class="container">
+            <div class="page-card">
+                <div class="page-header">
+                    <div class="header-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="header-title">
+                        <h1>Gestion des Menus</h1>
+                        <p>Gérez vos menus (création, modification, suppression)</p>
+                    </div>
+                    <a href="{% url 'ajouter_menu' %}" class="btn-add">
+                        <i class="fas fa-plus"></i> Ajouter un menu
+                    </a>
+                </div>
+
+                <!-- Tableau responsive -->
+                <div class="table-responsive">
+                    <table class="menus-table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Description</th>
+                                <th>Date début</th>
+                                <th>Date fin</th>
+                                <th>Catégorie</th>
+                                <th>Plats</th>
+                                <th>Actif</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menusList">
+                            <tr class="empty-row">
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <i class="fas fa-layer-group"></i>
+                                        <p>Aucun menu pour le moment</p>
+                                        <a href="{% url 'ajouter_menu' %}" class="btn-add-small">
+                                            <i class="fas fa-plus"></i> Créer votre premier menu
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="modalSuppression" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2>Confirmer la suppression</h2>
+            <p id="modalMessage">Êtes-vous sûr de vouloir supprimer ce menu ? Cette action est irréversible.</p>
+            <div class="modal-actions">
+                <button class="btn-confirm" onclick="confirmerSuppression()">Supprimer</button>
+                <button class="btn-cancel-modal" onclick="fermerModalSuppression()">Annuler</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'menu/list_menus.js' %}"></script>
+{% endblock %}

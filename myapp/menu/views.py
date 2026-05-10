@@ -20,6 +20,17 @@ def unified_browse(request):
     """Affiche la page de navigation unifiée pour menus et plats"""
     return render(request, 'menu/unified-browse.html', {})
 
+def list_menus(request):
+    """Affiche la page de gestion des menus"""
+    return render(request, 'menu/list_menus.html', {})
+
+def ajouter_menu(request):
+    """Affiche la page pour ajouter un nouveau menu"""
+    return render(request, 'menu/ajouter_menu.html', {})
+
+def modifier_menu(request):
+    """Affiche la page pour modifier un menu"""
+    return render(request, 'menu/modifier_menu.html', {})
 
 
 class MenuViewSet(viewsets.ModelViewSet):
@@ -38,6 +49,69 @@ class MenuViewSet(viewsets.ModelViewSet):
         if actif:
             queryset = queryset.filter(est_actif=actif.lower() == 'true')
         return queryset
+    
+    @action(detail=False, methods=['post'])
+    def creer_avec_plats(self, request):
+        """Crée un menu avec des plats en un seul appel"""
+        try:
+            menu_data = request.data.get('menu', {})
+            plats_data = request.data.get('plats', [])
+            
+            # Créer le menu
+            menu_serializer = self.get_serializer(data=menu_data)
+            if not menu_serializer.is_valid():
+                return Response(
+                    {'error': 'Données du menu invalides', 'details': menu_serializer.errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            menu = menu_serializer.save()
+            
+            # Ajouter les plats au menu
+            for plat_info in plats_data:
+                plat_id = plat_info.get('plat_id')
+                quantite = plat_info.get('quantite', 1)
+                
+                if not plat_id:
+                    menu.delete()
+                    return Response(
+                        {'error': 'plat_id est requis pour chaque plat'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                
+                try:
+                    quantite = int(quantite)
+                    if quantite <= 0:
+                        menu.delete()
+                        return Response(
+                            {'error': 'La quantité doit être positive'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    
+                    plat = Plat.objects.get(id_plat=plat_id)
+                    menu.ajouter_plat(plat, quantite)
+                except ValueError:
+                    menu.delete()
+                    return Response(
+                        {'error': 'La quantité doit être un nombre entier'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                except Plat.DoesNotExist:
+                    menu.delete()
+                    return Response(
+                        {'error': f'Plat avec l\'id {plat_id} non trouvé'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+            
+            # Retourner le menu avec ses plats
+            serializer = self.get_serializer(menu)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        except Exception as e:
+            logger.error(f'Erreur lors de la création du menu avec plats: {str(e)}')
+            return Response(
+                {'error': 'Erreur lors de la création du menu'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def ajouter_plat(self, request, pk=None):

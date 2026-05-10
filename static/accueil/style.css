@@ -378,6 +378,141 @@ body {
     --ombre-moyenne: rgba(46, 74, 47, 0.12);
 }
 
+/* ========== SECTION AUTHENTIFICATION UNIQUE ========== */
+.auth-section {
+    padding: 4rem 2rem;
+    margin: 3rem 0;
+    background: linear-gradient(135deg, #FAFAF5 0%, var(--beige-pale) 100%);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(46, 74, 47, 0.08);
+    border: 2px solid var(--beige-moyen);
+}
+
+.auth-container-single {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.auth-header {
+    margin-bottom: 3rem;
+}
+
+.auth-header h2 {
+    font-size: 2.5rem;
+    color: var(--vert-profond);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.auth-header p {
+    font-size: 1.1rem;
+    color: var(--vert-feuille);
+    line-height: 1.6;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.9rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(46, 74, 47, 0.15);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--vert-profond) 0%, var(--vert-feuille) 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(46, 74, 47, 0.25);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, var(--accent-miel) 0%, #E8B08A 100%);
+    color: white;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(217, 180, 139, 0.3);
+}
+
+.auth-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--beige-moyen);
+}
+
+.feature {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(46, 74, 47, 0.05);
+}
+
+.feature i {
+    font-size: 2.5rem;
+    color: var(--vert-sauge);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.feature h4 {
+    color: var(--vert-profond);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.feature p {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .auth-section {
+        padding: 2rem 1.5rem;
+        margin: 2rem 0;
+    }
+
+    .auth-header h2 {
+        font-size: 1.8rem;
+    }
+
+    .auth-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .auth-features {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
 /* ========== CONTENEUR PRINCIPAL DES CARTES ========== */
 .cards-wrapper {
     display: flex;

@@ -33,36 +33,38 @@
         </div>
         <div class="slider-nav" id="sliderDots"></div>
     </div>
-   <!-- Cartes client & administrateur -->
-    <div class="cards-wrapper">
-        <div class="cards-container">
-            <!-- Carte Client -->
-            <div class="auth-card client-card" id="clientCard">
-                <div class="card-icon">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <h3>ESPACE CLIENT</h3>
-                <p>Créez ou modifiez votre profil nutritionnel pour des menus sur mesure.</p>
-                <a href="{% url 'login' %}" class="btn btn-connecter" id="clientBtn">SE CONNECTER</a>
-                <div class="card-footer">
-                    <span class="badge">🍽️ Menus personnalisés</span>
-                </div>
+   <!-- Section Authentification unique -->
+    <div class="auth-section">
+        <div class="auth-container-single">
+            <div class="auth-header">
+                <h2>Prêt à commencer votre parcours santé ?</h2>
+                <p>Connectez-vous pour accéder à votre profil personnalisé et découvrir nos menus sur mesure</p>
+            </div>
+            
+            <div class="auth-buttons">
+                <a href="{% url 'login' %}" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Se connecter
+                </a>
+                <a href="{% url 'login' %}?tab=register" class="btn btn-secondary">
+                    <i class="fas fa-user-plus"></i> Créer un compte
+                </a>
             </div>
 
-            <!-- Carte Administrateur -->
-            <div class="auth-card admin-card" id="adminCard">
-                <div class="card-icon">
-                    <i class="fas fa-shield-alt"></i>
+            <div class="auth-features">
+                <div class="feature">
+                    <i class="fas fa-utensils"></i>
+                    <h4>Clients</h4>
+                    <p>Profils nutritionnels personnalisés et menus sur mesure</p>
                 </div>
-                <h3>ESPACE ADMINISTRATEUR</h3>
-                <p>Gérez les menus, les utilisateurs et les statistiques de la plateforme.</p>
-                <a href="{% url 'administrateur' %}"class="btn btn-gestion" id="adminBtn">ACCÈS GESTION</a>
-                <div class="card-footer">
-                    <span class="badge">📊 Dashboard complet</span>
+                <div class="feature">
+                    <i class="fas fa-chart-bar"></i>
+                    <h4>Administrateurs</h4>
+                    <p>Gestion complète des menus et statistiques</p>
                 </div>
             </div>
         </div>
     </div>
+
 
     <!-- Témoignage -->
     <div class="testimonial">

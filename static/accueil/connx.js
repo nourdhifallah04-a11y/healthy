@@ -94,6 +94,26 @@ function switchTab(tabName) {
     }
 }
 
+// Initialiser l'onglet actif au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    // Trouver le bouton actif et assurer que le panneau correspondant est actif
+    const activeBtn = document.querySelector('.tab-btn.active');
+    console.log('Onglet actif au chargement :', activeBtn ? activeBtn.dataset.tab : 'Aucun');
+    if (activeBtn) {
+        const activeTab = activeBtn.dataset.tab;
+        console.log('Affichage du panneau :', activeTab);
+        // Désactiver tous les panneaux
+        Object.values(panels).forEach(panel => {
+            if (panel) panel.classList.remove('active');
+        });
+        // Activer le panneau correspondant
+        console.log('Panneau à activer :', panels[activeTab]);
+        if (panels[activeTab]) {
+            panels[activeTab].classList.add('active');
+        }
+    }
+});
+
 // ========== FORMULAIRE DE CONNEXION ==========
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {

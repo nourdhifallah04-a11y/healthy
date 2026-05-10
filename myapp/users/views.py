@@ -205,6 +205,9 @@ def connex(request):
     login_form = AuthenticationForm()
     register_form = RegistrationForm()
     
+    # Déterminer quel onglet afficher par défaut
+    active_tab = request.GET.get('tab', 'login')  # Par défaut 'login', peut être 'register'
+    
     if request.method == 'POST':
         # Vérifier si c'est une soumission d'inscription
         if 'register-submit' in request.POST:
@@ -218,16 +221,21 @@ def connex(request):
                         request,
                         f"Merci {utilisateur.prenom} {utilisateur.nom}. Un e-mail d'activation a été envoyé à {utilisateur.email}."
                     )
-                    return redirect('login')
+                    # Redirection vers la page de connexion avec l'onglet d'inscription actif
+                    return redirect('connex')
                 except ValueError as e:
                     messages.error(request, f"Erreur de validation: {str(e)}")
+                    active_tab = 'register'
                 except BadHeaderError:
                     messages.error(request, "Erreur lors de l'envoi du message. Veuillez réessayer plus tard.")
+                    active_tab = 'register'
                 except Exception as e:
                     logger.exception("Erreur lors de l'inscription ou de l'envoi de l'email d'activation")
                     messages.error(request, "Une erreur est survenue lors de l'inscription. Veuillez réessayer plus tard.")
+                    active_tab = 'register'
             # Si le formulaire n'est pas valide, les erreurs s'afficheront dans le template
             login_form = AuthenticationForm()
+            active_tab = 'register'
         else:
             # C'est une soumission de connexion
             login_form = AuthenticationForm(request, data=request.POST)
@@ -239,10 +247,12 @@ def connex(request):
                 return redirect('accueil')
             # Si le formulaire n'est pas valide, les erreurs s'afficheront dans le template
             register_form = RegistrationForm()
+            active_tab = 'login'
     
     context = {
         'form': login_form,  # Pour compatibilité avec LoginView et le formulaire de connexion
         'registration_form': register_form,  # Pour le formulaire d'inscription
+        'active_tab': active_tab,  # L'onglet à afficher par défaut
     }
     return render(request, 'accueil/connex.html', context)
 

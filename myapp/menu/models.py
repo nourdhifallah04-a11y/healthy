@@ -47,8 +47,11 @@ class Menu(models.Model):
         
         return 'autre'
     
-    def ajouter_plat(self, plat: Plat) -> None:
+    def ajouter_plat(self, plat: Plat, quantite: int = 1) -> None:
         """Ajoute un plat au menu"""
+        # Note: la quantité est acceptée pour la cohérence API, 
+        # mais la relation ManyToMany simple ne la stocke pas.
+        # Pour stocker les quantités, une relation through serait nécessaire.
         self.plats.add(plat)
     
     def supprimer_plat(self, plat: Plat) -> None:

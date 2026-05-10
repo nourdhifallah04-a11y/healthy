@@ -50,12 +50,12 @@
                 {% endif %}
 
                 <div class="form-tabs">
-                    <button class="tab-btn active" data-tab="login">🔐 Connexion</button>
-                    <button class="tab-btn" data-tab="register">📝 Inscription</button>
+                    <button class="tab-btn {% if active_tab == 'login' %}active{% endif %}" data-tab="login">🔐 Connexion</button>
+                    <button class="tab-btn {% if active_tab == 'register' %}active{% endif %}" data-tab="register">📝 Inscription</button>
                 </div>
 
                 <!-- Formulaire de connexion -->
-                <div class="form-panel active" id="loginPanel">
+                <div class="form-panel {% if active_tab == 'login' %}active{% endif %}" id="loginPanel">
                     <form method="post" action="">
                         {% csrf_token %}
                         
@@ -99,7 +99,7 @@
                 </div>
 
                 <!-- Formulaire d'inscription -->
-                <div class="form-panel" id="registerPanel">
+                <div class="form-panel {% if active_tab == 'register' %}active{% endif %}" id="registerPanel">
                     <form method="post" action="">
                         {% csrf_token %}
                         <input type="hidden" name="register-submit" value="1">
