@@ -106,7 +106,7 @@ function afficherPlats(plats) {
                 <input type="checkbox" class="plat-checkbox" ${estSelectionne ? 'checked' : ''} onchange="event.stopPropagation()">
                 <div class="plat-name">${echapperHTML(plat.nom)}</div>
                 <div class="plat-info">${plat.calorie || 0} kcal</div>
-                <div class="plat-info">€${parseFloat(plat.prix).toFixed(2)}</div>
+                <div class="plat-info">${parseFloat(plat.prix).toFixed(2)} DT</div>
             </div>
         `;
     }).join('');

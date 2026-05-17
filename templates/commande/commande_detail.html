@@ -45,9 +45,9 @@
                                     <small>{{ ligne.menu.description|truncatewords:15 }}</small>
                                 </td>
                                 <td class="text-center">{{ ligne.quantite }}</td>
-                                <td>{{ ligne.prix_unitaire|floatformat:2 }}€</td>
+                                <td>{{ ligne.prix_unitaire|floatformat:2 }} DT</td>
                                 <td class="text-right">
-                                    <strong>{{ ligne.sous_total|floatformat:2 }}€</strong>
+                                    <strong>{{ ligne.sous_total|floatformat:2 }} DT</strong>
                                 </td>
                             </tr>
                             <!-- Composition du menu -->
@@ -118,15 +118,15 @@
                 <div class="financial-summary">
                     <div class="summary-row">
                         <span class="label">Sous-total:</span>
-                        <span class="value">{{ commande.total|floatformat:2 }}€</span>
+                        <span class="value">{{ commande.total|floatformat:2 }} DT</span>
                     </div>
                     <div class="summary-row">
                         <span class="label">Frais de livraison:</span>
-                        <span class="value">0.00€</span>
+                        <span class="value">0.00 DT</span>
                     </div>
                     <div class="summary-row total">
                         <span class="label">Total:</span>
-                        <span class="value">{{ commande.total|floatformat:2 }}€</span>
+                        <span class="value">{{ commande.total|floatformat:2 }} DT</span>
                     </div>
                 </div>
             </div>

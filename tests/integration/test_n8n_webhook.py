@@ -16,7 +16,7 @@ class N8nWebhookTester:
     """Classe pour tester l'endpoint webhook N8N"""
     
     def __init__(self, base_url: str = "http://localhost:8000", 
-                 n8n_url: str = "http://192.168.1.184:5678/webhook/reco-nutrition",
+                 n8n_url: str = "http://192.168.1.17:5678/webhook/reco-nutrition",
                  token: Optional[str] = None):
         self.base_url = base_url
         self.n8n_url = n8n_url
@@ -176,8 +176,8 @@ Exemples:
     )
     parser.add_argument(
         '--n8n-url',
-        default='http://192.168.1.184:5678/webhook/reco-nutrition',
-        help='URL du webhook N8N (défaut: http://192.168.1.184:5678/webhook/reco-nutrition)'
+        default='http://192.168.1.17:5678/webhook/reco-nutrition',
+        help='URL du webhook N8N (défaut: http://192.168.1.17:5678/webhook/reco-nutrition)'
     )
     parser.add_argument(
         '--token',

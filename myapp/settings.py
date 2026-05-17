@@ -175,7 +175,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'noreply.healthy.ia@gmail.com'  # Remplacez par votre email
 EMAIL_HOST_PASSWORD = 'kbdr afsz qtsl nbss'  # Mot de passe d'application Gmail
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-N8N_WEBHOOK_URL = 'http://192.168.1.184:5678/webhook/'
+N8N_WEBHOOK_URL = 'http://192.168.1.17:5678/webhook/'
 # ========== CONFIGURATION N8N WEBHOOK ==========
 # Timeout pour les appels au webhook n8n (en secondes)
 # Augmentez cette valeur si vos workflows n8n prennent du temps
@@ -209,3 +209,27 @@ N8N_PLAT_DELETE_WEBHOOK_URL = os.getenv(
 # Si présents, ils seront envoyés dans le header Authorization: Basic <token>
 N8N_PLAT_CREATION_BASIC_AUTH_USER = os.getenv('N8N_PLAT_CREATION_BASIC_AUTH_USER', None)
 N8N_PLAT_CREATION_BASIC_AUTH_PASSWORD = os.getenv('N8N_PLAT_CREATION_BASIC_AUTH_PASSWORD', None)
+
+# ========== CONFIGURATION N8N WEBHOOKS MENU ==========
+# URL du webhook n8n pour la création de menu
+N8N_MENU_CREATION_WEBHOOK_URL = os.getenv(
+    'N8N_MENU_CREATION_WEBHOOK_URL',
+    N8N_WEBHOOK_URL + 'menu-creation'
+)
+
+# URL du webhook n8n pour la modification de menu
+N8N_MENU_MODIFICATION_WEBHOOK_URL = os.getenv(
+    'N8N_MENU_MODIFICATION_WEBHOOK_URL',
+    N8N_WEBHOOK_URL + 'menu-modification'
+)
+
+# URL du webhook n8n pour la suppression de menu
+N8N_MENU_DELETE_WEBHOOK_URL = os.getenv(
+    'N8N_MENU_DELETE_WEBHOOK_URL',
+    N8N_WEBHOOK_URL + 'menu-suppression'
+)
+
+# Basic Auth utilisé pour l'authentification des appels N8N de menu
+# Si présents, ils seront envoyés dans le header Authorization: Basic <token>
+N8N_MENU_CREATION_BASIC_AUTH_USER = os.getenv('N8N_MENU_CREATION_BASIC_AUTH_USER', None)
+N8N_MENU_CREATION_BASIC_AUTH_PASSWORD = os.getenv('N8N_MENU_CREATION_BASIC_AUTH_PASSWORD', None)

@@ -77,7 +77,7 @@
                                 <div class="item-pricing">
                                     <div class="price-box">
                                         <span class="price-label">Prix unitaire</span>
-                                        <span class="price-value">{{ ligne.prix_unitaire|floatformat:2 }}€</span>
+                                        <span class="price-value">{{ ligne.prix_unitaire|floatformat:2 }} DT</span>
                                     </div>
                                     <div class="qty-box">
                                         <span class="qty-label">Qté</span>
@@ -85,7 +85,7 @@
                                     </div>
                                     <div class="total-box highlight">
                                         <span class="total-label">Sous-total</span>
-                                        <span class="total-value">{{ ligne.sous_total|floatformat:2 }}€</span>
+                                        <span class="total-value">{{ ligne.sous_total|floatformat:2 }} DT</span>
                                     </div>
                                 </div>
                             </div>
@@ -150,21 +150,21 @@
                 <!-- Résumé financier -->
                 <div class="admin-card">
                     <div class="card-header">
-                        <h2><i class="fas fa-euro-sign"></i> Résumé financier</h2>
+                        <h2><i class="fas fa-dollar-sign"></i> Résumé financier</h2>
                     </div>
                     <div class="summary-table">
                         <div class="summary-row">
                             <span class="label">Sous-total:</span>
-                            <span class="value">{{ commande.total|floatformat:2 }}€</span>
+                            <span class="value">{{ commande.total|floatformat:2 }} DT</span>
                         </div>
                         <div class="summary-row">
                             <span class="label">Livraison:</span>
-                            <span class="value">0.00€</span>
+                            <span class="value">0.00 DT</span>
                         </div>
                         <div class="summary-row divider"></div>
                         <div class="summary-row total">
                             <span class="label">TOTAL:</span>
-                            <span class="value">{{ commande.total|floatformat:2 }}€</span>
+                            <span class="value">{{ commande.total|floatformat:2 }} DT</span>
                         </div>
                     </div>
                 </div>

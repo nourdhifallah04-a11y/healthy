@@ -63,8 +63,8 @@
                                 <p class="menu-description">{{ ligne.menu.description|truncatewords:10 }}</p>
                             </td>
                             <td class="text-center">{{ ligne.quantite }}</td>
-                            <td>{{ ligne.prix_unitaire|floatformat:2 }}€</td>
-                            <td class="text-right">{{ ligne.sous_total|floatformat:2 }}€</td>
+                            <td>{{ ligne.prix_unitaire|floatformat:2 }} DT</td>
+                            <td class="text-right">{{ ligne.sous_total|floatformat:2 }} DT</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -72,7 +72,7 @@
 
             <div class="order-total">
                 <span class="label">Total:</span>
-                <span class="total-value">{{ commande.total|floatformat:2 }}€</span>
+                <span class="total-value">{{ commande.total|floatformat:2 }} DT</span>
             </div>
         </section>
 

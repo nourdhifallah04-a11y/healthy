@@ -35,10 +35,10 @@
 
             <div class="stat-card">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #90c44a, #ffc107);">
-                    <i class="fas fa-euro-sign"></i>
+                    <i class="fas fa-dollar-sign"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-number">{{ total_revenus|floatformat:2 }} €</div>
+                    <div class="stat-number">{{ total_revenus|floatformat:2 }} DT</div>
                     <div class="stat-label">Revenu total</div>
                 </div>
             </div>
@@ -154,7 +154,7 @@
                                 </span>
                             </td>
                             <td class="total-col">
-                                <span class="total-amount">{{ commande.total|floatformat:2 }} €</span>
+                                <span class="total-amount">{{ commande.total|floatformat:2 }} DT</span>
                             </td>
                             <td class="actions-col">
                                 <a href="{% url 'admin_commande_detail' commande.id_commande %}" class="btn-action btn-view" 

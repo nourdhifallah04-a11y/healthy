@@ -178,7 +178,7 @@ function appelN8NRecommandationsAsync() {
             console.log('🤖 Appel asynchrone webhook n8n:', payload);
             
             // Appel POST asynchrone au webhook
-            fetch('http://192.168.1.184:5678/webhook/reco-top-plat-menu', {
+            fetch('http://192.168.1.17:5678/webhook/reco-top-plat-menu', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -501,7 +501,7 @@ function openAddToCartModal(mealId, mealName, mealPrice) {
     
     let priceText = mealName;
     if (mealPrice && mealPrice > 0) {
-        priceText += ` - €${parseFloat(mealPrice).toFixed(2)}`;
+        priceText += ` - ${parseFloat(mealPrice).toFixed(2)} DT`;
     }
     itemInfo.textContent = priceText;
     quantity.value = 1;

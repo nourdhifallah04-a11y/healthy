@@ -81,7 +81,7 @@ class LigneCommandeAdmin(admin.ModelAdmin):
     readonly_fields = ['get_sous_total']
     
     def get_sous_total(self, obj):
-        return f"{obj.sous_total}€"
+        return f"{obj.sous_total} DT"
     get_sous_total.short_description = 'Sous-total'
 
 @admin.register(SystemeIA)

@@ -77,7 +77,7 @@
                                             {% endif %}
                                         </ul>
                                     </td>
-                                    <td class="item-price">{{ ligne.prix_unitaire|floatformat:2 }}€</td>
+                                    <td class="item-price">{{ ligne.prix_unitaire|floatformat:2 }} DT</td>
                                     <td class="item-quantity">
                                         <div class="quantity-control">
                                             <button class="qty-btn qty-minus" data-ligne-id="{{ ligne.id }}">-</button>
@@ -85,7 +85,7 @@
                                             <button class="qty-btn qty-plus" data-ligne-id="{{ ligne.id }}">+</button>
                                         </div>
                                     </td>
-                                    <td class="item-subtotal">{{ ligne.sous_total|floatformat:2 }}€</td>
+                                    <td class="item-subtotal">{{ ligne.sous_total|floatformat:2 }} DT</td>
                                     <td class="item-actions">
                                         <button class="btn-remove" data-ligne-id="{{ ligne.id }}" title="Supprimer">
                                             <i class="fas fa-trash"></i>
@@ -121,12 +121,12 @@
                     
                     <div class="summary-item">
                         <span>Sous-total:</span>
-                        <span class="summary-value" id="subtotal">{{ commande.total|floatformat:2 }}€</span>
+                        <span class="summary-value" id="subtotal">{{ commande.total|floatformat:2 }} DT</span>
                     </div>
                     
                     <div class="summary-item">
                         <span>Frais de livraison:</span>
-                        <span class="summary-value" id="shipping-cost">0.00€</span>
+                        <span class="summary-value" id="shipping-cost">0.00 DT</span>
                     </div>
                     
                     <div class="summary-item discount-section">
@@ -137,7 +137,7 @@
                     
                     <div class="summary-total">
                         <span>Total:</span>
-                        <span id="total-price" class="total-value">{{ commande.total|floatformat:2 }}€</span>
+                        <span id="total-price" class="total-value">{{ commande.total|floatformat:2 }} DT</span>
                     </div>
                     
                     <a href="{% url 'checkout' %}" class="btn btn-primary btn-block btn-lg">

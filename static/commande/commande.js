@@ -198,8 +198,8 @@ function recalculatePanierTotals() {
     const totalEl = document.getElementById('total-price');
 
     if (itemsEl) itemsEl.textContent = totalItems;
-    if (subtotalEl) subtotalEl.textContent = totalPrice.toFixed(2) + '€';
-    if (totalEl) totalEl.textContent = totalPrice.toFixed(2) + '€';
+    if (subtotalEl) subtotalEl.textContent = totalPrice.toFixed(2) + ' DT';
+    if (totalEl) totalEl.textContent = totalPrice.toFixed(2) + ' DT';
 
     // Update server
     updatePanierTotal();
@@ -273,7 +273,7 @@ function applyPromoDiscount(promoData) {
     }
 
     if (totalEl) {
-        totalEl.textContent = newTotal.toFixed(2) + '€';
+        totalEl.textContent = newTotal.toFixed(2) + ' DT';
     }
 }
 
@@ -580,7 +580,7 @@ function createMessageContainer() {
  * Format price for display
  */
 function formatPrice(price) {
-    return parseFloat(price).toFixed(2) + '€';
+    return parseFloat(price).toFixed(2) + ' DT';
 }
 
 /**

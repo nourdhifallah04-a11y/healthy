@@ -45,7 +45,7 @@
                                     <li>
                                         <span class="item-name">{{ ligne.menu.nom }}</span>
                                         <span class="item-qty">x{{ ligne.quantite }}</span>
-                                        <span class="item-price">{{ ligne.sous_total|floatformat:2 }}€</span>
+                                        <span class="item-price">{{ ligne.sous_total|floatformat:2 }} DT</span>
                                     </li>
                                 {% endfor %}
                             </ul>
@@ -68,7 +68,7 @@
                     <div class="commande-footer">
                         <div class="commande-total">
                             <span class="label">Total:</span>
-                            <span class="total-value">{{ commande.total|floatformat:2 }}€</span>
+                            <span class="total-value">{{ commande.total|floatformat:2 }} DT</span>
                         </div>
 
                         <div class="commande-actions">

@@ -15,7 +15,7 @@
 <h3>Liste des plats correspondants :</h3>
 <ul>
     {% for plat in plats %}
-        <li><strong>{{ plat.nom }}</strong> - {{ plat.regime }} ({{ plat.prix }}€)</li>
+        <li><strong>{{ plat.nom }}</strong> - {{ plat.regime }} ({{ plat.prix }} DT)</li>
     {% empty %}
         <li>Aucun plat trouvé pour ce régime.</li>
     {% endfor %}

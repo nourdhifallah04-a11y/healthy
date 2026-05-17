@@ -248,7 +248,7 @@ function recalculateTotals() {
     // Mettre à jour le total principal
     const totalElement = document.querySelector('.summary-row.total .value');
     if (totalElement) {
-        totalElement.textContent = total.toFixed(2) + '€';
+        totalElement.textContent = total.toFixed(2) + ' DT';
     }
 }
 

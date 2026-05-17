@@ -114,7 +114,7 @@
                                 <span class="item-name">{{ ligne.menu.nom }}</span>
                                 <span class="item-qty">x{{ ligne.quantite }}</span>
                             </div>
-                            <span class="item-price">{{ ligne.sous_total|floatformat:2 }}€</span>
+                            <span class="item-price">{{ ligne.sous_total|floatformat:2 }} DT</span>
                         </div>
                     {% endfor %}
                 </div>
@@ -122,19 +122,19 @@
                 <div class="order-totals">
                     <div class="total-row">
                         <span>Sous-total:</span>
-                        <span>{{ commande.total|floatformat:2 }}€</span>
+                        <span>{{ commande.total|floatformat:2 }} DT</span>
                     </div>
                     <div class="total-row">
                         <span>Frais de livraison:</span>
-                        <span id="shipping-fee">0.00€</span>
+                        <span id="shipping-fee">0.00 DT</span>
                     </div>
                     <div class="total-row discount" style="display: none;">
                         <span>Réduction:</span>
-                        <span id="discount-amount">-0.00€</span>
+                        <span id="discount-amount">-0.00 DT</span>
                     </div>
                     <div class="total-row final">
                         <strong>Total final:</strong>
-                        <strong id="final-total">{{ commande.total|floatformat:2 }}€</strong>
+                        <strong id="final-total">{{ commande.total|floatformat:2 }} DT</strong>
                     </div>
                 </div>
 

@@ -79,7 +79,7 @@ class Menu(models.Model):
             total['lipides'] += plat.lipides
             total['fibres'] += plat.fibres
             total['prix'] += float(plat.prix)
-            #print(f"  - {plat.nom}: {total['calories']:.0f} kcal, {total['proteines']:.0f}g prot, {total['glucides']:.0f}g gluc, {total['lipides']:.0f}g lip, {total['fibres']:.0f}g fib, {total['prix']:.2f}€")
+            #print(f"  - {plat.nom}: {total['calories']:.0f} kcal, {total['proteines']:.0f}g prot, {total['glucides']:.0f}g gluc, {total['lipides']:.0f}g lip, {total['fibres']:.0f}g fib, {total['prix']:.2f} DT")
         return total
     
     def __str__(self):

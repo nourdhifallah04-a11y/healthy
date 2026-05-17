@@ -248,7 +248,7 @@ function chargerMenusRecommandationIA() {
             console.log('🤖 Appel asynchrone webhook n8n pour menus:', payload);
             
             // Appel POST asynchrone au webhook
-            fetch('http://192.168.1.184:5678/webhook/reco-top-plat-menu', {
+            fetch('http://192.168.1.17:5678/webhook/reco-top-plat-menu', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -426,7 +426,7 @@ function displayMeals() {
                 </div>
 
                 <div class="item-footer">
-                    <span class="item-price">${meal.prix !== null && meal.prix !== undefined && !isNaN(meal.prix) ? `€${parseFloat(meal.prix).toFixed(2)}` : 'Prix sur demande'}</span>
+                    <span class="item-price">${meal.prix !== null && meal.prix !== undefined && !isNaN(meal.prix) ? `${parseFloat(meal.prix).toFixed(2)} DT` : 'Prix sur demande'}</span>
                     <button class="btn-add-cart" data-item-id="${meal.id}" data-item-type="${meal.type}" data-item-name="${meal.name}" data-item-price="${meal.prix || '0'}">
                         <i class="fas fa-shopping-cart"></i> Ajouter
                     </button>

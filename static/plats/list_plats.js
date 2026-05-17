@@ -154,7 +154,7 @@ function afficherPlats() {
                     <td>${parseFloat(plat.glucides || 0).toFixed(1)}g</td>
                     <td>${parseFloat(plat.lipides || 0).toFixed(1)}g</td>
                     <td>${parseFloat(plat.fibres || 0).toFixed(1)}g</td>
-                    <td><strong>${parseFloat(plat.prix || 0).toFixed(2)}€</strong></td>
+                    <td><strong>${parseFloat(plat.prix || 0).toFixed(2)} DT</strong></td>
                     <td>
                         ${isNew 
                             ? '<span class="badge-new"><i class="fas fa-star"></i> Nouveau</span>' 
